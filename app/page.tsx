@@ -1,67 +1,149 @@
 ﻿export default function Home() {
   return (
-    <main className='min-h-screen bg-white'>
-      <nav className='flex items-center justify-between px-8 py-4 border-b border-gray-100'>
-        <div className='flex items-center gap-2'>
-          <div className='w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center'>
-            <span className='text-white text-sm font-bold'>N</span>
+    <main className="min-h-screen bg-white">
+      {/* NAVBAR */}
+      <nav className="flex items-center justify-between px-8 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+            <span className="text-white text-sm font-bold">N</span>
           </div>
-          <span className='font-semibold text-gray-800'>Net<span className='text-green-500'>Edu</span></span>
+          <span className="font-semibold text-gray-900 text-lg">Net<span className="text-green-500">Edu</span></span>
         </div>
-        <div className='flex items-center gap-4'>
-          <a href='/auth' className='text-sm text-gray-500 hover:text-gray-800'>Login</a>
-          <a href='/auth' className='text-sm bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600'>Get Started</a>
+        <div className="flex items-center gap-4">
+          <a href="/auth" className="text-sm text-gray-500 hover:text-gray-800">Login</a>
+          <a href="/auth" className="text-sm bg-green-500 text-white px-5 py-2 rounded-full hover:bg-green-600 font-medium">Get started</a>
         </div>
       </nav>
-      <section className='flex flex-col items-center justify-center text-center px-6 py-24'>
-        <div className='inline-flex items-center gap-2 bg-green-50 text-green-700 text-xs font-medium px-3 py-1 rounded-full mb-6 border border-green-200'>
-          🎓 Your journey to a top university starts here
+
+      {/* HERO */}
+      <section className="flex flex-col items-center justify-center text-center px-6 py-28 bg-gradient-to-b from-white to-gray-50">
+        <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 text-xs font-medium px-4 py-1.5 rounded-full mb-8 border border-green-200">
+          🎓 AI-powered university admissions platform
         </div>
-        <h1 className='text-4xl md:text-5xl font-bold text-gray-900 mb-6 max-w-3xl leading-tight'>
-          What should you do today<br />
-          to get into your <span className='text-green-500'>dream university</span><br />
-          in 3 years?
+        <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 max-w-4xl leading-tight tracking-tight">
+          Get into your<br />
+          <span className="text-green-500">dream university.</span>
         </h1>
-        <p className='text-lg text-gray-500 mb-10 max-w-xl'>
-          NetEdu analyzes your profile, builds your personal roadmap, and tells you exactly what to do every day.
+        <p className="text-xl text-gray-500 mb-10 max-w-2xl leading-relaxed">
+          NetEdu analyzes your profile and builds a personalized roadmap — so you know exactly what to do, every single day.
         </p>
-        <div className='flex flex-col sm:flex-row gap-3'>
-          <a href='/auth' className='bg-green-500 text-white px-8 py-3 rounded-xl font-medium hover:bg-green-600 text-sm'>Start for free →</a>
-          <a href='#how' className='border border-gray-200 text-gray-600 px-8 py-3 rounded-xl font-medium hover:bg-gray-50 text-sm'>How it works</a>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <a href="/auth" className="bg-green-500 text-white px-8 py-4 rounded-full font-semibold hover:bg-green-600 text-sm shadow-lg shadow-green-200">
+            Start for free →
+          </a>
+          <a href="#how" className="border border-gray-200 text-gray-600 px-8 py-4 rounded-full font-medium hover:bg-gray-50 text-sm">
+            How it works
+          </a>
+        </div>
+        <p className="text-xs text-gray-400 mt-6">No credit card required · Free to start</p>
+      </section>
+
+      {/* STATS */}
+      <section className="px-6 py-12 border-y border-gray-100">
+        <div className="max-w-4xl mx-auto grid grid-cols-3 gap-8 text-center">
+          <div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">3 years</div>
+            <div className="text-sm text-gray-500">personalized roadmap</div>
+          </div>
+          <div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">AI-powered</div>
+            <div className="text-sm text-gray-500">university matching</div>
+          </div>
+          <div>
+            <div className="text-3xl font-bold text-gray-900 mb-1">100%</div>
+            <div className="text-sm text-gray-500">personalized to you</div>
+          </div>
         </div>
       </section>
-      <section id='how' className='px-6 py-16 bg-gray-50'>
-        <div className='max-w-5xl mx-auto'>
-          <h2 className='text-2xl font-bold text-center text-gray-900 mb-12'>Why NetEdu?</h2>
-          <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-            <div className='bg-white rounded-2xl p-6 border border-gray-100'>
-              <div className='w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center mb-4'><span className='text-xl'>🗺</span></div>
-              <h3 className='font-semibold text-gray-800 mb-2'>Personal Roadmap</h3>
-              <p className='text-sm text-gray-500 leading-relaxed'>1-month, 1-year, 3-year plans based on your goals. Know exactly what to do each week.</p>
+
+      {/* HOW IT WORKS */}
+      <section id="how" className="px-6 py-20">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">How it works</h2>
+          <p className="text-center text-gray-500 mb-16 text-sm">Three simple steps to your dream university</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">📋</span>
+              </div>
+              <div className="text-xs font-semibold text-green-600 mb-2 uppercase tracking-wide">Step 1</div>
+              <h3 className="font-semibold text-gray-800 mb-2 text-lg">Build your profile</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">Enter your grade, GPA, activities and target universities. Takes 2 minutes.</p>
             </div>
-            <div className='bg-white rounded-2xl p-6 border border-gray-100'>
-              <div className='w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-4'><span className='text-xl'>🎓</span></div>
-              <h3 className='font-semibold text-gray-800 mb-2'>University Matching</h3>
-              <p className='text-sm text-gray-500 leading-relaxed'>Get your Reach, Match and Safety universities with estimated acceptance rates.</p>
+            <div className="text-center">
+              <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🤖</span>
+              </div>
+              <div className="text-xs font-semibold text-blue-600 mb-2 uppercase tracking-wide">Step 2</div>
+              <h3 className="font-semibold text-gray-800 mb-2 text-lg">Get your AI roadmap</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">Our AI analyzes your profile and builds a week-by-week action plan just for you.</p>
             </div>
-            <div className='bg-white rounded-2xl p-6 border border-gray-100'>
-              <div className='w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-4'><span className='text-xl'>📁</span></div>
-              <h3 className='font-semibold text-gray-800 mb-2'>Digital Portfolio</h3>
-              <p className='text-sm text-gray-500 leading-relaxed'>Collect your certificates, projects and activities in one place. AI scores and improves them.</p>
+            <div className="text-center">
+              <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">🎓</span>
+              </div>
+              <div className="text-xs font-semibold text-purple-600 mb-2 uppercase tracking-wide">Step 3</div>
+              <h3 className="font-semibold text-gray-800 mb-2 text-lg">Get accepted</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">Follow your plan, build your portfolio and apply to your matched universities with confidence.</p>
             </div>
           </div>
         </div>
       </section>
-      <section className='px-6 py-16 bg-green-500'>
-        <div className='max-w-2xl mx-auto text-center'>
-          <h2 className='text-2xl font-bold text-white mb-4'>Start your journey today</h2>
-          <p className='text-green-100 mb-8 text-sm'>Create your free profile, see 3 university matches, get your 1-month plan.</p>
-          <a href='/auth' className='inline-block bg-white text-green-600 font-semibold px-8 py-3 rounded-xl hover:bg-green-50 text-sm'>Start for free →</a>
+
+      {/* FEATURES */}
+      <section className="px-6 py-20 bg-gray-50">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-16">Everything you need</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-green-200 transition-colors">
+              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center mb-4"><span className="text-xl">🗺</span></div>
+              <h3 className="font-semibold text-gray-800 mb-2">Personal Roadmap</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">AI-generated week-by-week plan tailored to your goals, grade and target universities.</p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-green-200 transition-colors">
+              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-4"><span className="text-xl">🎯</span></div>
+              <h3 className="font-semibold text-gray-800 mb-2">University Matching</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">Find your Reach, Match and Safety schools with AI-estimated acceptance rates.</p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-green-200 transition-colors">
+              <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-4"><span className="text-xl">📁</span></div>
+              <h3 className="font-semibold text-gray-800 mb-2">Digital Portfolio</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">Track your certificates, projects and activities. AI scores your Academic Identity.</p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-green-200 transition-colors">
+              <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center mb-4"><span className="text-xl">🎓</span></div>
+              <h3 className="font-semibold text-gray-800 mb-2">Alumni Corner</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">Connect with students who got accepted to your dream schools and learn from their journey.</p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-green-200 transition-colors">
+              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center mb-4"><span className="text-xl">🌍</span></div>
+              <h3 className="font-semibold text-gray-800 mb-2">CAS Activities</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">Discover volunteer and extracurricular opportunities to strengthen your application.</p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-green-200 transition-colors">
+              <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center mb-4"><span className="text-xl">✍️</span></div>
+              <h3 className="font-semibold text-gray-800 mb-2">AI Essay Checker</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">Get instant feedback on your essays and personal statements from our AI advisor.</p>
+            </div>
+          </div>
         </div>
       </section>
-      <footer className='px-8 py-6 border-t border-gray-100 flex items-center justify-between'>
-        <span className='font-semibold text-gray-800'>Net<span className='text-green-500'>Edu</span></span>
-        <span className='text-xs text-gray-400'>© 2026 NetEdu. All rights reserved.</span>
+
+      {/* CTA */}
+      <section className="px-6 py-24 bg-green-500">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-white mb-4">Ready to get started?</h2>
+          <p className="text-green-100 mb-10 text-base leading-relaxed">Join students who are already building their path to top universities. Free to start, no credit card needed.</p>
+          <a href="/auth" className="inline-block bg-white text-green-600 font-bold px-10 py-4 rounded-full hover:bg-green-50 text-sm shadow-lg">
+            Create your free account →
+          </a>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="px-8 py-8 border-t border-gray-100 flex items-center justify-between">
+        <span className="font-semibold text-gray-800">Net<span className="text-green-500">Edu</span></span>
+        <span className="text-xs text-gray-400">© 2026 NetEdu. All rights reserved.</span>
       </footer>
     </main>
   )
