@@ -29,38 +29,36 @@ export default function Dashboard() {
       <div className='max-w-5xl mx-auto px-6 py-8'>
         <div className='mb-8'>
           <h1 className='text-2xl font-bold text-gray-900 mb-1'>Welcome back! 👋</h1>
-          <p className='text-sm text-gray-500'>Complete your profile to get your AI roadmap.</p>
+          <p className='text-sm text-gray-500'>Your university journey dashboard.</p>
         </div>
-        <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-8'>
-          <div className='bg-white rounded-2xl border border-gray-100 p-4 text-center'><div className='text-2xl font-bold text-gray-300 mb-1'>0</div><div className='text-xs text-gray-400'>Academic</div><div className='mt-2 h-1.5 bg-gray-100 rounded-full'></div></div>
-          <div className='bg-white rounded-2xl border border-gray-100 p-4 text-center'><div className='text-2xl font-bold text-gray-300 mb-1'>0</div><div className='text-xs text-gray-400'>Activities</div><div className='mt-2 h-1.5 bg-gray-100 rounded-full'></div></div>
-          <div className='bg-white rounded-2xl border border-gray-100 p-4 text-center'><div className='text-2xl font-bold text-gray-300 mb-1'>0</div><div className='text-xs text-gray-400'>Projects</div><div className='mt-2 h-1.5 bg-gray-100 rounded-full'></div></div>
-          <div className='bg-white rounded-2xl border border-gray-100 p-4 text-center'><div className='text-2xl font-bold text-gray-300 mb-1'>0</div><div className='text-xs text-gray-400'>Leadership</div><div className='mt-2 h-1.5 bg-gray-100 rounded-full'></div></div>
-        </div>
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-6'>
           <div className='md:col-span-2 bg-white rounded-2xl border border-gray-100 p-6'>
-            <h2 className='font-semibold text-gray-800 mb-4'>This week tasks</h2>
-            <div className='flex flex-col items-center justify-center py-12 text-center'>
-              <div className='text-4xl mb-3'>🗺</div>
-              <p className='text-sm text-gray-500 mb-4'>No tasks yet. Complete your profile to get started!</p>
-              <a href='/onboarding' className='bg-green-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-green-600'>Complete profile →</a>
-            </div>
+            <h2 className='font-semibold text-gray-800 mb-4'>AI Roadmap</h2>
+            <p className='text-sm text-gray-500 mb-6'>Get your personalized step-by-step plan to reach your target university.</p>
+            <a href='/onboarding' className='bg-green-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-green-600 inline-block'>Build my roadmap →</a>
           </div>
           <div className='bg-white rounded-2xl border border-gray-100 p-6'>
-            <h2 className='font-semibold text-gray-800 mb-4'>University matches</h2>
-            <div className='flex flex-col items-center justify-center py-8 text-center'>
-              <div className='text-4xl mb-3'>🎓</div>
-              <p className='text-sm text-gray-500 mb-4'>Enter your profile to see matches.</p>
-              <a href='/onboarding' className='text-green-600 text-sm font-medium hover:underline'>Get started →</a>
-            </div>
+            <h2 className='font-semibold text-gray-800 mb-4'>University Match</h2>
+            <p className='text-sm text-gray-500 mb-6'>Find your Reach, Match and Safety universities.</p>
+            <a href='/match' className='bg-blue-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-600 inline-block'>Find universities →</a>
           </div>
         </div>
-        <div className='mt-6 bg-green-50 border border-green-200 rounded-2xl p-6 flex items-center justify-between'>
-          <div>
-            <h3 className='font-semibold text-green-800 mb-1'>Complete your profile</h3>
-            <p className='text-sm text-green-600'>Enter your GPA, target university and activities — let AI build your plan.</p>
+        <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+          <div className='bg-white rounded-2xl border border-gray-100 p-6'>
+            <h2 className='font-semibold text-gray-800 mb-2'>Portfolio</h2>
+            <p className='text-sm text-gray-500 mb-4'>Add your certificates and projects.</p>
+            <span className='text-xs bg-gray-100 text-gray-400 px-3 py-1 rounded-full'>Coming soon</span>
           </div>
-          <a href='/onboarding' className='bg-green-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-green-600 whitespace-nowrap ml-4'>Start now →</a>
+          <div className='bg-white rounded-2xl border border-gray-100 p-6'>
+            <h2 className='font-semibold text-gray-800 mb-2'>Alumni Corner</h2>
+            <p className='text-sm text-gray-500 mb-4'>Learn from students who got in.</p>
+            <span className='text-xs bg-gray-100 text-gray-400 px-3 py-1 rounded-full'>Coming soon</span>
+          </div>
+          <div className='bg-white rounded-2xl border border-gray-100 p-6'>
+            <h2 className='font-semibold text-gray-800 mb-2'>CAS Activities</h2>
+            <p className='text-sm text-gray-500 mb-4'>Find volunteer and activity opportunities.</p>
+            <span className='text-xs bg-gray-100 text-gray-400 px-3 py-1 rounded-full'>Coming soon</span>
+          </div>
         </div>
       </div>
     </main>
