@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 export default function Dashboard() {
@@ -51,8 +51,7 @@ export default function Dashboard() {
           </div>
           <div className='bg-white rounded-2xl border border-gray-100 p-6'>
             <h2 className='font-semibold text-gray-800 mb-2'>Alumni Corner</h2>
-            <p className='text-sm text-gray-500 mb-4'>Learn from students who got in.</p>
-            <span className='text-xs bg-gray-100 text-gray-400 px-3 py-1 rounded-full'>Coming soon</span>
+            <p className='text-sm text-gray-500 mb-4'>Learn from students who got in.</p><a href="/alumni" class="text-xs bg-green-500 text-white px-3 py-1 rounded-full">View alumni</a>
           </div>
           <div className='bg-white rounded-2xl border border-gray-100 p-6'>
             <h2 className='font-semibold text-gray-800 mb-2'>CAS Activities</h2>
@@ -64,3 +63,4 @@ export default function Dashboard() {
     </main>
   )
 }
+
