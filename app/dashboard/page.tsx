@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 export default function Dashboard() {
@@ -28,19 +28,19 @@ export default function Dashboard() {
       </nav>
       <div className='max-w-5xl mx-auto px-6 py-8'>
         <div className='mb-8'>
-          <h1 className='text-2xl font-bold text-gray-900 mb-1'>Welcome back! 👋</h1>
+          <h1 className='text-2xl font-bold text-gray-900 mb-1'>Welcome back! ??</h1>
           <p className='text-sm text-gray-500'>Your university journey dashboard.</p>
         </div>
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-6'>
           <div className='md:col-span-2 bg-white rounded-2xl border border-gray-100 p-6'>
             <h2 className='font-semibold text-gray-800 mb-4'>AI Roadmap</h2>
             <p className='text-sm text-gray-500 mb-6'>Get your personalized step-by-step plan to reach your target university.</p>
-            <a href='/onboarding' className='bg-green-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-green-600 inline-block'>Build my roadmap →</a>
+            <a href='/onboarding' className='bg-green-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-green-600 inline-block'>Build my roadmap ?</a>
           </div>
           <div className='bg-white rounded-2xl border border-gray-100 p-6'>
             <h2 className='font-semibold text-gray-800 mb-4'>University Match</h2>
             <p className='text-sm text-gray-500 mb-6'>Find your Reach, Match and Safety universities.</p>
-            <a href='/match' className='bg-blue-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-600 inline-block'>Find universities →</a>
+            <a href='/match' className='bg-blue-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-600 inline-block'>Find universities ?</a>
           </div>
         </div>
         <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
