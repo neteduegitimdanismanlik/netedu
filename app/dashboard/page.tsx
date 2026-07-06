@@ -84,10 +84,15 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="md:col-span-2 bg-white rounded-2xl border border-gray-100 p-6">
             <h2 className="font-semibold text-gray-800 mb-4">AI Roadmap</h2>
-            <p className="text-sm text-gray-500 mb-6">Get your personalized step-by-step plan to reach your target university.</p>
-            <Link href="/onboarding" className="bg-green-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-green-600 inline-block">
-              {profile ? 'Update roadmap →' : 'Build my roadmap →'}
-            </Link>
+            <p className="text-sm text-gray-500 mb-4">Get your personalized step-by-step plan to reach your target university.</p>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/onboarding" className="bg-green-500 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-green-600 inline-block">
+                {profile ? 'Update roadmap →' : 'Build my roadmap →'}
+              </Link>
+              <Link href="/roadmap" className="border border-green-500 text-green-600 px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-green-50 inline-block">
+                View 3-year plan →
+              </Link>
+            </div>
           </div>
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
             <h2 className="font-semibold text-gray-800 mb-4">University Match</h2>
