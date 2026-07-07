@@ -5,10 +5,10 @@ export default function Home() {
     <main className="min-h-screen bg-white">
       <nav className="flex items-center justify-between px-8 py-4 border-b border-gray-100">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-indigo-900 rounded-lg flex items-center justify-center">
             <span className="text-white text-sm font-bold">N</span>
           </div>
-          <span className="font-semibold text-gray-900 text-lg">Net<span className="text-green-500">Edu</span></span>
+          <span className="font-semibold text-indigo-900 text-lg">Net<span className="text-indigo-900">Edu</span></span>
         </Link>
         <div className="flex items-center gap-4">
           <a href="/auth" className="text-sm text-gray-500 hover:text-gray-800">Login</a>
@@ -22,7 +22,7 @@ export default function Home() {
         </div>
         <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 max-w-4xl leading-tight tracking-tight">
           Get into your<br />
-          <span className="text-green-500">dream university.</span>
+          <span className="text-indigo-900">dream university.</span>
         </h1>
         <p className="text-xl text-gray-500 mb-10 max-w-2xl leading-relaxed">
           NetEdu combines expert guidance and smart technology to build your personalized roadmap — so you know exactly what to do, every single day.
@@ -131,7 +131,12 @@ export default function Home() {
       </section>
 
       <footer className="px-8 py-8 border-t border-gray-100 flex items-center justify-between">
-        <span className="font-semibold text-gray-800">Net<span className="text-green-500">Edu</span></span>
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 bg-indigo-900 rounded-md flex items-center justify-center">
+            <span className="text-white text-xs font-bold">N</span>
+          </div>
+          <span className="font-semibold text-indigo-900">NetEdu</span>
+        </div>
         <span className="text-xs text-gray-400">© 2026 NetEdu. All rights reserved.</span>
       </footer>
     </main>
