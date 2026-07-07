@@ -1,21 +1,21 @@
-﻿export default function Home() {
+﻿import Link from 'next/link'
+
+export default function Home() {
   return (
     <main className="min-h-screen bg-white">
-      {/* NAVBAR */}
       <nav className="flex items-center justify-between px-8 py-4 border-b border-gray-100">
-        <div className="flex items-center gap-2">
+        <Link href="/dashboard" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
             <span className="text-white text-sm font-bold">N</span>
           </div>
           <span className="font-semibold text-gray-900 text-lg">Net<span className="text-green-500">Edu</span></span>
-        </div>
+        </Link>
         <div className="flex items-center gap-4">
           <a href="/auth" className="text-sm text-gray-500 hover:text-gray-800">Login</a>
           <a href="/auth" className="text-sm bg-gray-900 text-white px-5 py-2 rounded-full hover:bg-gray-700 font-medium">Get started</a>
         </div>
       </nav>
 
-      {/* HERO */}
       <section className="flex flex-col items-center justify-center text-center px-6 py-28 bg-gradient-to-b from-white to-gray-50">
         <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-600 text-xs font-medium px-4 py-1.5 rounded-full mb-8 border border-gray-200">
           🎓 Personalized university guidance platform
@@ -28,7 +28,7 @@
           NetEdu combines expert guidance and smart technology to build your personalized roadmap — so you know exactly what to do, every single day.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
-          <a href="/auth" className="bg-green-500 text-white px-8 py-4 rounded-full font-semibold hover:bg-green-600 text-sm shadow-lg shadow-green-100">
+          <a href="/auth" className="bg-gray-900 text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-700 text-sm shadow-lg">
             Start for free →
           </a>
           <a href="#how" className="border border-gray-200 text-gray-600 px-8 py-4 rounded-full font-medium hover:bg-gray-50 text-sm">
@@ -38,7 +38,6 @@
         <p className="text-xs text-gray-400 mt-6">No credit card required · Free to start</p>
       </section>
 
-      {/* STATS */}
       <section className="px-6 py-12 border-y border-gray-100">
         <div className="max-w-4xl mx-auto grid grid-cols-3 gap-8 text-center">
           <div>
@@ -56,32 +55,25 @@
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
       <section id="how" className="px-6 py-20">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">How it works</h2>
           <p className="text-center text-gray-500 mb-16 text-sm">Three simple steps to your dream university</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📋</span>
-              </div>
+              <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4"><span className="text-2xl">📋</span></div>
               <div className="text-xs font-semibold text-green-600 mb-2 uppercase tracking-wide">Step 1</div>
               <h3 className="font-semibold text-gray-800 mb-2 text-lg">Build your profile</h3>
               <p className="text-sm text-gray-500 leading-relaxed">Enter your grade, GPA, activities and target universities. Takes 2 minutes.</p>
             </div>
             <div className="text-center">
-              <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🗺</span>
-              </div>
+              <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4"><span className="text-2xl">🗺</span></div>
               <div className="text-xs font-semibold text-blue-600 mb-2 uppercase tracking-wide">Step 2</div>
               <h3 className="font-semibold text-gray-800 mb-2 text-lg">Get your roadmap</h3>
               <p className="text-sm text-gray-500 leading-relaxed">We analyze your profile and build a week-by-week action plan tailored to your goals.</p>
             </div>
             <div className="text-center">
-              <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🎓</span>
-              </div>
+              <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4"><span className="text-2xl">🎓</span></div>
               <div className="text-xs font-semibold text-purple-600 mb-2 uppercase tracking-wide">Step 3</div>
               <h3 className="font-semibold text-gray-800 mb-2 text-lg">Get accepted</h3>
               <p className="text-sm text-gray-500 leading-relaxed">Follow your plan, build your portfolio and apply to your matched universities with confidence.</p>
@@ -90,7 +82,6 @@
         </div>
       </section>
 
-      {/* FEATURES */}
       <section className="px-6 py-20 bg-gray-50">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-16">Everything you need</h2>
@@ -129,7 +120,6 @@
         </div>
       </section>
 
-      {/* CTA */}
       <section className="px-6 py-24 bg-gray-900">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to get started?</h2>
@@ -140,7 +130,6 @@
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer className="px-8 py-8 border-t border-gray-100 flex items-center justify-between">
         <span className="font-semibold text-gray-800">Net<span className="text-green-500">Edu</span></span>
         <span className="text-xs text-gray-400">© 2026 NetEdu. All rights reserved.</span>
