@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import Link from 'next/link'
+import Navbar from '../components/Navbar'
 
 const roadmapData: any = {
   'Year 1': {
@@ -51,16 +51,7 @@ export default function Roadmap() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
-            <span className="text-white text-sm font-bold">N</span>
-          </div>
-          <span className="font-semibold text-gray-800">Net<span className="text-green-500">Edu</span></span>
-        </div>
-        <Link href="/dashboard" className="text-xs text-gray-500 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50">Dashboard</Link>
-      </nav>
-
+      <Navbar showBack backHref="/dashboard" backLabel="Dashboard" />
       <div className="max-w-5xl mx-auto px-6 py-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Your 3-Year Roadmap</h1>
