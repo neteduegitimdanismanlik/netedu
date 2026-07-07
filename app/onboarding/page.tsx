@@ -12,22 +12,31 @@ const categoryColors: any = {
 }
 
 export default function Onboarding() {
+  const [step, setStep] = useState(1)
   const [grade, setGrade] = useState('Grade 9')
   const [gpa, setGpa] = useState('')
+  const [school, setSchool] = useState('')
+  const [nationality, setNationality] = useState('')
+  const [diplomaType, setDiplomaType] = useState('')
+  const [sat, setSat] = useState('')
+  const [ielts, setIelts] = useState('')
   const [university, setUniversity] = useState('')
   const [department, setDepartment] = useState('')
-  const [activities, setActivities] = useState('')
+  const [clubs, setClubs] = useState('')
+  const [volunteering, setVolunteering] = useState('')
+  const [research, setResearch] = useState('')
+  const [awards, setAwards] = useState('')
   const [result, setResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
-  const [step, setStep] = useState(1)
   const [checked, setChecked] = useState<boolean[]>([])
 
   async function analyze() {
     setLoading(true)
+    const activities = [clubs, volunteering, research, awards].filter(Boolean).join(', ')
     const res = await fetch('/api/roadmap', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ grade, gpa, university, department, activities })
+      body: JSON.stringify({ grade, gpa, university, department, activities, diplomaType, sat, ielts })
     })
     const data = await res.json()
     setResult(data.result)
@@ -36,17 +45,20 @@ export default function Onboarding() {
     if (userData.user) {
       await supabase.from('profiles').upsert({
         id: userData.user.id,
-        grade,
-        gpa: parseFloat(gpa),
+        grade, gpa: parseFloat(gpa), school, nationality,
+        diploma_type: diplomaType,
+        sat: sat ? parseInt(sat) : null,
+        ielts: ielts ? parseFloat(ielts) : null,
         target_university: university,
         target_department: department,
+        clubs, volunteering, research, awards,
         activities,
         roadmap: JSON.stringify(data.result),
         updated_at: new Date().toISOString()
       })
     }
     setLoading(false)
-    setStep(2)
+    setStep(3)
   }
 
   function toggleCheck(i: number) {
@@ -55,12 +67,11 @@ export default function Onboarding() {
     setChecked(newChecked)
   }
 
-  if (step === 2 && result) return (
+  // STEP 3 — Results
+  if (step === 3 && result) return (
     <main className="min-h-screen bg-gray-50">
       <Navbar showBack backHref="/dashboard" backLabel="Dashboard" />
       <div className="max-w-3xl mx-auto px-4 py-8">
-
-        {/* Profile Summary */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-xl">🎯</div>
@@ -81,12 +92,11 @@ export default function Onboarding() {
             </div>
             <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3">
               <div className="text-xs font-semibold text-indigo-600 mb-1">🎓 Acceptance Chance</div>
-              <p className="text-xs text-indigo-700 font-bold text-lg">{result.acceptance_chance}</p>
+              <p className="text-indigo-700 font-bold text-lg">{result.acceptance_chance}</p>
             </div>
           </div>
         </div>
 
-        {/* This Week Tasks */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-4">
           <h2 className="font-semibold text-gray-800 mb-4">📋 This Week's Tasks</h2>
           <div className="flex flex-col gap-3">
@@ -108,7 +118,6 @@ export default function Onboarding() {
           </div>
         </div>
 
-        {/* Monthly Goals */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-4">
           <h2 className="font-semibold text-gray-800 mb-4">📅 3-Month Goals</h2>
           <div className="flex flex-col gap-3">
@@ -125,7 +134,6 @@ export default function Onboarding() {
           </div>
         </div>
 
-        {/* Urgent Warnings */}
         {result.urgent_warnings?.length > 0 && (
           <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-4">
             <h2 className="font-semibold text-red-700 mb-3">🚨 Urgent Actions</h2>
@@ -151,33 +159,65 @@ export default function Onboarding() {
     </main>
   )
 
-  return (
+  // STEP 1 — Basic Info
+  if (step === 1) return (
     <main className="min-h-screen bg-gray-50">
       <Navbar showBack backHref="/dashboard" backLabel="Dashboard" />
       <div className="max-w-lg mx-auto px-4 py-8">
         <div className="bg-white rounded-2xl border border-gray-100 p-8">
           <div className="mb-6">
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-1 mb-2">
               <div className="h-1 flex-1 bg-indigo-900 rounded-full"></div>
               <div className="h-1 flex-1 bg-gray-200 rounded-full"></div>
             </div>
             <p className="text-xs text-gray-400">Step 1 of 2 — Basic info</p>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Build your profile</h1>
-          <p className="text-sm text-gray-500 mb-6">Enter your details and we'll build your personal roadmap.</p>
+          <p className="text-sm text-gray-500 mb-6">Tell us about yourself and your goals.</p>
           <div className="flex flex-col gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Grade</label>
-              <select value={grade} onChange={e => setGrade(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500">
-                <option>Grade 9</option>
-                <option>Grade 10</option>
-                <option>Grade 11</option>
-                <option>Grade 12</option>
-              </select>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Grade</label>
+                <select value={grade} onChange={e => setGrade(e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500">
+                  <option>Grade 9</option>
+                  <option>Grade 10</option>
+                  <option>Grade 11</option>
+                  <option>Grade 12</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">GPA (out of 100)</label>
+                <input type="number" value={gpa} onChange={e => setGpa(e.target.value)} placeholder="85" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+              </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">GPA (out of 100)</label>
-              <input type="number" value={gpa} onChange={e => setGpa(e.target.value)} placeholder="85" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Current school</label>
+              <input type="text" value={school} onChange={e => setSchool(e.target.value)} placeholder="TED Antalya, Özel Doğa..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
+              <input type="text" value={nationality} onChange={e => setNationality(e.target.value)} placeholder="Turkish, British..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Diploma type</label>
+              <select value={diplomaType} onChange={e => setDiplomaType(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500">
+                <option value="">Select diploma</option>
+                <option>IB Diploma</option>
+                <option>A-Level</option>
+                <option>SAT / ACT</option>
+                <option>Turkish National (YKS)</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">SAT score <span className="text-gray-400 font-normal">(optional)</span></label>
+                <input type="number" value={sat} onChange={e => setSat(e.target.value)} placeholder="1400" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">IELTS score <span className="text-gray-400 font-normal">(optional)</span></label>
+                <input type="number" value={ielts} onChange={e => setIelts(e.target.value)} placeholder="7.0" step="0.5" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Target university</label>
@@ -185,15 +225,55 @@ export default function Onboarding() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Target department</label>
-              <input type="text" value={department} onChange={e => setDepartment(e.target.value)} placeholder="Computer Science..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+              <input type="text" value={department} onChange={e => setDepartment(e.target.value)} placeholder="Computer Science, Medicine..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+            </div>
+            <button onClick={() => setStep(2)} className="w-full bg-indigo-900 text-white py-3 rounded-xl font-medium text-sm mt-2 hover:bg-indigo-800">
+              Next: Activities →
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  )
+
+  // STEP 2 — Activities
+  return (
+    <main className="min-h-screen bg-gray-50">
+      <Navbar showBack backHref="/dashboard" backLabel="Dashboard" />
+      <div className="max-w-lg mx-auto px-4 py-8">
+        <div className="bg-white rounded-2xl border border-gray-100 p-8">
+          <div className="mb-6">
+            <div className="flex gap-1 mb-2">
+              <div className="h-1 flex-1 bg-indigo-900 rounded-full"></div>
+              <div className="h-1 flex-1 bg-indigo-900 rounded-full"></div>
+            </div>
+            <p className="text-xs text-gray-400">Step 2 of 2 — Activities & achievements</p>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Your activities</h1>
+          <p className="text-sm text-gray-500 mb-6">These help us build a stronger, more personalized roadmap.</p>
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Clubs & extracurriculars <span className="text-gray-400 font-normal">(optional)</span></label>
+              <textarea value={clubs} onChange={e => setClubs(e.target.value)} placeholder="Robotics club, student council, debate team..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Activities <span className="text-gray-400 font-normal">(optional)</span></label>
-              <textarea value={activities} onChange={e => setActivities(e.target.value)} placeholder="Robotics club, Python certificate, volunteer work..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">Volunteering & community service <span className="text-gray-400 font-normal">(optional)</span></label>
+              <textarea value={volunteering} onChange={e => setVolunteering(e.target.value)} placeholder="Red Crescent volunteer, animal shelter..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
             </div>
-            <button onClick={analyze} disabled={loading} className="w-full bg-indigo-900 text-white py-3 rounded-xl font-medium text-sm mt-2 disabled:opacity-50 hover:bg-indigo-800">
-              {loading ? '⏳ Analyzing your profile...' : 'Build my roadmap →'}
-            </button>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Research & projects <span className="text-gray-400 font-normal">(optional)</span></label>
+              <textarea value={research} onChange={e => setResearch(e.target.value)} placeholder="Water quality research project, mobile app..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Awards & certificates <span className="text-gray-400 font-normal">(optional)</span></label>
+              <textarea value={awards} onChange={e => setAwards(e.target.value)} placeholder="Math olympiad 2nd place, Google Python certificate..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setStep(1)} className="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50">← Back</button>
+              <button onClick={analyze} disabled={loading} className="flex-1 bg-indigo-900 text-white py-3 rounded-xl font-medium text-sm disabled:opacity-50 hover:bg-indigo-800">
+                {loading ? '⏳ Analyzing...' : 'Build my roadmap →'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
