@@ -92,7 +92,6 @@ Return exactly:
       })
     }
 
-    // Send approval email
     try {
       await resend.emails.send({
         from: 'NetEdu <onboarding@resend.dev>',
@@ -111,8 +110,18 @@ Return exactly:
           <p><strong>Strengths:</strong> ${analysis.strengths}</p>
           <p><strong>Improvements:</strong> ${analysis.improvements}</p>
           <hr/>
-          <p>Please review and approve/reject this submission.</p>
-          <p>Item ID: ${item.id}</p>
+          <p>Please review this submission:</p>
+          <div style="margin-top:20px">
+            <a href="https://netedu.vercel.app/admin/review?itemId=${item.id}&action=approved" 
+               style="background:#1a1a6e;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;margin-right:10px">
+              Approve
+            </a>
+            &nbsp;&nbsp;
+            <a href="https://netedu.vercel.app/admin/review?itemId=${item.id}&action=rejected"
+               style="background:#dc2626;color:white;padding:12px 24px;border-radius:8px;text-decoration:none">
+              Reject
+            </a>
+          </div>
         `
       })
     } catch (emailError) {
