@@ -27,6 +27,8 @@ export default function Portfolio() {
   const [title, setTitle] = useState('')
   const [type, setType] = useState('Certificate')
   const [description, setDescription] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
   const [success, setSuccess] = useState('')
 
   useEffect(() => {
@@ -48,19 +50,35 @@ export default function Portfolio() {
     setLoading(false)
   }
 
+  async function uploadFile(userId: string): Promise<string | null> {
+    if (!file) return null
+    setUploading(true)
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${userId}/${Date.now()}.${fileExt}`
+    const { error } = await supabase.storage
+      .from('portfolio-files')
+      .upload(fileName, file)
+    setUploading(false)
+    if (error) { console.error(error); return null }
+    const { data } = supabase.storage.from('portfolio-files').getPublicUrl(fileName)
+    return data.publicUrl
+  }
+
   async function submitItem() {
-    if (!title || !description) return
+    if (!title || !description || !file) return
     setSubmitting(true)
+    const fileUrl = await uploadFile(user.id)
     const res = await fetch('/api/portfolio', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, type, description, userId: user.id })
+      body: JSON.stringify({ title, type, description, userId: user.id, fileUrl })
     })
     const data = await res.json()
     if (data.success) {
-      setSuccess('Item submitted! Under review.')
+      setSuccess('Item submitted! Our team will review it shortly.')
       setTitle('')
       setDescription('')
+      setFile(null)
       setShowForm(false)
       await loadPortfolio(user.id)
     }
@@ -151,15 +169,40 @@ export default function Portfolio() {
                   placeholder="Describe what you did, what you learned, and the impact..."
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-24" />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Proof document <span className="text-red-500">*</span>
+                  <span className="text-gray-400 font-normal ml-1">(certificate photo, screenshot, PDF)</span>
+                </label>
+                <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${file ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300'}`}>
+                  <input type="file" accept="image/*,.pdf" onChange={e => setFile(e.target.files?.[0] || null)}
+                    className="hidden" id="file-upload" />
+                  <label htmlFor="file-upload" className="cursor-pointer">
+                    {file ? (
+                      <div>
+                        <div className="text-2xl mb-1">📎</div>
+                        <p className="text-sm text-indigo-700 font-medium">{file.name}</p>
+                        <p className="text-xs text-gray-400 mt-1">Click to change</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <div className="text-2xl mb-1">📤</div>
+                        <p className="text-sm text-gray-500">Click to upload proof</p>
+                        <p className="text-xs text-gray-400 mt-1">Image or PDF, max 10MB</p>
+                      </div>
+                    )}
+                  </label>
+                </div>
+              </div>
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3">
                 <p className="text-xs text-yellow-700">⏳ After submission, your item will be reviewed by our team before appearing in your portfolio.</p>
               </div>
               <div className="flex gap-3">
                 <button onClick={() => setShowForm(false)}
                   className="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50">Cancel</button>
-                <button onClick={submitItem} disabled={submitting || !title || !description}
+                <button onClick={submitItem} disabled={submitting || !title || !description || !file}
                   className="flex-1 bg-indigo-900 text-white py-3 rounded-xl text-sm font-medium hover:bg-indigo-800 disabled:opacity-50">
-                  {submitting ? '⏳ Analyzing & submitting...' : 'Submit for review →'}
+                  {submitting ? (uploading ? '📤 Uploading...' : '⏳ Analyzing...') : 'Submit for review →'}
                 </button>
               </div>
             </div>
@@ -197,13 +240,21 @@ export default function Portfolio() {
                       </span>
                     </div>
                   </div>
-                  {item.ai_score && (
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-indigo-900">{item.ai_score}</div>
-                      <div className="text-xs text-gray-400">AI Score</div>
-                    </div>
-                  )}
+                  <div className="text-right flex-shrink-0 ml-4">
+                    {item.ai_score && (
+                      <>
+                        <div className="text-2xl font-bold text-indigo-900">{item.ai_score}</div>
+                        <div className="text-xs text-gray-400">AI Score</div>
+                      </>
+                    )}
+                  </div>
                 </div>
+                {item.file_url && (
+                  <a href={item.file_url} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-indigo-700 hover:underline mb-3">
+                    📎 View proof document
+                  </a>
+                )}
                 {item.ai_feedback && (
                   <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3">
                     <p className="text-xs font-medium text-indigo-700 mb-1">AI Feedback</p>
