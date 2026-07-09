@@ -12,20 +12,30 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { title, type, description, userId } = body
+    const { title, type, description, userId, fileUrl } = body
 
-    const prompt = `You are an academic portfolio evaluator. Analyze this student submission and return JSON only, no markdown.
+    const prompt = `You are an academic portfolio evaluator for university admissions. Score this student submission out of 100.
 
 Item: "${title}"
 Type: ${type}
 Description: "${description}"
 
-Return exactly:
+Scoring criteria (total 100 points):
+- Relevance to university applications (0-30): How relevant is this to academic/career goals?
+- Impact & significance (0-25): What was the real-world impact or significance?
+- Difficulty & effort (0-25): How challenging was this achievement?
+- Quality of evidence (0-20): How well documented and verifiable is this?
+
+Return JSON only, no markdown:
 {
-  "score": <number 1-100>,
+  "score": <total 0-100>,
+  "relevance": <0-30>,
+  "impact": <0-25>,
+  "difficulty": <0-25>,
+  "evidence": <0-20>,
   "category": "<Academic|Leadership|Project|Social Impact|Research>",
   "feedback": "<2-3 sentence constructive feedback>",
-  "strengths": "<what is strong about this>",
+  "strengths": "<what is strong>",
   "improvements": "<what could be improved>"
 }`
 
@@ -55,6 +65,7 @@ Return exactly:
         title,
         type,
         description,
+        file_url: fileUrl,
         ai_score: analysis.score,
         ai_category: analysis.category,
         ai_feedback: analysis.feedback,
@@ -102,6 +113,7 @@ Return exactly:
           <p><strong>Title:</strong> ${title}</p>
           <p><strong>Type:</strong> ${type}</p>
           <p><strong>Description:</strong> ${description}</p>
+          ${fileUrl ? `<p><strong>Proof document:</strong> <a href="${fileUrl}">View file</a></p>` : ''}
           <hr/>
           <h3>AI Analysis</h3>
           <p><strong>Score:</strong> ${analysis.score}/100</p>
@@ -114,12 +126,12 @@ Return exactly:
           <div style="margin-top:20px">
             <a href="https://netedu.vercel.app/admin/review?itemId=${item.id}&action=approved" 
                style="background:#1a1a6e;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;margin-right:10px">
-              Approve
+              ✅ Approve
             </a>
             &nbsp;&nbsp;
             <a href="https://netedu.vercel.app/admin/review?itemId=${item.id}&action=rejected"
                style="background:#dc2626;color:white;padding:12px 24px;border-radius:8px;text-decoration:none">
-              Reject
+              ❌ Reject
             </a>
           </div>
         `

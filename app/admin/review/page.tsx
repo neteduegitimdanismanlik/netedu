@@ -7,36 +7,32 @@ function ReviewContent() {
   const searchParams = useSearchParams()
   const itemId = searchParams.get('itemId')
   const action = searchParams.get('action')
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
+  const [status, setStatus] = useState<'confirm' | 'loading' | 'success' | 'error'>('confirm')
   const [message, setMessage] = useState('')
+  const [adminNote, setAdminNote] = useState('')
 
-  useEffect(() => {
-    if (!itemId || !action) {
-      setStatus('error')
-      setMessage('Missing itemId or action')
-      return
-    }
-
-    fetch('/api/approve', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ itemId, status: action })
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setStatus('success')
-          setMessage(action === 'approved' ? '✅ Item approved successfully!' : '❌ Item rejected.')
-        } else {
-          setStatus('error')
-          setMessage(data.error || 'Something went wrong')
-        }
+  async function confirm() {
+    if (!itemId || !action) return
+    setStatus('loading')
+    try {
+      const res = await fetch('/api/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId, status: action, adminNote })
       })
-      .catch(() => {
+      const data = await res.json()
+      if (data.success) {
+        setStatus('success')
+        setMessage(action === 'approved' ? '✅ Item approved!' : '❌ Item rejected.')
+      } else {
         setStatus('error')
-        setMessage('Network error')
-      })
-  }, [itemId, action])
+        setMessage(data.error || 'Something went wrong')
+      }
+    } catch {
+      setStatus('error')
+      setMessage('Network error')
+    }
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -48,6 +44,38 @@ function ReviewContent() {
           <span className="font-semibold text-indigo-900 text-base">NetEdu Admin</span>
         </div>
 
+        {status === 'confirm' && (
+          <div>
+            <div className="text-5xl mb-4">{action === 'approved' ? '✅' : '❌'}</div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              {action === 'approved' ? 'Approve this item?' : 'Reject this item?'}
+            </h2>
+            <p className="text-sm text-gray-400 mb-6">Item ID: {itemId}</p>
+
+            {action === 'rejected' && (
+              <div className="mb-4 text-left">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Reason for rejection <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+                <textarea
+                  value={adminNote}
+                  onChange={e => setAdminNote(e.target.value)}
+                  placeholder="e.g. Certificate could not be verified, please resubmit with clearer proof..."
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-24"
+                />
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={confirm}
+                className={`flex-1 text-white py-3 rounded-xl text-sm font-medium ${action === 'approved' ? 'bg-indigo-900 hover:bg-indigo-800' : 'bg-red-600 hover:bg-red-700'}`}>
+                {action === 'approved' ? '✅ Confirm Approve' : '❌ Confirm Reject'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {status === 'loading' && (
           <div>
             <div className="text-4xl mb-4">⏳</div>
@@ -58,11 +86,8 @@ function ReviewContent() {
         {status === 'success' && (
           <div>
             <div className="text-5xl mb-4">{action === 'approved' ? '✅' : '❌'}</div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              {action === 'approved' ? 'Approved!' : 'Rejected'}
-            </h2>
-            <p className="text-gray-500 mb-6">{message}</p>
-            <p className="text-sm text-gray-400">Item ID: {itemId}</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">Done!</h2>
+            <p className="text-gray-500">{message}</p>
           </div>
         )}
 
