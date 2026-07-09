@@ -105,7 +105,7 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
             <h2 className="font-semibold text-gray-800 mb-2">Portfolio</h2>
             <p className="text-sm text-gray-500 mb-4">Add your certificates and projects.</p>
-            <span className="text-xs bg-gray-100 text-gray-400 px-3 py-1 rounded-full">Coming soon</span>
+            <Link href="/portfolio" className="text-xs bg-indigo-900 text-white px-3 py-1.5 rounded-full hover:bg-indigo-800 inline-block">View portfolio →</Link>
           </div>
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
             <h2 className="font-semibold text-gray-800 mb-2">Alumni Corner</h2>
