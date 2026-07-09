@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { Resend } from 'resend'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(req: Request) {
   try {
@@ -45,7 +48,6 @@ Return exactly:
     text = text.replace(/```json/g, '').replace(/```/g, '').trim()
     const analysis = JSON.parse(text)
 
-    // Save to Supabase
     const { data: item, error } = await supabase
       .from('portfolio_items')
       .insert({
@@ -63,7 +65,6 @@ Return exactly:
 
     if (error) throw error
 
-    // Update identity score
     const { data: existing } = await supabase
       .from('identity_scores')
       .select('*')
@@ -92,19 +93,31 @@ Return exactly:
     }
 
     // Send approval email
-    const approvalRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY!,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 100,
-        messages: [{ role: 'user', content: 'Say OK' }]
+    try {
+      await resend.emails.send({
+        from: 'NetEdu <onboarding@resend.dev>',
+        to: 'neteduegitimdanismanlik@gmail.com',
+        subject: `New Portfolio Item: ${title}`,
+        html: `
+          <h2>New Portfolio Submission</h2>
+          <p><strong>Title:</strong> ${title}</p>
+          <p><strong>Type:</strong> ${type}</p>
+          <p><strong>Description:</strong> ${description}</p>
+          <hr/>
+          <h3>AI Analysis</h3>
+          <p><strong>Score:</strong> ${analysis.score}/100</p>
+          <p><strong>Category:</strong> ${analysis.category}</p>
+          <p><strong>Feedback:</strong> ${analysis.feedback}</p>
+          <p><strong>Strengths:</strong> ${analysis.strengths}</p>
+          <p><strong>Improvements:</strong> ${analysis.improvements}</p>
+          <hr/>
+          <p>Please review and approve/reject this submission.</p>
+          <p>Item ID: ${item.id}</p>
+        `
       })
-    })
+    } catch (emailError) {
+      console.error('Email error:', emailError)
+    }
 
     return NextResponse.json({
       success: true,
