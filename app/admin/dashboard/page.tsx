@@ -36,7 +36,7 @@ export default function AdminDashboard() {
 
     const { data: proofs } = await supabase
       .from('cas_proofs')
-      .select('*, cas_events(title)')
+      .select('*, cas_events(title, cas_category, location, event_date)')
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
     setCasProofs(proofs || [])
@@ -91,7 +91,6 @@ export default function AdminDashboard() {
           <p className="text-sm text-gray-500">Review and approve pending submissions.</p>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-2 gap-4 mb-8">
           <div className="bg-white rounded-2xl border border-yellow-200 p-6 text-center">
             <div className="text-3xl font-bold text-yellow-600 mb-1">{portfolioItems.length}</div>
@@ -103,7 +102,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-6">
           <button onClick={() => setTab('portfolio')}
             className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${tab === 'portfolio' ? 'bg-indigo-900 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
@@ -115,7 +113,6 @@ export default function AdminDashboard() {
           </button>
         </div>
 
-        {/* Portfolio Items */}
         {tab === 'portfolio' && (
           <div className="flex flex-col gap-4">
             {portfolioItems.length === 0 ? (
@@ -178,7 +175,6 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* CAS Proofs */}
         {tab === 'cas' && (
           <div className="flex flex-col gap-4">
             {casProofs.length === 0 ? (
@@ -189,14 +185,53 @@ export default function AdminDashboard() {
               </div>
             ) : casProofs.map((proof) => (
               <div key={proof.id} className="bg-white rounded-2xl border border-gray-100 p-6">
-                <h3 className="font-semibold text-gray-800 mb-1">{proof.cas_events?.title}</h3>
-                <p className="text-xs text-gray-500 mb-3">Participants: {proof.participant_count} · Notes: {proof.notes}</p>
-                {proof.photo_url && (
-                  <a href={proof.photo_url} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-indigo-700 hover:underline mb-4 block">
-                    📷 View photos
-                  </a>
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h3 className="font-semibold text-gray-800 mb-1">{proof.cas_events?.title}</h3>
+                    <div className="flex gap-2 flex-wrap">
+                      {proof.cas_events?.cas_category && (
+                        <span className="text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-1 rounded-full">{proof.cas_events.cas_category}</span>
+                      )}
+                      <span className="text-xs bg-yellow-50 text-yellow-700 border border-yellow-200 px-2 py-1 rounded-full">⏳ Pending</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-400">👥 {proof.participant_count} participants</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  {proof.cas_events?.location && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-400">📍 Location</p>
+                      <p className="text-xs font-medium text-gray-700">{proof.cas_events.location}</p>
+                    </div>
+                  )}
+                  {proof.cas_events?.event_date && (
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-400">📅 Date</p>
+                      <p className="text-xs font-medium text-gray-700">{proof.cas_events.event_date}</p>
+                    </div>
+                  )}
+                </div>
+
+                {proof.notes && (
+                  <div className="bg-gray-50 rounded-xl p-3 mb-3">
+                    <p className="text-xs font-medium text-gray-500 mb-1">Notes from organizer</p>
+                    <p className="text-xs text-gray-600">{proof.notes}</p>
+                  </div>
                 )}
+
+                {proof.photo_url && (
+                  <div className="mb-4">
+                    <a href={proof.photo_url} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-indigo-700 hover:underline mb-2 block">
+                      📷 View event photos
+                    </a>
+                    <img src={proof.photo_url} alt="Event proof" className="w-full max-h-48 object-cover rounded-xl border border-gray-100" />
+                  </div>
+                )}
+
                 <div className="flex gap-3">
                   <button onClick={() => rejectCasProof(proof.id)} disabled={processing === proof.id}
                     className="flex-1 py-2.5 border border-red-200 text-red-600 rounded-xl text-sm hover:bg-red-50 disabled:opacity-50">
