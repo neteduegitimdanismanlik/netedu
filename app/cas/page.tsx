@@ -26,8 +26,8 @@ export default function CAS() {
   const [proofNotes, setProofNotes] = useState('')
   const [participantCount, setParticipantCount] = useState('')
   const [submittingProof, setSubmittingProof] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
-  // Form state
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState('Service')
@@ -70,6 +70,15 @@ export default function CAS() {
     setSubmitting(false)
   }
 
+  async function deleteEvent(eventId: string) {
+    if (!confirm('Are you sure you want to delete this event?')) return
+    setDeleting(eventId)
+    await supabase.from('cas_events').delete().eq('id', eventId)
+    await loadEvents(user.id)
+    setDeleting(null)
+    setSuccess('Event deleted.')
+  }
+
   async function apply(eventId: string) {
     setApplyingId(eventId)
     await supabase.from('cas_applications').insert({
@@ -89,18 +98,13 @@ export default function CAS() {
     await supabase.storage.from('cas-proofs').upload(fileName, proofPhoto)
     const { data: urlData } = supabase.storage.from('cas-proofs').getPublicUrl(fileName)
     await supabase.from('cas_proofs').insert({
-      event_id: eventId,
-      uploaded_by: user.id,
+      event_id: eventId, uploaded_by: user.id,
       photo_url: urlData.publicUrl,
       participant_count: parseInt(participantCount),
-      notes: proofNotes,
-      status: 'pending'
+      notes: proofNotes, status: 'pending'
     })
-    setSuccess('Proof submitted for review! Once approved, it will count toward participants portfolios.')
-    setUploadingFor(null)
-    setProofPhoto(null)
-    setProofNotes('')
-    setParticipantCount('')
+    setSuccess('Proof submitted for review!')
+    setUploadingFor(null); setProofPhoto(null); setProofNotes(''); setParticipantCount('')
     setSubmittingProof(false)
   }
 
@@ -129,14 +133,13 @@ export default function CAS() {
           </div>
         )}
 
-        {/* Create Event Form */}
         {showForm && (
           <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
             <h2 className="font-semibold text-gray-800 mb-4">Create new event</h2>
             <div className="flex flex-col gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Event title</label>
-                <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Weekend hiking camp, Photography workshop..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+                <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Weekend hiking camp..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -169,7 +172,7 @@ export default function CAS() {
                 <input type="number" value={capacity} onChange={e => setCapacity(e.target.value)} placeholder="20" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
               </div>
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3">
-                <p className="text-xs text-yellow-700">After the event, upload photos and participant list for verification. Only then will it count toward portfolios.</p>
+                <p className="text-xs text-yellow-700">After the event, upload photos and participant list for verification.</p>
               </div>
               <div className="flex gap-3">
                 <button onClick={() => setShowForm(false)} className="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm">Cancel</button>
@@ -182,7 +185,6 @@ export default function CAS() {
           </div>
         )}
 
-        {/* Apply Modal */}
         {applying && (
           <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
@@ -201,7 +203,6 @@ export default function CAS() {
           </div>
         )}
 
-        {/* Upload Proof Modal */}
         {uploadingFor && (
           <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl p-6 w-full max-w-md">
@@ -223,7 +224,7 @@ export default function CAS() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Notes <span className="text-gray-400 font-normal">(optional)</span></label>
-                  <textarea value={proofNotes} onChange={e => setProofNotes(e.target.value)} placeholder="Any additional notes about the event..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
+                  <textarea value={proofNotes} onChange={e => setProofNotes(e.target.value)} placeholder="Any additional notes..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
                 </div>
                 <div className="flex gap-3">
                   <button onClick={() => { setUploadingFor(null); setProofPhoto(null); setProofNotes(''); setParticipantCount('') }}
@@ -238,7 +239,6 @@ export default function CAS() {
           </div>
         )}
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-6">
           <button onClick={() => setTab('discover')} className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${tab === 'discover' ? 'bg-indigo-900 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
             Discover
@@ -248,7 +248,6 @@ export default function CAS() {
           </button>
         </div>
 
-        {/* Discover Tab */}
         {tab === 'discover' && (
           <>
             <div className="flex gap-2 mb-6 flex-wrap">
@@ -259,7 +258,6 @@ export default function CAS() {
                 </button>
               ))}
             </div>
-
             {filtered.length === 0 ? (
               <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
                 <div className="text-4xl mb-3">🌍</div>
@@ -273,35 +271,17 @@ export default function CAS() {
                   <div key={i} className="bg-white rounded-2xl border border-gray-100 p-6 hover:border-indigo-200 transition-colors">
                     <div className="mb-3">
                       <h3 className="font-semibold text-gray-800 mb-2">{event.title}</h3>
-                      <span className={`text-xs px-2 py-1 rounded-full border ${categoryColors[event.cas_category] || 'bg-gray-50 text-gray-500'}`}>
-                        {event.cas_category}
-                      </span>
+                      <span className={`text-xs px-2 py-1 rounded-full border ${categoryColors[event.cas_category] || 'bg-gray-50 text-gray-500'}`}>{event.cas_category}</span>
                     </div>
                     <p className="text-sm text-gray-500 mb-4 leading-relaxed">{event.description}</p>
                     <div className="grid grid-cols-2 gap-2 mb-4">
-                      <div className="bg-gray-50 rounded-lg p-2">
-                        <p className="text-xs text-gray-400">📍 Location</p>
-                        <p className="text-xs font-medium text-gray-700">{event.location}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-2">
-                        <p className="text-xs text-gray-400">📅 Date</p>
-                        <p className="text-xs font-medium text-gray-700">{event.event_date}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-2">
-                        <p className="text-xs text-gray-400">💰 Fee</p>
-                        <p className="text-xs font-medium text-gray-700">{event.fee}</p>
-                      </div>
-                      {event.capacity && (
-                        <div className="bg-gray-50 rounded-lg p-2">
-                          <p className="text-xs text-gray-400">👥 Capacity</p>
-                          <p className="text-xs font-medium text-gray-700">{event.capacity} people</p>
-                        </div>
-                      )}
+                      <div className="bg-gray-50 rounded-lg p-2"><p className="text-xs text-gray-400">📍 Location</p><p className="text-xs font-medium text-gray-700">{event.location}</p></div>
+                      <div className="bg-gray-50 rounded-lg p-2"><p className="text-xs text-gray-400">📅 Date</p><p className="text-xs font-medium text-gray-700">{event.event_date}</p></div>
+                      <div className="bg-gray-50 rounded-lg p-2"><p className="text-xs text-gray-400">💰 Fee</p><p className="text-xs font-medium text-gray-700">{event.fee}</p></div>
+                      {event.capacity && <div className="bg-gray-50 rounded-lg p-2"><p className="text-xs text-gray-400">👥 Capacity</p><p className="text-xs font-medium text-gray-700">{event.capacity} people</p></div>}
                     </div>
                     {event.created_by !== user?.id ? (
-                      <button onClick={() => setApplying(event.id)} className="w-full bg-indigo-900 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-800">
-                        Apply to join →
-                      </button>
+                      <button onClick={() => setApplying(event.id)} className="w-full bg-indigo-900 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-800">Apply to join →</button>
                     ) : (
                       <div className="text-center text-xs text-gray-400 py-2">Your event</div>
                     )}
@@ -312,7 +292,6 @@ export default function CAS() {
           </>
         )}
 
-        {/* My Events Tab */}
         {tab === 'myevents' && (
           <div className="flex flex-col gap-4">
             {myEvents.length === 0 ? (
@@ -326,9 +305,7 @@ export default function CAS() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h3 className="font-semibold text-gray-800 mb-1">{event.title}</h3>
-                    <span className={`text-xs px-2 py-1 rounded-full border ${categoryColors[event.cas_category] || 'bg-gray-50 text-gray-500'}`}>
-                      {event.cas_category}
-                    </span>
+                    <span className={`text-xs px-2 py-1 rounded-full border ${categoryColors[event.cas_category] || 'bg-gray-50 text-gray-500'}`}>{event.cas_category}</span>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-gray-400">📅 {event.event_date}</p>
@@ -337,12 +314,18 @@ export default function CAS() {
                 </div>
                 <p className="text-sm text-gray-500 mb-4">{event.description}</p>
                 <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 mb-3">
-                  <p className="text-xs text-indigo-700">After the event is done, upload photos as proof. Once approved by admin, it will count toward all participants portfolios.</p>
+                  <p className="text-xs text-indigo-700">After the event is done, upload photos as proof. Once approved, it will count toward all participants portfolios.</p>
                 </div>
-                <button onClick={() => setUploadingFor(event.id)}
-                  className="w-full border border-indigo-900 text-indigo-900 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-50">
-                  📷 Upload event proof
-                </button>
+                <div className="flex gap-3">
+                  <button onClick={() => deleteEvent(event.id)} disabled={deleting === event.id}
+                    className="px-4 py-2.5 border border-red-200 text-red-500 rounded-xl text-sm hover:bg-red-50 disabled:opacity-50">
+                    {deleting === event.id ? '...' : '🗑 Delete'}
+                  </button>
+                  <button onClick={() => setUploadingFor(event.id)}
+                    className="flex-1 border border-indigo-900 text-indigo-900 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-50">
+                    📷 Upload event proof
+                  </button>
+                </div>
               </div>
             ))}
           </div>
