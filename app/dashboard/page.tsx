@@ -6,6 +6,10 @@ import { supabase } from '@/lib/supabase'
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
+  const [parentEmail, setParentEmail] = useState('')
+  const [inviting, setInviting] = useState(false)
+  const [inviteSuccess, setInviteSuccess] = useState('')
+  const [showInvite, setShowInvite] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -13,14 +17,41 @@ export default function Dashboard() {
       else {
         setUser(data.user)
         const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single()
+          .from('profiles').select('*').eq('id', data.user.id).single()
         setProfile(profileData)
       }
     })
   }, [])
+
+  async function inviteParent() {
+    if (!parentEmail) return
+    setInviting(true)
+    const { data: existing } = await supabase
+      .from('parent_links')
+      .select('*')
+      .eq('student_id', user.id)
+      .eq('parent_email', parentEmail)
+      .single()
+
+    if (!existing) {
+      await supabase.from('parent_links').insert({
+        student_id: user.id,
+        parent_email: parentEmail,
+        status: 'accepted'
+      })
+    }
+
+    await fetch('/api/parent-invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ parentEmail, studentName: profile?.grade || 'your child' })
+    })
+
+    setInviteSuccess(`Invitation sent to ${parentEmail}!`)
+    setParentEmail('')
+    setShowInvite(false)
+    setInviting(false)
+  }
 
   async function signOut() {
     await supabase.auth.signOut()
@@ -53,6 +84,12 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-gray-900 mb-1">Welcome back! 👋</h1>
           <p className="text-sm text-gray-500">Your university journey dashboard.</p>
         </div>
+
+        {inviteSuccess && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+            <p className="text-sm text-green-700">✅ {inviteSuccess}</p>
+          </div>
+        )}
 
         {profile && (
           <div className="bg-white rounded-2xl border border-indigo-100 p-6 mb-6">
@@ -101,7 +138,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
             <h2 className="font-semibold text-gray-800 mb-2">Portfolio</h2>
             <p className="text-sm text-gray-500 mb-4">Add your certificates and projects.</p>
@@ -117,6 +154,31 @@ export default function Dashboard() {
             <p className="text-sm text-gray-500 mb-4">Find volunteer and activity opportunities.</p>
             <Link href="/cas" className="text-xs bg-indigo-900 text-white px-3 py-1.5 rounded-full hover:bg-indigo-800 inline-block">View activities →</Link>
           </div>
+        </div>
+
+        {/* Invite Parent */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h2 className="font-semibold text-gray-800">Parent Panel</h2>
+              <p className="text-sm text-gray-500 mt-0.5">Invite your parent to track your progress.</p>
+            </div>
+            <button onClick={() => setShowInvite(!showInvite)}
+              className="text-xs bg-indigo-900 text-white px-3 py-1.5 rounded-full hover:bg-indigo-800">
+              Invite parent →
+            </button>
+          </div>
+          {showInvite && (
+            <div className="mt-4 flex gap-3">
+              <input value={parentEmail} onChange={e => setParentEmail(e.target.value)}
+                placeholder="Parent's email address"
+                className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+              <button onClick={inviteParent} disabled={inviting || !parentEmail}
+                className="bg-indigo-900 text-white px-5 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50">
+                {inviting ? 'Sending...' : 'Send invite'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </main>
