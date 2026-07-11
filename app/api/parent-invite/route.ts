@@ -9,30 +9,16 @@ export async function POST(req: Request) {
 
     await resend.emails.send({
       from: 'NetEdu <onboarding@resend.dev>',
-      to: parentEmail,
-      subject: 'You have been invited to track your child on NetEdu',
+      to: 'neteduegitimdanismanlik@gmail.com',
+      subject: `Parent invite for: ${parentEmail}`,
       html: `
-        <h2>You have been invited to NetEdu! 🎓</h2>
-        <p>Your child has invited you to track their university journey on NetEdu.</p>
-        <p>NetEdu helps students plan their path to top universities with personalized roadmaps and AI guidance.</p>
+        <h2>New Parent Invitation</h2>
+        <p>A student has invited <strong>${parentEmail}</strong> to join NetEdu as a parent.</p>
         <hr/>
-        <p>To access the parent panel:</p>
-        <ol>
-          <li>Go to <a href="https://netedu.vercel.app/auth">netedu.vercel.app/auth</a></li>
-          <li>Create an account with this email address (${parentEmail})</li>
-          <li>Visit <a href="https://netedu.vercel.app/parent">netedu.vercel.app/parent</a></li>
-        </ol>
-        <p>You will be able to:</p>
-        <ul>
-          <li>See your child's profile and roadmap</li>
-          <li>Track portfolio progress</li>
-          <li>Ask AI questions about their university journey</li>
-          <li>Receive weekly progress updates</li>
-        </ul>
-        <br/>
-        <a href="https://netedu.vercel.app/auth" style="background:#1a1a6e;color:white;padding:12px 24px;border-radius:8px;text-decoration:none">
-          Access Parent Panel →
-        </a>
+        <p>Please forward this email to ${parentEmail} or share this link:</p>
+        <p><a href="https://netedu.vercel.app/auth">netedu.vercel.app/auth</a></p>
+        <p>They need to create an account with email: <strong>${parentEmail}</strong></p>
+        <p>Then visit: <a href="https://netedu.vercel.app/parent">netedu.vercel.app/parent</a></p>
       `
     })
 
