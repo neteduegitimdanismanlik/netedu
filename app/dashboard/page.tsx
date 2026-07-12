@@ -138,25 +138,29 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
             <h2 className="font-semibold text-gray-800 mb-2">Portfolio</h2>
             <p className="text-sm text-gray-500 mb-4">Add your certificates and projects.</p>
-            <Link href="/portfolio" className="text-xs bg-indigo-900 text-white px-3 py-1.5 rounded-full hover:bg-indigo-800 inline-block">View portfolio →</Link>
+            <Link href="/portfolio" className="text-xs bg-indigo-900 text-white px-3 py-1.5 rounded-full hover:bg-indigo-800 inline-block">View →</Link>
           </div>
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
             <h2 className="font-semibold text-gray-800 mb-2">Alumni Corner</h2>
             <p className="text-sm text-gray-500 mb-4">Learn from students who got in.</p>
-            <Link href="/alumni" className="text-xs bg-indigo-900 text-white px-3 py-1.5 rounded-full hover:bg-indigo-800 inline-block">View alumni →</Link>
+            <Link href="/alumni" className="text-xs bg-indigo-900 text-white px-3 py-1.5 rounded-full hover:bg-indigo-800 inline-block">View →</Link>
           </div>
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
             <h2 className="font-semibold text-gray-800 mb-2">CAS Activities</h2>
-            <p className="text-sm text-gray-500 mb-4">Find volunteer and activity opportunities.</p>
-            <Link href="/cas" className="text-xs bg-indigo-900 text-white px-3 py-1.5 rounded-full hover:bg-indigo-800 inline-block">View activities →</Link>
+            <p className="text-sm text-gray-500 mb-4">Find volunteer opportunities.</p>
+            <Link href="/cas" className="text-xs bg-indigo-900 text-white px-3 py-1.5 rounded-full hover:bg-indigo-800 inline-block">View →</Link>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 p-6">
+            <h2 className="font-semibold text-gray-800 mb-2">AI Checker</h2>
+            <p className="text-sm text-gray-500 mb-4">Get feedback on your essays and IAs.</p>
+            <Link href="/checker" className="text-xs bg-indigo-900 text-white px-3 py-1.5 rounded-full hover:bg-indigo-800 inline-block">Check now →</Link>
           </div>
         </div>
 
-        {/* Invite Parent */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-2">
             <div>
