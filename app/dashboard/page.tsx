@@ -74,6 +74,7 @@ export default function Dashboard() {
           <span className="font-semibold text-indigo-900 text-base">NetEdu</span>
         </Link>
         <div className="flex items-center gap-4">
+          <Link href="/pricing" className="text-xs text-indigo-700 font-medium hover:underline">Upgrade ✨</Link>
           <span className="text-xs text-gray-400 hidden sm:block">{user?.email}</span>
           <button onClick={signOut} className="text-xs text-gray-500 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50">Sign out</button>
         </div>

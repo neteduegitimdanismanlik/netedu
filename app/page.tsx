@@ -11,6 +11,7 @@ export default function Home() {
           <span className="font-semibold text-indigo-900 text-lg">NetEdu</span>
         </Link>
         <div className="flex items-center gap-4">
+          <a href="/pricing" className="text-sm text-gray-500 hover:text-gray-800">Pricing</a>
           <a href="/auth" className="text-sm text-gray-500 hover:text-gray-800">Login</a>
           <a href="/auth" className="text-sm bg-gray-900 text-white px-5 py-2 rounded-full hover:bg-gray-700 font-medium">Get started</a>
         </div>
@@ -112,9 +113,9 @@ export default function Home() {
               <p className="text-sm text-gray-500 leading-relaxed">Discover volunteer and extracurricular opportunities.</p>
             </div>
             <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-indigo-200 transition-colors">
-              <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center mb-4"><span className="text-xl">✍️</span></div>
-              <h3 className="font-semibold text-gray-800 mb-2">Essay Checker</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">Get instant feedback on your essays and personal statements.</p>
+              <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center mb-4"><span className="text-xl">🎯</span></div>
+              <h3 className="font-semibold text-gray-800 mb-2">Coach Corner</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">Essay checker, interview practice, EE prep and oral exam training.</p>
             </div>
           </div>
         </div>
@@ -137,7 +138,10 @@ export default function Home() {
           </div>
           <span className="font-semibold text-indigo-900">NetEdu</span>
         </div>
-        <span className="text-xs text-gray-400">© 2026 NetEdu. All rights reserved.</span>
+        <div className="flex items-center gap-4">
+          <a href="/pricing" className="text-xs text-gray-400 hover:text-gray-600">Pricing</a>
+          <span className="text-xs text-gray-400">© 2026 NetEdu. All rights reserved.</span>
+        </div>
       </footer>
     </main>
   )
