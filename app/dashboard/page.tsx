@@ -155,9 +155,9 @@ export default function Dashboard() {
             <Link href="/cas" className="text-xs bg-indigo-900 text-white px-3 py-1.5 rounded-full hover:bg-indigo-800 inline-block">View →</Link>
           </div>
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h2 className="font-semibold text-gray-800 mb-2">AI Checker</h2>
-            <p className="text-sm text-gray-500 mb-4">Get feedback on your essays and IAs.</p>
-            <Link href="/checker" className="text-xs bg-indigo-900 text-white px-3 py-1.5 rounded-full hover:bg-indigo-800 inline-block">Check now →</Link>
+            <h2 className="font-semibold text-gray-800 mb-2">Coach Corner</h2>
+            <p className="text-sm text-gray-500 mb-4">Essays, interviews, EE and oral exam prep.</p>
+            <Link href="/coach" className="text-xs bg-indigo-900 text-white px-3 py-1.5 rounded-full hover:bg-indigo-800 inline-block">Open →</Link>
           </div>
         </div>
 
