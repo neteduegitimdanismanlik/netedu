@@ -19,7 +19,7 @@ const plans = [
   },
   {
     name: 'Basic',
-    price: 9,
+    price: 15,
     tagline: 'For focused students',
     features: [
       '20+ university matches',
@@ -33,7 +33,7 @@ const plans = [
   },
   {
     name: 'Mid',
-    price: 19,
+    price: 29,
     tagline: 'Most popular',
     features: [
       'Everything in Basic',
@@ -48,7 +48,7 @@ const plans = [
   },
   {
     name: 'Max',
-    price: 39,
+    price: 49,
     tagline: 'The complete package',
     features: [
       'Everything in Mid',
