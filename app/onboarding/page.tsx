@@ -2,6 +2,8 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '../components/Navbar'
+import SearchSelect from '../components/SearchSelect'
+import { universityList, departmentList } from '../components/data'
 
 const categoryColors: any = {
   'Academic': 'bg-blue-50 text-blue-700 border-blue-200',
@@ -67,7 +69,6 @@ export default function Onboarding() {
     setChecked(newChecked)
   }
 
-  // STEP 3 — Results
   if (step === 3 && result) return (
     <main className="min-h-screen bg-gray-50">
       <Navbar showBack backHref="/dashboard" backLabel="Dashboard" />
@@ -159,7 +160,6 @@ export default function Onboarding() {
     </main>
   )
 
-  // STEP 1 — Basic Info
   if (step === 1) return (
     <main className="min-h-screen bg-gray-50">
       <Navbar showBack backHref="/dashboard" backLabel="Dashboard" />
@@ -221,11 +221,11 @@ export default function Onboarding() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Target university</label>
-              <input type="text" value={university} onChange={e => setUniversity(e.target.value)} placeholder="Imperial College, MIT..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+              <SearchSelect options={universityList} value={university} onChange={setUniversity} placeholder="Search universities..." />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Target department</label>
-              <input type="text" value={department} onChange={e => setDepartment(e.target.value)} placeholder="Computer Science, Medicine..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+              <SearchSelect options={departmentList} value={department} onChange={setDepartment} placeholder="Search departments..." />
             </div>
             <button onClick={() => setStep(2)} className="w-full bg-indigo-900 text-white py-3 rounded-xl font-medium text-sm mt-2 hover:bg-indigo-800">
               Next: Activities →
@@ -236,7 +236,6 @@ export default function Onboarding() {
     </main>
   )
 
-  // STEP 2 — Activities
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar showBack backHref="/dashboard" backLabel="Dashboard" />
