@@ -65,6 +65,44 @@ const plans = [
 
 export default function Pricing() {
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
+  const [showParentModal, setShowParentModal] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState('')
+  const [parentName, setParentName] = useState('')
+  const [parentEmail, setParentEmail] = useState('')
+  const [studentName, setStudentName] = useState('')
+  const [sending, setSending] = useState(false)
+  const [success, setSuccess] = useState('')
+
+  function openParentModal(planName: string) {
+    setSelectedPlan(planName)
+    setShowParentModal(true)
+    setSuccess('')
+  }
+
+  async function sendParentRequest() {
+    if (!parentName || !parentEmail || !studentName) return
+    setSending(true)
+    const plan = plans.find(p => p.name === selectedPlan)
+    const price = billing === 'yearly' ? Math.round((plan?.price || 0) * 0.8) : plan?.price
+
+    await fetch('/api/parent-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        parentName, parentEmail, studentName,
+        planName: selectedPlan,
+        price,
+        billing
+      })
+    })
+
+    setSuccess(`Request sent to ${parentEmail}! They will receive payment instructions.`)
+    setParentName('')
+    setParentEmail('')
+    setStudentName('')
+    setSending(false)
+    setTimeout(() => setShowParentModal(false), 3000)
+  }
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -77,7 +115,6 @@ export default function Pricing() {
             Start free, upgrade when you're ready. All plans help you get closer to your dream university.
           </p>
 
-          {/* Billing toggle */}
           <div className="inline-flex items-center gap-1 bg-white border border-gray-200 rounded-full p-1 mt-6">
             <button onClick={() => setBilling('monthly')}
               className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${billing === 'monthly' ? 'bg-indigo-900 text-white' : 'text-gray-500'}`}>
@@ -95,9 +132,7 @@ export default function Pricing() {
             const price = billing === 'yearly' ? Math.round(plan.price * 0.8) : plan.price
             return (
               <div key={i} className={`bg-white rounded-2xl p-6 flex flex-col relative ${
-                plan.highlight
-                  ? 'border-2 border-indigo-900 shadow-lg'
-                  : 'border border-gray-100'
+                plan.highlight ? 'border-2 border-indigo-900 shadow-lg' : 'border border-gray-100'
               }`}>
                 {plan.highlight && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-900 text-white text-xs font-semibold px-4 py-1 rounded-full">
@@ -123,21 +158,81 @@ export default function Pricing() {
                     </li>
                   ))}
                 </ul>
-                <button
-                  className={`w-full py-3 rounded-xl text-sm font-medium transition-all ${
-                    plan.price === 0
-                      ? 'bg-gray-100 text-gray-400 cursor-default'
-                      : plan.highlight
-                        ? 'bg-indigo-900 text-white hover:bg-indigo-800'
-                        : 'border border-indigo-900 text-indigo-900 hover:bg-indigo-50'
-                  }`}
-                  onClick={() => plan.price > 0 && alert('Payments coming soon! For early access, contact us at neteduegitimdanismanlik@gmail.com')}>
-                  {plan.cta}
-                </button>
+                {plan.price === 0 ? (
+                  <button className="w-full py-3 rounded-xl text-sm font-medium bg-gray-100 text-gray-400 cursor-default">
+                    {plan.cta}
+                  </button>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <button
+                      className={`w-full py-3 rounded-xl text-sm font-medium transition-all ${
+                        plan.highlight ? 'bg-indigo-900 text-white hover:bg-indigo-800' : 'border border-indigo-900 text-indigo-900 hover:bg-indigo-50'
+                      }`}
+                      onClick={() => alert('Payments coming soon! For early access, contact us at neteduegitimdanismanlik@gmail.com')}>
+                      {plan.cta}
+                    </button>
+                    <button onClick={() => openParentModal(plan.name)}
+                      className="w-full py-2 rounded-xl text-xs text-gray-500 hover:text-indigo-700 transition-colors">
+                      👨‍👩‍👧 Ask your parent to pay
+                    </button>
+                  </div>
+                )}
               </div>
             )
           })}
         </div>
+
+        {/* Parent Payment Modal */}
+        {showParentModal && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+              <div className="text-center mb-6">
+                <div className="text-4xl mb-2">👨‍👩‍👧</div>
+                <h3 className="font-bold text-gray-900 text-lg">Ask your parent to pay</h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  We'll email them about the <strong>{selectedPlan}</strong> plan with payment instructions. No sign-in needed for them.
+                </p>
+              </div>
+
+              {success ? (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                  <p className="text-sm text-green-700">✅ {success}</p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Your name</label>
+                    <input value={studentName} onChange={e => setStudentName(e.target.value)}
+                      placeholder="Your full name"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Parent's first name</label>
+                    <input value={parentName} onChange={e => setParentName(e.target.value)}
+                      placeholder="e.g. Ayşe"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Parent's email</label>
+                    <input type="email" value={parentEmail} onChange={e => setParentEmail(e.target.value)}
+                      placeholder="parent@email.com"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+                  </div>
+                  <div className="flex gap-3">
+                    <button onClick={() => setShowParentModal(false)}
+                      className="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50">
+                      Cancel
+                    </button>
+                    <button onClick={sendParentRequest} disabled={sending || !parentName || !parentEmail || !studentName}
+                      className="flex-1 bg-indigo-900 text-white py-3 rounded-xl text-sm font-medium hover:bg-indigo-800 disabled:opacity-50">
+                      {sending ? 'Sending...' : 'Send email →'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* FAQ */}
         <div className="mt-16 max-w-2xl mx-auto">
@@ -157,7 +252,6 @@ export default function Pricing() {
           </div>
         </div>
 
-        {/* CTA */}
         <div className="mt-12 bg-indigo-900 rounded-2xl p-8 text-center">
           <h2 className="text-xl font-bold text-white mb-2">Not sure which plan?</h2>
           <p className="text-sm text-indigo-200 mb-6">Start free and explore. Upgrade when you need more.</p>
