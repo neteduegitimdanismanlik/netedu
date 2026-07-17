@@ -1,6 +1,8 @@
 ﻿'use client'
 import { useState } from 'react'
 import Navbar from '../components/Navbar'
+import SearchSelect from '../components/SearchSelect'
+import { departmentList } from '../components/data'
 
 export default function Match() {
   const [gpa, setGpa] = useState('')
@@ -41,11 +43,11 @@ export default function Match() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">GPA (out of 100)</label>
-                <input type="number" value={gpa} onChange={e => setGpa(e.target.value)} placeholder="85" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-green-500" />
+                <input type="number" value={gpa} onChange={e => setGpa(e.target.value)} placeholder="85" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Diploma type</label>
-                <select value={diploma} onChange={e => setDiploma(e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-green-500">
+                <select value={diploma} onChange={e => setDiploma(e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500">
                   <option value="">Select diploma</option>
                   <option>IB Diploma</option>
                   <option>A-Level</option>
@@ -58,7 +60,7 @@ export default function Match() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Target country</label>
-              <select value={country} onChange={e => setCountry(e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-green-500">
+              <select value={country} onChange={e => setCountry(e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500">
                 <option value="">Any country</option>
                 <option>United Kingdom</option>
                 <option>United States</option>
@@ -74,10 +76,10 @@ export default function Match() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Target department</label>
-              <input type="text" value={department} onChange={e => setDepartment(e.target.value)} placeholder="Computer Science, Medicine, Engineering..." className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-green-500" />
+              <SearchSelect options={departmentList} value={department} onChange={setDepartment} placeholder="Search departments..." />
             </div>
 
-            <button onClick={getMatches} disabled={loading} className="w-full bg-green-500 text-white py-3 rounded-xl font-medium text-sm disabled:opacity-50">
+            <button onClick={getMatches} disabled={loading || !gpa || !department} className="w-full bg-indigo-900 text-white py-3 rounded-xl font-medium text-sm disabled:opacity-50 hover:bg-indigo-800">
               {loading ? 'Finding your matches...' : 'Find my universities'}
             </button>
           </div>
