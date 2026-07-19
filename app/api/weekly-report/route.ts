@@ -11,7 +11,6 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function GET(req: Request) {
   try {
-    // Get all active parent links
     const { data: links } = await supabase
       .from('parent_links')
       .select('*')
@@ -24,7 +23,6 @@ export async function GET(req: Request) {
     let sent = 0
 
     for (const link of links) {
-      // Get student profile
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
@@ -33,7 +31,6 @@ export async function GET(req: Request) {
 
       if (!profile) continue
 
-      // Get portfolio stats
       const { data: items } = await supabase
         .from('portfolio_items')
         .select('*')
@@ -43,14 +40,12 @@ export async function GET(req: Request) {
       const pending = items?.filter(i => i.status === 'pending').length || 0
       const total = items?.length || 0
 
-      // Get identity score
       const { data: score } = await supabase
         .from('identity_scores')
         .select('*')
         .eq('user_id', link.student_id)
         .single()
 
-      // Generate AI weekly summary
       let aiSummary = ''
       try {
         const aiRes = await fetch('https://api.anthropic.com/v1/messages', {
@@ -65,7 +60,7 @@ export async function GET(req: Request) {
             max_tokens: 300,
             messages: [{
               role: 'user',
-              content: `Write a warm 3-4 sentence weekly progress summary for a parent about their child's university preparation. Student data: Grade ${profile.grade}, GPA ${profile.gpa}, Target: ${profile.target_university} (${profile.target_department}), Portfolio: ${total} items (${approved} approved), Identity Score: ${score?.total_score || 0}/100. Include one specific suggestion for what the student should focus on this week. Write in English, address the parent directly.`
+              content: `Write a warm 3-4 sentence progress summary for a parent about their child's university preparation. Student data: Grade ${profile.grade}, GPA ${profile.gpa}, Target: ${profile.target_university} (${profile.target_department}), Portfolio: ${total} items (${approved} approved), Identity Score: ${score?.total_score || 0}/100. Include one specific suggestion for what the student should focus on. Write in English, address the parent directly. IMPORTANT: Write in PLAIN TEXT only. No markdown, no headers, no asterisks, no tables, no bullet points. Just 3-4 flowing sentences.`
             }]
           })
         })
@@ -75,15 +70,14 @@ export async function GET(req: Request) {
         aiSummary = 'Your child continues their university preparation journey on NetEdu.'
       }
 
-      // Send email (to admin for now, until domain verified)
       await resend.emails.send({
         from: 'NetEdu <onboarding@resend.dev>',
         to: 'neteduegitimdanismanlik@gmail.com',
-        subject: `📊 Weekly Report for ${link.parent_email}`,
+        subject: `📊 NetEdu Report for ${link.parent_email}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: #1e1b4b; padding: 24px; border-radius: 12px 12px 0 0; text-align: center;">
-              <h1 style="color: white; margin: 0; font-size: 22px;">NetEdu Weekly Report</h1>
+              <h1 style="color: white; margin: 0; font-size: 22px;">NetEdu Report</h1>
               <p style="color: #a5b4fc; font-size: 13px; margin: 8px 0 0;">For parent: ${link.parent_email}</p>
             </div>
             <div style="background: #f9fafb; padding: 32px; border-radius: 0 0 12px 12px;">
@@ -109,7 +103,7 @@ export async function GET(req: Request) {
               </div>
 
               <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 12px; padding: 20px;">
-                <h3 style="margin: 0 0 12px; color: #3730a3; font-size: 16px;">💬 This Week's Summary</h3>
+                <h3 style="margin: 0 0 12px; color: #3730a3; font-size: 16px;">💬 Progress Summary</h3>
                 <p style="color: #4338ca; font-size: 14px; line-height: 1.6; margin: 0;">${aiSummary}</p>
               </div>
 
@@ -120,7 +114,7 @@ export async function GET(req: Request) {
               </div>
 
               <p style="color: #9ca3af; font-size: 11px; margin-top: 24px; text-align: center;">
-                You receive this weekly report because your child added you on NetEdu.
+                You receive this report because your child added you on NetEdu.
               </p>
             </div>
           </div>
