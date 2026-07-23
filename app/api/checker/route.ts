@@ -27,9 +27,11 @@ ${content.slice(0, 12000)}
 
 Mark strictly against the band descriptors above. Award each criterion a whole-number score within its maximum.
 
+For "quote": copy an exact sentence WORD-FOR-WORD from the student work above — it must appear verbatim in the text so it can be located. Never paraphrase it.
+
 Return ONLY raw JSON, no markdown, no backticks:
 {
-  "criteria": [${rubric.criteria.map((c: any) => `{"id":"${c.id}","score":<0-${c.max}>,"comment":"<2 sentences citing specific evidence from the work>"}`).join(',')}],
+  "criteria": [${rubric.criteria.map((c: any) => `{"id":"${c.id}","score":<0-${c.max}>,"comment":"<2 sentences citing specific evidence>","quote":"<exact sentence copied word-for-word from the student work, max 20 words>","quoteNote":"<one short sentence explaining why this passage matters>"}`).join(',')}],
   "summary": "<3 sentence overall assessment>",
   "strengths": ["<specific strength>", "<specific strength>", "<specific strength>"],
   "weaknesses": ["<specific weakness>", "<specific weakness>", "<specific weakness>"],
@@ -45,7 +47,7 @@ Return ONLY raw JSON, no markdown, no backticks:
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
-      max_tokens: 2000,
+      max_tokens: 2500,
       messages: [{ role: 'user', content: prompt }]
     })
   })
@@ -73,8 +75,17 @@ export async function POST(req: Request) {
     const criteriaScores = rubric.criteria.map((c: any) => {
       const scores = runs.map(r => r.criteria?.find((x: any) => x.id === c.id)?.score ?? 0)
       const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-      const comment = runs[0].criteria?.find((x: any) => x.id === c.id)?.comment || ''
-      return { id: c.id, name: c.name, score: Math.min(avg, c.max), max: c.max, comment, spread: Math.max(...scores) - Math.min(...scores) }
+      const first = runs[0].criteria?.find((x: any) => x.id === c.id)
+      return {
+        id: c.id,
+        name: c.name,
+        score: Math.min(avg, c.max),
+        max: c.max,
+        comment: first?.comment || '',
+        quote: first?.quote || '',
+        quoteNote: first?.quoteNote || '',
+        spread: Math.max(...scores) - Math.min(...scores)
+      }
     })
 
     const total = criteriaScores.reduce((sum, c) => sum + c.score, 0)
@@ -87,6 +98,7 @@ export async function POST(req: Request) {
       document_type: rubric.documentType,
       subject, title,
       content_preview: content.slice(0, 500),
+      full_content: content.slice(0, 40000),
       word_count: content.trim().split(/\s+/).length,
       file_url: fileUrl || null,
       total_score: total,

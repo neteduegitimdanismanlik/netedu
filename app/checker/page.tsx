@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import Navbar from '../components/Navbar'
+import AnnotatedText from '../components/AnnotatedText'
 import { rubrics } from '../rubrics/schema'
 
 const subjects = [
@@ -10,9 +11,11 @@ const subjects = [
   'English A', 'English B', 'Computer Science', 'Visual Arts', 'General'
 ]
 
+const writtenRubrics = rubrics.filter(r => r.documentType !== 'Individual Oral' && r.documentType !== 'Speaking Assessment')
+
 export default function Checker() {
   const [user, setUser] = useState<any>(null)
-  const [rubricId, setRubricId] = useState(rubrics[0].id)
+  const [rubricId, setRubricId] = useState(writtenRubrics[0].id)
   const [subject, setSubject] = useState('Mathematics AA')
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -23,8 +26,10 @@ export default function Checker() {
   const [result, setResult] = useState<any>(null)
   const [history, setHistory] = useState<any[]>([])
   const [showHistory, setShowHistory] = useState(false)
+  const [viewMode, setViewMode] = useState<'report' | 'annotated'>('report')
+  const [analysedContent, setAnalysedContent] = useState('')
 
-  const rubric = rubrics.find(r => r.id === rubricId)!
+  const rubric = writtenRubrics.find(r => r.id === rubricId)!
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -54,6 +59,7 @@ export default function Checker() {
   async function analyze() {
     setLoading(true)
     setResult(null)
+    setViewMode('report')
     let finalContent = content
     let fileUrl = null
 
@@ -77,6 +83,7 @@ export default function Checker() {
         body: JSON.stringify({ rubricId, subject, title, content: finalContent, userId: user?.id, fileUrl })
       })
       const data = await res.json()
+      setAnalysedContent(finalContent)
       setResult(data)
       if (user) {
         const h = await fetch(`/api/checker?userId=${user.id}`)
@@ -96,7 +103,7 @@ export default function Checker() {
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar showBack backHref="/coach" backLabel="Coach Corner" />
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 py-8">
 
         <div className="flex items-start justify-between mb-8">
           <div>
@@ -116,7 +123,13 @@ export default function Checker() {
             <h3 className="font-semibold text-gray-800 mb-3 text-sm">Previous reports</h3>
             <div className="flex flex-col gap-2">
               {history.map((r, i) => (
-                <button key={i} onClick={() => { setResult({ ...r, criteria_scores: r.criteria_scores, rubricLabel: r.framework + ' — ' + r.document_type }); setShowHistory(false); window.scrollTo(0, 400) }}
+                <button key={i} onClick={() => {
+                  setResult({ ...r, rubricLabel: r.framework + ' — ' + r.document_type })
+                  setAnalysedContent(r.full_content || '')
+                  setShowHistory(false)
+                  setViewMode('report')
+                  window.scrollTo(0, 400)
+                }}
                   className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 text-left border border-gray-100">
                   <div>
                     <p className="text-sm font-medium text-gray-800">{r.title}</p>
@@ -138,7 +151,7 @@ export default function Checker() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">1. Choose framework & document type</label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                {rubrics.map(r => (
+                {writtenRubrics.map(r => (
                   <button key={r.id} onClick={() => setRubricId(r.id)}
                     className={`p-3 rounded-xl border-2 text-left transition-all ${rubricId === r.id ? 'border-indigo-900 bg-indigo-50' : 'border-gray-100 hover:border-gray-200'}`}>
                     <p className={`text-xs font-semibold ${rubricId === r.id ? 'text-indigo-900' : 'text-gray-700'}`}>{r.framework}</p>
@@ -226,6 +239,24 @@ export default function Checker() {
 
         {result && !result.error && (
           <div className="flex flex-col gap-4">
+            <div className="flex gap-2">
+              <button onClick={() => setViewMode('report')}
+                className={`px-4 py-2 rounded-xl text-xs font-medium ${viewMode === 'report' ? 'bg-indigo-900 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
+                📊 Report
+              </button>
+              <button onClick={() => setViewMode('annotated')}
+                className={`px-4 py-2 rounded-xl text-xs font-medium ${viewMode === 'annotated' ? 'bg-indigo-900 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
+                🖍 Annotated text
+              </button>
+            </div>
+
+            {viewMode === 'annotated' && (
+              <AnnotatedText
+                content={analysedContent || result.full_content || result.content_preview || ''}
+                annotations={result.criteria_scores || []}
+              />
+            )}
+
             <div className="bg-white rounded-2xl border border-indigo-100 p-6">
               <div className="flex items-center gap-6">
                 <div className="w-24 h-24 bg-indigo-900 rounded-2xl flex flex-col items-center justify-center flex-shrink-0">
