@@ -7,7 +7,9 @@ export async function POST(req: Request) {
 
     const prompt = `You are a university admissions expert. Analyze this student profile and return a structured roadmap in JSON format only. No markdown, no explanation, just raw JSON.
 
-Student: ${body.grade}, GPA: ${body.gpa}/100, Target: ${body.university} - ${body.department}, Activities: ${body.activities || 'none'}
+Student: ${body.grade}, GPA: ${body.gpa}/100, Target: ${body.university} - ${body.department}
+Diploma: ${body.diplomaType || 'not specified'}, SAT: ${body.sat || 'not taken'}, IELTS: ${body.ielts || 'not taken'}
+Activities: ${body.activities || 'none'}
 
 Return exactly this JSON structure:
 {

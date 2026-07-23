@@ -27,6 +27,7 @@ export default function Roadmap() {
   const [progress, setProgress] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
+  const [genStatus, setGenStatus] = useState('')
   const [activeYear, setActiveYear] = useState(0)
   const [activePeriod, setActivePeriod] = useState<string | null>(null)
 
@@ -44,14 +45,39 @@ export default function Roadmap() {
 
   async function generate() {
     setGenerating(true)
-    const res = await fetch('/api/full-roadmap', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user.id })
-    })
-    const data = await res.json()
-    if (data.roadmap) { setRoadmap(data.roadmap); setProgress([]) }
-    else alert(data.error || 'Something went wrong')
+    const gradeNum = parseInt(String(profile.grade).replace(/\D/g, '')) || 9
+    const totalYears = Math.max(1, Math.min(4, 13 - gradeNum))
+    const years: any[] = []
+
+    try {
+      for (let i = 0; i < totalYears; i++) {
+        setGenStatus(`Building year ${i + 1} of ${totalYears}...`)
+        const res = await fetch('/api/full-roadmap', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id, yearIndex: i, totalYears })
+        })
+        const data = await res.json()
+        if (data.error) throw new Error(data.error)
+        years.push(data.year)
+        setRoadmap({ overview: `A ${totalYears}-year plan for ${profile.target_university} — ${profile.target_department}.`, years: [...years] })
+      }
+
+      const full = {
+        overview: `A ${totalYears}-year plan built for your profile: ${profile.grade}, GPA ${profile.gpa}, targeting ${profile.target_university} — ${profile.target_department}.`,
+        years
+      }
+      setRoadmap(full)
+      setProgress([])
+      await fetch('/api/full-roadmap', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, roadmap: full })
+      })
+    } catch (e: any) {
+      alert(e.message || 'Something went wrong')
+    }
+    setGenStatus('')
     setGenerating(false)
   }
 
@@ -93,7 +119,7 @@ export default function Roadmap() {
         <p className="text-xs text-gray-400 mb-8">Every task written for your profile — not a template.</p>
         <button onClick={generate} disabled={generating}
           className="bg-indigo-900 text-white px-8 py-3.5 rounded-xl text-sm font-medium hover:bg-indigo-800 disabled:opacity-50">
-          {generating ? 'Building your roadmap (30s)...' : 'Generate my roadmap →'}
+          {generating ? (genStatus || 'Building...') : 'Generate my roadmap →'}
         </button>
       </div>
     </main>
@@ -101,7 +127,7 @@ export default function Roadmap() {
 
   const year = roadmap.years?.[activeYear]
   const allTasks = roadmap.years?.flatMap((y: any, yi: number) =>
-    y.periods?.flatMap((p: any, pi: number) => p.tasks?.map((_: any, ti: number) => `${yi}-${pi}-${ti}`))
+    y.periods?.flatMap((p: any, pi: number) => p.tasks?.map((_: any, ti: number) => `${yi}-${pi}-${ti}`)) || []
   ) || []
   const donePct = allTasks.length ? Math.round((progress.length / allTasks.length) * 100) : 0
 
@@ -117,21 +143,19 @@ export default function Roadmap() {
           </div>
           <button onClick={generate} disabled={generating}
             className="text-xs border border-gray-200 px-3 py-2 rounded-xl text-gray-500 hover:bg-white disabled:opacity-50">
-            {generating ? 'Rebuilding...' : '↻ Rebuild'}
+            {generating ? (genStatus || 'Rebuilding...') : '↻ Rebuild'}
           </button>
         </div>
 
-        {roadmap.overview && (
-          <div className="bg-white rounded-2xl border border-indigo-100 p-5 mb-6">
-            <p className="text-sm text-gray-600 leading-relaxed">{roadmap.overview}</p>
-            <div className="flex items-center gap-3 mt-4">
-              <div className="flex-1 h-2 bg-gray-100 rounded-full">
-                <div className="h-full bg-indigo-900 rounded-full transition-all" style={{ width: `${donePct}%` }}></div>
-              </div>
-              <span className="text-xs font-medium text-indigo-900">{progress.length}/{allTasks.length} done</span>
+        <div className="bg-white rounded-2xl border border-indigo-100 p-5 mb-6">
+          <p className="text-sm text-gray-600 leading-relaxed">{roadmap.overview}</p>
+          <div className="flex items-center gap-3 mt-4">
+            <div className="flex-1 h-2 bg-gray-100 rounded-full">
+              <div className="h-full bg-indigo-900 rounded-full transition-all" style={{ width: `${donePct}%` }}></div>
             </div>
+            <span className="text-xs font-medium text-indigo-900">{progress.length}/{allTasks.length} done</span>
           </div>
-        )}
+        </div>
 
         <div className="relative mb-8">
           <div className="absolute top-7 left-0 right-0 h-2 bg-gray-200 rounded-full z-0"></div>
@@ -144,7 +168,7 @@ export default function Roadmap() {
                   <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg transition-all ${active ? c.dot + ' scale-110' : 'bg-gray-300'}`}>
                     {i + 1}
                   </div>
-                  <span className={`text-xs font-semibold ${active ? c.text : 'text-gray-400'}`}>{y.label}</span>
+                  <span className={`text-xs font-semibold text-center ${active ? c.text : 'text-gray-400'}`}>{y.label}</span>
                 </button>
               )
             })}
