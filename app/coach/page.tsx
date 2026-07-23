@@ -5,8 +5,8 @@ const tools = [
   {
     href: '/checker',
     icon: '✍️',
-    title: 'Essay & IA Checker',
-    desc: 'Get instant feedback on your essays and Internal Assessments based on IB criteria.',
+    title: 'Coursework Checker',
+    desc: 'Mark your finished essay, IA or EE against official rubrics and get criterion-by-criterion feedback.',
     color: 'bg-blue-100',
   },
   {
@@ -17,17 +17,10 @@ const tools = [
     color: 'bg-purple-100',
   },
   {
-    href: '/ee-prep',
-    icon: '📚',
-    title: 'EE Preparation',
-    desc: 'Prepare for your Extended Essay with guided questions and topic refinement.',
-    color: 'bg-yellow-100',
-  },
-  {
     href: '/oral-exam',
     icon: '🗣️',
     title: 'Oral Exam Prep',
-    desc: 'Practice for IB Individual Orals and language speaking exams with AI.',
+    desc: 'Practice for oral exams and language speaking assessments with an AI examiner.',
     color: 'bg-green-100',
   },
 ]
@@ -39,7 +32,7 @@ export default function CoachCorner() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Coach Corner 🎯</h1>
-          <p className="text-sm text-gray-500">Your personal prep center for essays, interviews and exams.</p>
+          <p className="text-sm text-gray-500">Your personal prep center for coursework, interviews and exams.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
