@@ -28,6 +28,7 @@ export default function Roadmap() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
   const [genStatus, setGenStatus] = useState('')
+  const [genError, setGenError] = useState('')
   const [activeYear, setActiveYear] = useState(0)
   const [activePeriod, setActivePeriod] = useState<string | null>(null)
 
@@ -45,26 +46,41 @@ export default function Roadmap() {
 
   async function generate() {
     setGenerating(true)
+    setGenError('')
     const gradeNum = parseInt(String(profile.grade).replace(/\D/g, '')) || 9
     const totalYears = Math.max(1, Math.min(4, 13 - gradeNum))
     const years: any[] = []
 
-    try {
-      for (let i = 0; i < totalYears; i++) {
-        setGenStatus(`Building year ${i + 1} of ${totalYears}...`)
-        const res = await fetch('/api/full-roadmap', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.id, yearIndex: i, totalYears })
-        })
-        const data = await res.json()
-        if (data.error) throw new Error(data.error)
-        years.push(data.year)
-        setRoadmap({ overview: `A ${totalYears}-year plan for ${profile.target_university} — ${profile.target_department}.`, years: [...years] })
+    for (let i = 0; i < totalYears; i++) {
+      setGenStatus(`Building year ${i + 1} of ${totalYears}...`)
+      let ok = false
+
+      for (let attempt = 0; attempt < 2 && !ok; attempt++) {
+        try {
+          const res = await fetch('/api/full-roadmap', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id, yearIndex: i, totalYears })
+          })
+          const data = await res.json()
+          if (data.error) throw new Error(data.error)
+          if (!data.year?.periods) throw new Error('Incomplete response')
+          years.push(data.year)
+          setRoadmap({ overview: `A ${totalYears}-year plan for ${profile.target_university} — ${profile.target_department}.`, years: [...years] })
+          ok = true
+        } catch (e: any) {
+          if (attempt === 1) setGenError(`Year ${i + 1}: ${e.message}`)
+          else await new Promise(r => setTimeout(r, 3000))
+        }
       }
 
+      if (!ok) break
+      if (i < totalYears - 1) await new Promise(r => setTimeout(r, 2000))
+    }
+
+    if (years.length > 0) {
       const full = {
-        overview: `A ${totalYears}-year plan built for your profile: ${profile.grade}, GPA ${profile.gpa}, targeting ${profile.target_university} — ${profile.target_department}.`,
+        overview: `A ${years.length}-year plan built for your profile: ${profile.grade}, GPA ${profile.gpa}, targeting ${profile.target_university} — ${profile.target_department}.`,
         years
       }
       setRoadmap(full)
@@ -74,9 +90,8 @@ export default function Roadmap() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, roadmap: full })
       })
-    } catch (e: any) {
-      alert(e.message || 'Something went wrong')
     }
+
     setGenStatus('')
     setGenerating(false)
   }
@@ -121,6 +136,7 @@ export default function Roadmap() {
           className="bg-indigo-900 text-white px-8 py-3.5 rounded-xl text-sm font-medium hover:bg-indigo-800 disabled:opacity-50">
           {generating ? (genStatus || 'Building...') : 'Generate my roadmap →'}
         </button>
+        {genError && <p className="text-xs text-red-500 mt-4">{genError}</p>}
       </div>
     </main>
   )
@@ -146,6 +162,12 @@ export default function Roadmap() {
             {generating ? (genStatus || 'Rebuilding...') : '↻ Rebuild'}
           </button>
         </div>
+
+        {genError && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4">
+            <p className="text-xs text-amber-700">⚠ {genError} — press Rebuild to try again.</p>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl border border-indigo-100 p-5 mb-6">
           <p className="text-sm text-gray-600 leading-relaxed">{roadmap.overview}</p>
