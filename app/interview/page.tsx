@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import Navbar from '../components/Navbar'
+import VoiceRecorder from '../components/VoiceRecorder'
 
 const universities = [
   'Oxford University', 'Cambridge University', 'Imperial College London',
@@ -23,6 +24,7 @@ export default function Interview() {
   const [loading, setLoading] = useState(false)
   const [evaluation, setEvaluation] = useState<any>(null)
   const [isEnd, setIsEnd] = useState(false)
+  const [answerMode, setAnswerMode] = useState<'type' | 'speak'>('type')
   const messagesEndRef = useRef<any>(null)
 
   useEffect(() => {
@@ -42,16 +44,16 @@ export default function Interview() {
     setLoading(false)
   }
 
-  async function sendAnswer() {
-    if (!input.trim() || loading) return
-    const newMessages = [...messages, { role: 'student', content: input }]
+  async function submitAnswer(text: string) {
+    if (!text.trim() || loading) return
+    const newMessages = [...messages, { role: 'student', content: text }]
     setMessages(newMessages)
     setInput('')
     setLoading(true)
     const res = await fetch('/api/interview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'respond', university, department, messages: newMessages, answer: input })
+      body: JSON.stringify({ action: 'respond', university, department, messages: newMessages, answer: text })
     })
     const data = await res.json()
     setMessages([...newMessages, { role: 'interviewer', content: data.message }])
@@ -74,14 +76,14 @@ export default function Interview() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <Navbar showBack backHref="/dashboard" backLabel="Dashboard" />
+      <Navbar showBack backHref="/coach" backLabel="Coach Corner" />
       <div className="max-w-4xl mx-auto px-4 py-8">
 
         {stage === 'setup' && (
           <div>
             <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Interview Coach 🎤</h1>
-              <p className="text-sm text-gray-500">Practice with an AI interviewer that simulates real university admission interviews.</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">University Interview 🎤</h1>
+              <p className="text-sm text-gray-500">Practice with an AI interviewer that simulates real admission interviews.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-2xl border border-gray-100 p-6">
@@ -108,7 +110,7 @@ export default function Interview() {
                 <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-5">
                   <h3 className="font-semibold text-indigo-900 mb-3 text-sm">💡 What to expect</h3>
                   <ul className="flex flex-col gap-2">
-                    {['5-6 realistic interview questions', 'Instant feedback after each answer', 'Full evaluation at the end', 'Score across 5 key dimensions', 'Specific tips to improve'].map((tip, i) => (
+                    {['5-6 realistic interview questions', 'Answer by typing or speaking', 'Instant feedback after each answer', 'Full evaluation at the end', 'Score across 5 key dimensions'].map((tip, i) => (
                       <li key={i} className="text-xs text-indigo-700 flex gap-2"><span className="text-indigo-400">→</span>{tip}</li>
                     ))}
                   </ul>
@@ -150,8 +152,9 @@ export default function Interview() {
                 <button onClick={() => { setStage('setup'); setMessages([]); setIsEnd(false) }} className="border border-gray-200 text-gray-500 px-4 py-2.5 rounded-xl text-sm hover:bg-gray-50">Restart</button>
               </div>
             </div>
-            <div className="bg-white rounded-2xl border border-gray-100 flex flex-col" style={{ height: '500px' }}>
-              <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
+
+            <div className="bg-white rounded-2xl border border-gray-100 flex flex-col" style={{ minHeight: '500px' }}>
+              <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4" style={{ maxHeight: '400px' }}>
                 {messages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === 'student' ? 'justify-end' : 'justify-start'}`}>
                     {msg.role === 'interviewer' && (
@@ -170,13 +173,35 @@ export default function Interview() {
                 )}
                 <div ref={messagesEndRef} />
               </div>
+
               {!isEnd ? (
-                <div className="p-4 border-t border-gray-100 flex gap-3">
-                  <textarea value={input} onChange={e => setInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAnswer() } }}
-                    placeholder="Type your answer... (Enter to send)"
-                    className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none" rows={2} />
-                  <button onClick={sendAnswer} disabled={loading || !input.trim()} className="bg-indigo-900 text-white px-5 rounded-xl text-sm font-medium hover:bg-indigo-800 disabled:opacity-50">Send</button>
+                <div className="p-4 border-t border-gray-100">
+                  <div className="flex gap-2 mb-3">
+                    <button onClick={() => setAnswerMode('type')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium ${answerMode === 'type' ? 'bg-indigo-900 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      ⌨️ Type
+                    </button>
+                    <button onClick={() => setAnswerMode('speak')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium ${answerMode === 'speak' ? 'bg-indigo-900 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      🎙 Speak
+                    </button>
+                  </div>
+                  {answerMode === 'type' ? (
+                    <div className="flex gap-3">
+                      <textarea value={input} onChange={e => setInput(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitAnswer(input) } }}
+                        placeholder="Type your answer... (Enter to send)"
+                        className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none" rows={2} />
+                      <button onClick={() => submitAnswer(input)} disabled={loading || !input.trim()}
+                        className="bg-indigo-900 text-white px-5 rounded-xl text-sm font-medium hover:bg-indigo-800 disabled:opacity-50">Send</button>
+                    </div>
+                  ) : (
+                    <VoiceRecorder
+                      onTranscript={submitAnswer}
+                      maxSeconds={180}
+                      label="Answer out loud, like a real interview"
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="p-4 border-t border-gray-100 bg-green-50 rounded-b-2xl text-center">
