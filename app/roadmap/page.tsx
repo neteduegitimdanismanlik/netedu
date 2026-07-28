@@ -26,9 +26,9 @@ export default function Roadmap() {
   const [roadmap, setRoadmap] = useState<any>(null)
   const [progress, setProgress] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
-  const [generating, setGenerating] = useState(false)
-  const [genStatus, setGenStatus] = useState('')
-  const [genError, setGenError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [status, setStatus] = useState('')
+  const [error, setError] = useState('')
   const [activeYear, setActiveYear] = useState(0)
   const [activePeriod, setActivePeriod] = useState<string | null>(null)
 
@@ -44,56 +44,65 @@ export default function Roadmap() {
     })
   }, [])
 
-  async function generate() {
-    setGenerating(true)
-    setGenError('')
-    const gradeNum = parseInt(String(profile.grade).replace(/\D/g, '')) || 9
-    const totalYears = Math.max(1, Math.min(4, 13 - gradeNum))
-    const years: any[] = []
+  function totalYearsFor(p: any) {
+    const g = parseInt(String(p.grade).replace(/\D/g, '')) || 9
+    return Math.max(1, Math.min(4, 13 - g))
+  }
 
-    for (let i = 0; i < totalYears; i++) {
-      setGenStatus(`Building year ${i + 1} of ${totalYears}...`)
-      let ok = false
+  async function fetchYear(yearIndex: number, totalYears: number) {
+    const res = await fetch('/api/full-roadmap', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id, yearIndex, totalYears })
+    })
+    const data = await res.json()
+    if (data.error) throw new Error(data.error)
+    if (!data.year?.periods) throw new Error('Incomplete response')
+    return data.year
+  }
 
-      for (let attempt = 0; attempt < 2 && !ok; attempt++) {
-        try {
-          const res = await fetch('/api/full-roadmap', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.id, yearIndex: i, totalYears })
-          })
-          const data = await res.json()
-          if (data.error) throw new Error(data.error)
-          if (!data.year?.periods) throw new Error('Incomplete response')
-          years.push(data.year)
-          setRoadmap({ overview: `A ${totalYears}-year plan for ${profile.target_university} — ${profile.target_department}.`, years: [...years] })
-          ok = true
-        } catch (e: any) {
-          if (attempt === 1) setGenError(`Year ${i + 1}: ${e.message}`)
-          else await new Promise(r => setTimeout(r, 3000))
-        }
-      }
+  async function save(next: any) {
+    setRoadmap(next)
+    await fetch('/api/full-roadmap', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id, roadmap: next })
+    })
+  }
 
-      if (!ok) break
-      if (i < totalYears - 1) await new Promise(r => setTimeout(r, 2000))
-    }
-
-    if (years.length > 0) {
-      const full = {
-        overview: `A ${years.length}-year plan built for your profile: ${profile.grade}, GPA ${profile.gpa}, targeting ${profile.target_university} — ${profile.target_department}.`,
-        years
-      }
-      setRoadmap(full)
-      setProgress([])
-      await fetch('/api/full-roadmap', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, roadmap: full })
+  // First run: only year 1
+  async function startRoadmap() {
+    setBusy(true); setError(''); setStatus('Building your first year...')
+    const totalYears = totalYearsFor(profile)
+    try {
+      const y = await fetchYear(0, totalYears)
+      await save({
+        totalYears,
+        overview: `A ${totalYears}-year plan for ${profile.target_university} — ${profile.target_department}. Years unlock as you go.`,
+        years: [y]
       })
+      setProgress([])
+    } catch (e: any) {
+      setError(e.message)
     }
+    setStatus(''); setBusy(false)
+  }
 
-    setGenStatus('')
-    setGenerating(false)
+  // Unlock one more year on demand
+  async function unlockYear(index: number) {
+    setBusy(true); setError(''); setStatus(`Building year ${index + 1}...`)
+    const totalYears = roadmap.totalYears || totalYearsFor(profile)
+    try {
+      const y = await fetchYear(index, totalYears)
+      const years = [...roadmap.years]
+      years[index] = y
+      await save({ ...roadmap, years })
+      setActiveYear(index)
+      setActivePeriod(null)
+    } catch (e: any) {
+      setError(e.message)
+    }
+    setStatus(''); setBusy(false)
   }
 
   async function toggle(key: string) {
@@ -114,7 +123,7 @@ export default function Roadmap() {
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <div className="text-5xl mb-4">🗺</div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Build your profile first</h1>
-        <p className="text-sm text-gray-500 mb-6">Your roadmap is generated from your grade, GPA and target university — we need those first.</p>
+        <p className="text-sm text-gray-500 mb-6">Your roadmap is generated from your grade, GPA and target university.</p>
         <Link href="/onboarding" className="inline-block bg-indigo-900 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-indigo-800">
           Complete my profile →
         </Link>
@@ -128,22 +137,21 @@ export default function Roadmap() {
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <div className="text-5xl mb-4">🗺</div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Your long-term roadmap</h1>
-        <p className="text-sm text-gray-500 mb-2">
-          Built for {profile.grade} · GPA {profile.gpa} · {profile.target_university}
-        </p>
-        <p className="text-xs text-gray-400 mb-8">Every task written for your profile — not a template.</p>
-        <button onClick={generate} disabled={generating}
+        <p className="text-sm text-gray-500 mb-2">{profile.grade} · GPA {profile.gpa} · {profile.target_university}</p>
+        <p className="text-xs text-gray-400 mb-8">We build your current year first — later years unlock when you need them.</p>
+        <button onClick={startRoadmap} disabled={busy}
           className="bg-indigo-900 text-white px-8 py-3.5 rounded-xl text-sm font-medium hover:bg-indigo-800 disabled:opacity-50">
-          {generating ? (genStatus || 'Building...') : 'Generate my roadmap →'}
+          {busy ? (status || 'Building...') : 'Start my roadmap →'}
         </button>
-        {genError && <p className="text-xs text-red-500 mt-4">{genError}</p>}
+        {error && <p className="text-xs text-red-500 mt-4">{error}</p>}
       </div>
     </main>
   )
 
+  const totalYears = roadmap.totalYears || roadmap.years.length
   const year = roadmap.years?.[activeYear]
   const allTasks = roadmap.years?.flatMap((y: any, yi: number) =>
-    y.periods?.flatMap((p: any, pi: number) => p.tasks?.map((_: any, ti: number) => `${yi}-${pi}-${ti}`)) || []
+    y?.periods?.flatMap((p: any, pi: number) => p.tasks?.map((_: any, ti: number) => `${yi}-${pi}-${ti}`)) || []
   ) || []
   const donePct = allTasks.length ? Math.round((progress.length / allTasks.length) * 100) : 0
 
@@ -157,15 +165,15 @@ export default function Roadmap() {
             <h1 className="text-2xl font-bold text-gray-900 mb-1">Your Roadmap</h1>
             <p className="text-sm text-gray-500">{profile.grade} → {profile.target_university} · {profile.target_department}</p>
           </div>
-          <button onClick={generate} disabled={generating}
+          <button onClick={() => unlockYear(activeYear)} disabled={busy}
             className="text-xs border border-gray-200 px-3 py-2 rounded-xl text-gray-500 hover:bg-white disabled:opacity-50">
-            {generating ? (genStatus || 'Rebuilding...') : '↻ Rebuild'}
+            {busy ? (status || '...') : '↻ Redo this year'}
           </button>
         </div>
 
-        {genError && (
+        {error && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4">
-            <p className="text-xs text-amber-700">⚠ {genError} — press Rebuild to try again.</p>
+            <p className="text-xs text-amber-700">⚠ {error} — try again.</p>
           </div>
         )}
 
@@ -182,15 +190,21 @@ export default function Roadmap() {
         <div className="relative mb-8">
           <div className="absolute top-7 left-0 right-0 h-2 bg-gray-200 rounded-full z-0"></div>
           <div className="relative z-10 flex justify-around">
-            {roadmap.years?.map((y: any, i: number) => {
+            {Array.from({ length: totalYears }).map((_, i) => {
               const c = yearColors[i % yearColors.length]
-              const active = activeYear === i
+              const built = !!roadmap.years?.[i]
+              const active = activeYear === i && built
               return (
-                <button key={i} onClick={() => { setActiveYear(i); setActivePeriod(null) }} className="flex flex-col items-center gap-2">
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg transition-all ${active ? c.dot + ' scale-110' : 'bg-gray-300'}`}>
-                    {i + 1}
+                <button key={i}
+                  onClick={() => built ? (setActiveYear(i), setActivePeriod(null)) : unlockYear(i)}
+                  disabled={busy}
+                  className="flex flex-col items-center gap-2 disabled:opacity-60">
+                  <div className={`w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg transition-all ${active ? c.dot + ' scale-110' : built ? 'bg-gray-300' : 'bg-white border-2 border-dashed border-gray-300 text-gray-400'}`}>
+                    {built ? i + 1 : '+'}
                   </div>
-                  <span className={`text-xs font-semibold text-center ${active ? c.text : 'text-gray-400'}`}>{y.label}</span>
+                  <span className={`text-xs font-semibold text-center ${active ? c.text : 'text-gray-400'}`}>
+                    {built ? roadmap.years[i].label : `Year ${i + 1} · unlock`}
+                  </span>
                 </button>
               )
             })}
@@ -220,7 +234,7 @@ export default function Roadmap() {
           })}
         </div>
 
-        {activePeriod ? (
+        {activePeriod && year ? (
           <div className={`${yearColors[activeYear % 4].light} ${yearColors[activeYear % 4].border} border-2 rounded-2xl p-6`}>
             <h3 className={`font-semibold ${yearColors[activeYear % 4].text} mb-4`}>{year.label} · {activePeriod}</h3>
             <div className="flex flex-col gap-3">
