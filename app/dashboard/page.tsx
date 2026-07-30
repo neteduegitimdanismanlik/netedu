@@ -125,10 +125,10 @@ export default function Dashboard() {
             <p className="text-sm text-gray-500 mb-4">Get your personalized step-by-step plan to reach your target university.</p>
             <div className="flex flex-wrap gap-3">
               <Link href="/onboarding" className="bg-indigo-900 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-800 inline-block">
-                {profile ? 'Update roadmap →' : 'Build my roadmap →'}
+                {profile ? 'Update profile →' : 'Build my profile →'}
               </Link>
               <Link href="/roadmap" className="border border-indigo-900 text-indigo-900 px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-50 inline-block">
-                View my-roadmap →
+                View my roadmap →
               </Link>
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function Dashboard() {
           </div>
           <div className="bg-white rounded-2xl border border-gray-100 p-6">
             <h2 className="font-semibold text-gray-800 mb-2">Coach Corner</h2>
-            <p className="text-sm text-gray-500 mb-4">Essays, interviews, EE and oral exam prep.</p>
+            <p className="text-sm text-gray-500 mb-4">Coursework, interviews and oral exam prep.</p>
             <Link href="/coach" className="text-xs bg-indigo-900 text-white px-3 py-1.5 rounded-full hover:bg-indigo-800 inline-block">Open →</Link>
           </div>
         </div>

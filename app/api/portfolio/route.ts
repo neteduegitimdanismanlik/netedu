@@ -1,6 +1,7 @@
 ﻿import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { recomputeIdentityScore } from '@/lib/identity'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,28 +40,24 @@ Return JSON only, no markdown:
 
     const { data: item, error } = await supabase
       .from('portfolio_items')
-      .insert({ user_id: userId, title, type, description, file_url: fileUrl, ai_score: analysis.score, ai_category: analysis.category, ai_feedback: analysis.feedback, status: 'pending' })
+      .insert({
+        user_id: userId, title, type, description, file_url: fileUrl,
+        ai_score: analysis.score, ai_category: analysis.category,
+        ai_feedback: analysis.feedback, status: 'pending'
+      })
       .select().single()
 
     if (error) throw error
 
-    const { data: existing } = await supabase.from('identity_scores').select('*').eq('user_id', userId).single()
-    const scoreField = analysis.category === 'Academic' ? 'academic_score' : analysis.category === 'Leadership' ? 'leadership_score' : analysis.category === 'Project' ? 'project_score' : 'social_score'
-
-    if (existing) {
-      const newScore = Math.min(100, (existing[scoreField] || 0) + Math.floor(analysis.score / 10))
-      const total = Math.floor((newScore + existing.academic_score + existing.leadership_score + existing.project_score + existing.social_score) / 4)
-      await supabase.from('identity_scores').update({ [scoreField]: newScore, total_score: total, updated_at: new Date().toISOString() }).eq('user_id', userId)
-    } else {
-      await supabase.from('identity_scores').insert({ user_id: userId, [scoreField]: Math.floor(analysis.score / 10), total_score: Math.floor(analysis.score / 10) })
-    }
+    // Pending items do NOT affect the score — recompute keeps it honest.
+    await recomputeIdentityScore(userId)
 
     try {
       await resend.emails.send({
         from: 'NetEdu <onboarding@resend.dev>',
         to: 'neteduegitimdanismanlik@gmail.com',
         subject: `New Portfolio Item: ${title}`,
-        html: `<h2>New Portfolio Submission</h2><p><strong>Title:</strong> ${title}</p><p><strong>Type:</strong> ${type}</p><p><strong>Description:</strong> ${description}</p>${fileUrl ? `<p><strong>Proof:</strong> <a href="${fileUrl}">View file</a></p>` : ''}<hr/><h3>AI Analysis</h3><p><strong>Score:</strong> ${analysis.score}/100</p><p><strong>Category:</strong> ${analysis.category}</p><p><strong>Feedback:</strong> ${analysis.feedback}</p><hr/><p>Review this submission:</p><div style="margin-top:20px"><a href="https://netedu.vercel.app/admin/review?itemId=${item.id}&action=approved" style="background:#1a1a6e;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;margin-right:10px">Approve</a>&nbsp;&nbsp;<a href="https://netedu.vercel.app/admin/review?itemId=${item.id}&action=rejected" style="background:#dc2626;color:white;padding:12px 24px;border-radius:8px;text-decoration:none">Reject</a></div>`
+        html: `<h2>New Portfolio Submission</h2><p><strong>Title:</strong> ${title}</p><p><strong>Type:</strong> ${type}</p><p><strong>Description:</strong> ${description}</p>${fileUrl ? `<p><strong>Proof:</strong> <a href="${fileUrl}">View file</a></p>` : ''}<hr/><h3>AI Analysis</h3><p><strong>Score:</strong> ${analysis.score}/100</p><p><strong>Category:</strong> ${analysis.category}</p><p><strong>Feedback:</strong> ${analysis.feedback}</p><hr/><div style="margin-top:20px"><a href="https://netedu.vercel.app/admin/review?itemId=${item.id}&action=approved" style="background:#1a1a6e;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;margin-right:10px">Approve</a>&nbsp;&nbsp;<a href="https://netedu.vercel.app/admin/review?itemId=${item.id}&action=rejected" style="background:#dc2626;color:white;padding:12px 24px;border-radius:8px;text-decoration:none">Reject</a></div>`
       })
     } catch (emailError) {
       console.error('Email error:', emailError)
@@ -84,12 +81,34 @@ export async function GET(req: Request) {
   }
 }
 
+// Approve / reject — recomputes the score afterwards
+export async function PATCH(req: Request) {
+  try {
+    const { itemId, status } = await req.json()
+    const { data: item, error } = await supabase
+      .from('portfolio_items')
+      .update({ status })
+      .eq('id', itemId)
+      .select('user_id').single()
+    if (error) throw error
+
+    const score = await recomputeIdentityScore(item.user_id)
+    return NextResponse.json({ success: true, score })
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 })
+  }
+}
+
 export async function DELETE(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
     const itemId = searchParams.get('itemId')
+
+    const { data: item } = await supabase.from('portfolio_items').select('user_id').eq('id', itemId).single()
     const { error } = await supabase.from('portfolio_items').delete().eq('id', itemId)
     if (error) throw error
+
+    if (item?.user_id) await recomputeIdentityScore(item.user_id)
     return NextResponse.json({ success: true })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
