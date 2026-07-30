@@ -7,27 +7,101 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-async function scoreOnce(rubric: any, subject: string, title: string, content: string) {
+// 4000-word EE is roughly 24k characters. The old 12k limit silently cut every
+// long piece in half, so conclusions were never marked. Raising this multiplies
+// input cost by 3 (three-shot averaging) — that is the intended trade.
+const MAX_CONTENT_CHARS = 60000
+const MAX_STORED_CHARS = 60000
+
+/* ------------------------------------------------------------------ */
+/* Exemplar calibration                                                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Pulls calibration anchors from approved alumni submissions for the same
+ * rubric. Deliberately fetches examiner_notes only, never extracted_text:
+ * short anchors beat full exemplars in the prompt, and other students' work
+ * must not end up in the model's context.
+ * Returns '' when nothing is approved yet, so this is a no-op until the admin
+ * screen has been used.
+ */
+async function buildCalibrationBlock(rubricId: string, subject: string) {
+  try {
+    const { data, error } = await supabase
+      .from('alumni_submissions')
+      .select('subject, level, score, topic_tags, examiner_notes')
+      .eq('rubric_id', rubricId)
+      .eq('approved', true)
+      .not('examiner_notes', 'is', null)
+      .limit(8)
+
+    if (error || !data || data.length === 0) return ''
+
+    // Same subject first, then anything else on the same rubric.
+    const subj = (subject || '').toLowerCase()
+    const sorted = [...data].sort((a, b) => {
+      const aMatch = (a.subject || '').toLowerCase().includes(subj) ? 0 : 1
+      const bMatch = (b.subject || '').toLowerCase().includes(subj) ? 0 : 1
+      return aMatch - bMatch
+    })
+
+    const lines = sorted.slice(0, 5).map((r) => {
+      const meta = [r.subject, r.level, r.score ? `awarded ${r.score}` : null]
+        .filter(Boolean)
+        .join(' · ')
+      const tags = r.topic_tags?.length ? ` [${r.topic_tags.join(', ')}]` : ''
+      return `- ${meta}${tags}\n  ${String(r.examiner_notes).trim()}`
+    })
+
+    return `
+CALIBRATION REFERENCE (moderated work on this rubric, for standard-setting only):
+${lines.join('\n')}
+
+Use these only to calibrate how strict the bands are. Do not compare the student
+to them by name, do not mention them in your output, and never quote from them.
+`
+  } catch {
+    return ''
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Single scoring run                                                  */
+/* ------------------------------------------------------------------ */
+
+async function scoreOnce(
+  rubric: any,
+  subject: string,
+  title: string,
+  content: string,
+  level: string,
+  calibration: string
+) {
   const criteriaText = rubric.criteria.map((c: any) =>
     `Criterion ${c.id}: ${c.name} (max ${c.max})\n${c.description}\nBands:\n${c.bands.map((b: any) => `  ${b.range}: ${b.descriptor}`).join('\n')}`
   ).join('\n\n')
 
+  const levelLine = level
+    ? `LEVEL: ${level}  (where a criterion is level-dependent, apply the ${level} expectation)`
+    : `LEVEL: not supplied  (judge level-dependent criteria conservatively and say so in the comment)`
+
   const prompt = `You are an experienced ${rubric.framework} examiner marking a ${rubric.documentType}.
 
 SUBJECT: ${subject}
+${levelLine}
 TITLE / RESEARCH QUESTION: ${title}
 
 OFFICIAL RUBRIC:
 ${criteriaText}
-
+${calibration}
 STUDENT WORK:
 """
-${content.slice(0, 12000)}
+${content.slice(0, MAX_CONTENT_CHARS)}
 """
 
-Mark strictly against the band descriptors above. Award each criterion a whole-number score within its maximum.
+Mark strictly against the band descriptors above. Award each criterion a whole-number score within its maximum. Judge the whole piece, including its closing sections.
 
-For "quote": copy an exact sentence WORD-FOR-WORD from the student work above — it must appear verbatim in the text so it can be located. Never paraphrase it.
+For "quote": copy an exact sentence WORD-FOR-WORD from the STUDENT WORK above — it must appear verbatim in that text so it can be located. Never paraphrase it, and never take it from the calibration reference.
 
 Return ONLY raw JSON, no markdown, no backticks:
 {
@@ -47,44 +121,136 @@ Return ONLY raw JSON, no markdown, no backticks:
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
-      max_tokens: 2500,
+      max_tokens: 4000,
       messages: [{ role: 'user', content: prompt }]
     })
   })
 
   const data = await res.json()
-  let text = data.content?.[0]?.text || '{}'
-  text = text.replace(/```json/g, '').replace(/```/g, '').trim()
-  return JSON.parse(text)
+
+  // An API failure used to fall through to '{}', which produced a report where
+  // every criterion scored 0. Fail loudly instead.
+  if (!res.ok || data?.error) {
+    throw new Error(data?.error?.message || `Anthropic API returned ${res.status}`)
+  }
+
+  const text = (data.content?.[0]?.text || '')
+    .replace(/```json/g, '')
+    .replace(/```/g, '')
+    .trim()
+
+  if (!text) throw new Error('Empty response from model')
+
+  const parsed = JSON.parse(text)
+  if (!Array.isArray(parsed.criteria)) throw new Error('Response missing criteria array')
+  return parsed
 }
+
+/* ------------------------------------------------------------------ */
+/* Helpers                                                            */
+/* ------------------------------------------------------------------ */
+
+const normalize = (s: string) => s.replace(/\s+/g, ' ').trim().toLowerCase()
+
+/** Prefers a quote that actually occurs in the text, so AnnotatedText can find it. */
+function pickQuote(candidates: { quote?: string; quoteNote?: string }[], content: string) {
+  const haystack = normalize(content)
+  const exact = candidates.find((c) => c.quote && content.includes(c.quote))
+  if (exact) return { quote: exact.quote!, quoteNote: exact.quoteNote || '', verbatim: true }
+
+  const loose = candidates.find((c) => c.quote && haystack.includes(normalize(c.quote)))
+  if (loose) return { quote: loose.quote!, quoteNote: loose.quoteNote || '', verbatim: true }
+
+  const any = candidates.find((c) => c.quote)
+  return { quote: any?.quote || '', quoteNote: any?.quoteNote || '', verbatim: false }
+}
+
+/* ------------------------------------------------------------------ */
+/* POST                                                              */
+/* ------------------------------------------------------------------ */
 
 export async function POST(req: Request) {
   try {
-    const { rubricId, subject, title, content, userId, fileUrl } = await req.json()
+    const { rubricId, subject, title, content, userId, fileUrl, level } = await req.json()
 
     const rubric = getRubric(rubricId)
     if (!rubric) return NextResponse.json({ error: 'Rubric not found' }, { status: 400 })
 
-    // 3-shot averaging for consistency
-    const runs = await Promise.all([
-      scoreOnce(rubric, subject, title, content),
-      scoreOnce(rubric, subject, title, content),
-      scoreOnce(rubric, subject, title, content),
+    if (!content || content.trim().length < 200) {
+      return NextResponse.json(
+        { error: 'Metin çok kısa. Değerlendirme için en az birkaç paragraf gerekiyor.' },
+        { status: 400 }
+      )
+    }
+
+    const calibration = await buildCalibrationBlock(rubric.id, subject)
+
+    // Three-shot averaging. allSettled so one malformed run cannot sink the request.
+    const settled = await Promise.allSettled([
+      scoreOnce(rubric, subject, title, content, level || '', calibration),
+      scoreOnce(rubric, subject, title, content, level || '', calibration),
+      scoreOnce(rubric, subject, title, content, level || '', calibration),
     ])
 
+    const runs = settled
+      .filter((s): s is PromiseFulfilledResult<any> => s.status === 'fulfilled')
+      .map((s) => s.value)
+
+    if (runs.length === 0) {
+      const reason = settled
+        .map((s) => (s.status === 'rejected' ? s.reason?.message : null))
+        .filter(Boolean)[0]
+      return NextResponse.json(
+        { error: `Değerlendirme başarısız: ${reason || 'bilinmeyen hata'}` },
+        { status: 502 }
+      )
+    }
+
     const criteriaScores = rubric.criteria.map((c: any) => {
-      const scores = runs.map(r => r.criteria?.find((x: any) => x.id === c.id)?.score ?? 0)
-      const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-      const first = runs[0].criteria?.find((x: any) => x.id === c.id)
+      const entries = runs
+        .map((r) => r.criteria?.find((x: any) => x.id === c.id))
+        .filter(Boolean) as any[]
+
+      // A criterion missing from a run is unknown, not zero — ignore it.
+      const scores = entries
+        .map((e) => Number(e.score))
+        .filter((n) => Number.isFinite(n))
+        .map((n) => Math.max(0, Math.min(n, c.max)))
+
+      if (scores.length === 0) {
+        return {
+          id: c.id, name: c.name, score: 0, max: c.max,
+          comment: 'Bu kriter için değerlendirme alınamadı.',
+          quote: '', quoteNote: '', spread: 0, missing: true,
+        }
+      }
+
+      const mean = scores.reduce((a, b) => a + b, 0) / scores.length
+      const score = Math.min(Math.round(mean), c.max)
+
+      // Comment comes from the run closest to the average, so the prose and the
+      // number agree. Previously it was always run 0.
+      const representative = entries
+        .slice()
+        .sort(
+          (a, b) =>
+            Math.abs(Number(a.score) - mean) - Math.abs(Number(b.score) - mean)
+        )[0]
+
+      const ordered = [representative, ...entries.filter((e) => e !== representative)]
+      const { quote, quoteNote, verbatim } = pickQuote(ordered, content)
+
       return {
         id: c.id,
         name: c.name,
-        score: Math.min(avg, c.max),
+        score,
         max: c.max,
-        comment: first?.comment || '',
-        quote: first?.quote || '',
-        quoteNote: first?.quoteNote || '',
-        spread: Math.max(...scores) - Math.min(...scores)
+        comment: representative?.comment || '',
+        quote,
+        quoteNote,
+        quoteVerbatim: verbatim,
+        spread: Math.max(...scores) - Math.min(...scores),
+        runsUsed: scores.length,
       }
     })
 
@@ -98,7 +264,7 @@ export async function POST(req: Request) {
       document_type: rubric.documentType,
       subject, title,
       content_preview: content.slice(0, 500),
-      full_content: content.slice(0, 40000),
+      full_content: content.slice(0, MAX_STORED_CHARS),
       word_count: content.trim().split(/\s+/).length,
       file_url: fileUrl || null,
       total_score: total,
@@ -113,20 +279,36 @@ export async function POST(req: Request) {
 
     let saved = null
     if (userId) {
-      const { data } = await supabase.from('checker_reports').insert({ ...report, user_id: userId }).select().single()
+      const { data } = await supabase
+        .from('checker_reports')
+        .insert({ ...report, user_id: userId })
+        .select()
+        .single()
       saved = data
     }
 
-    return NextResponse.json({ ...report, id: saved?.id || null, rubricLabel: rubric.label })
+    return NextResponse.json({
+      ...report,
+      id: saved?.id || null,
+      rubricLabel: rubric.label,
+      runsCompleted: runs.length,
+      calibrated: calibration.length > 0,
+    })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* GET                                                                */
+/* ------------------------------------------------------------------ */
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
     const userId = searchParams.get('userId')
+    if (!userId) return NextResponse.json({ reports: [] })
+
     const { data } = await supabase
       .from('checker_reports')
       .select('*')
