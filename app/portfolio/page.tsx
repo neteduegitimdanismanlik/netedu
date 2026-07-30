@@ -76,38 +76,67 @@ export default function Portfolio() {
           <button onClick={() => setShowForm(!showForm)} className="bg-indigo-900 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-800">+ Add item</button>
         </div>
 
-        {score && (
-          <div className="bg-white rounded-2xl border border-indigo-100 p-6 mb-6">
-            <h2 className="font-semibold text-gray-800 mb-4">🏆 Academic Identity Score</h2>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-20 h-20 bg-indigo-900 rounded-full flex items-center justify-center">
-                <span className="text-white text-2xl font-bold">{score.total_score}</span>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Overall score</p>
-                <p className="text-xs text-gray-400">{items.length} portfolio items</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                { label: 'Academic', value: score.academic_score, color: 'bg-blue-500' },
-                { label: 'Leadership', value: score.leadership_score, color: 'bg-purple-500' },
-                { label: 'Projects', value: score.project_score, color: 'bg-yellow-500' },
-                { label: 'Social', value: score.social_score, color: 'bg-red-500' },
-              ].map((s, i) => (
-                <div key={i} className="bg-gray-50 rounded-xl p-3">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-xs text-gray-500">{s.label}</span>
-                    <span className="text-xs font-bold text-gray-700">{s.value}</span>
-                  </div>
-                  <div className="h-1.5 bg-gray-200 rounded-full">
-                    <div className={`h-full ${s.color} rounded-full`} style={{ width: `${s.value}%` }}></div>
-                  </div>
+        {score && (() => {
+          const approved = items.filter(i => i.status === 'approved')
+          const bucketOf = (cat: string) =>
+            cat === 'Academic' || cat === 'Research' ? 'academic'
+            : cat === 'Leadership' ? 'leadership'
+            : cat === 'Project' ? 'project' : 'social'
+          const counts: any = { academic: 0, leadership: 0, project: 0, social: 0 }
+          approved.forEach(i => { counts[bucketOf(i.ai_category)]++ })
+
+          const areas = [
+            { key: 'academic', label: 'Academic', value: score.academic_score || 0, color: 'bg-blue-500' },
+            { key: 'leadership', label: 'Leadership', value: score.leadership_score || 0, color: 'bg-purple-500' },
+            { key: 'project', label: 'Projects', value: score.project_score || 0, color: 'bg-yellow-500' },
+            { key: 'social', label: 'Social', value: score.social_score || 0, color: 'bg-red-500' },
+          ]
+          const covered = areas.filter(a => counts[a.key] > 0).length
+          const missing = areas.filter(a => counts[a.key] === 0)
+
+          return (
+            <div className="bg-white rounded-2xl border border-indigo-100 p-6 mb-6">
+              <h2 className="font-semibold text-gray-800 mb-4">🏆 Academic Identity Score</h2>
+              <div className="flex items-center gap-4 mb-5">
+                <div className="w-20 h-20 bg-indigo-900 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-2xl font-bold">{score.total_score || 0}</span>
                 </div>
-              ))}
+                <div>
+                  <p className="text-sm font-medium text-gray-700">{covered} of 4 areas covered</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {approved.length} approved {approved.length === 1 ? 'item' : 'items'} · pending items don't count yet
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                {areas.map((a, i) => (
+                  <div key={i} className={`rounded-xl p-3 ${counts[a.key] === 0 ? 'bg-gray-50 border border-dashed border-gray-200' : 'bg-gray-50'}`}>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs text-gray-500">{a.label}</span>
+                      <span className="text-xs font-bold text-gray-700">{a.value}</span>
+                    </div>
+                    <div className="h-1.5 bg-gray-200 rounded-full mb-1">
+                      <div className={`h-full ${a.color} rounded-full`} style={{ width: `${a.value}%` }}></div>
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      {counts[a.key] === 0 ? 'none yet' : `${counts[a.key]} item${counts[a.key] > 1 ? 's' : ''}`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {missing.length > 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                  <p className="text-xs text-amber-700">
+                    <strong>Biggest gap:</strong> no approved items in {missing.map(m => m.label).join(', ')}.
+                    Admissions officers look for breadth — one item in an empty area raises your score more than a third item in a strong one.
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         {showForm && (
           <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
@@ -165,6 +194,7 @@ export default function Portfolio() {
                     <span className={`text-xs px-2 py-1 rounded-full border ${item.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : item.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
                       {item.status === 'pending' ? 'Pending review' : item.status === 'approved' ? 'Approved' : 'Rejected'}
                     </span>
+                    {item.ai_category && <span className="text-xs px-2 py-1 rounded-full border bg-purple-50 text-purple-700 border-purple-200">{item.ai_category}</span>}
                   </div>
                 </div>
                 <div className="flex items-center gap-3 ml-4">
