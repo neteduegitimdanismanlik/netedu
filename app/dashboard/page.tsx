@@ -128,7 +128,7 @@ export default function Dashboard() {
                 {profile ? 'Update roadmap →' : 'Build my roadmap →'}
               </Link>
               <Link href="/roadmap" className="border border-indigo-900 text-indigo-900 px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-50 inline-block">
-                View 3-year plan →
+                View my-roadmap →
               </Link>
             </div>
           </div>

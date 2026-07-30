@@ -63,14 +63,15 @@ export default function Roadmap() {
 
   async function save(next: any) {
     setRoadmap(next)
-    await fetch('/api/full-roadmap', {
+    const res = await fetch('/api/full-roadmap', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: user.id, roadmap: next })
     })
+    const d = await res.json()
+    if (d.error) setError(`Could not save: ${d.error}`)
   }
 
-  // First run: only year 1
   async function startRoadmap() {
     setBusy(true); setError(''); setStatus('Building your first year...')
     const totalYears = totalYearsFor(profile)
@@ -88,7 +89,6 @@ export default function Roadmap() {
     setStatus(''); setBusy(false)
   }
 
-  // Unlock one more year on demand
   async function unlockYear(index: number) {
     setBusy(true); setError(''); setStatus(`Building year ${index + 1}...`)
     const totalYears = roadmap.totalYears || totalYearsFor(profile)
@@ -173,7 +173,7 @@ export default function Roadmap() {
 
         {error && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4">
-            <p className="text-xs text-amber-700">⚠ {error} — try again.</p>
+            <p className="text-xs text-amber-700">⚠ {error}</p>
           </div>
         )}
 

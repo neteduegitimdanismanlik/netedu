@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+
 export const maxDuration = 60
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -75,11 +77,11 @@ Return ONLY raw JSON, no markdown:
 export async function PUT(req: Request) {
   try {
     const { userId, roadmap } = await req.json()
-    await supabase.from('profiles').update({
+    const { error } = await supabase.from('profiles').update({
       full_roadmap: roadmap,
-      roadmap_progress: [],
       updated_at: new Date().toISOString()
     }).eq('id', userId)
+    if (error) throw error
     return NextResponse.json({ success: true })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
@@ -89,7 +91,8 @@ export async function PUT(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const { userId, progress } = await req.json()
-    await supabase.from('profiles').update({ roadmap_progress: progress }).eq('id', userId)
+    const { error } = await supabase.from('profiles').update({ roadmap_progress: progress }).eq('id', userId)
+    if (error) throw error
     return NextResponse.json({ success: true })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
