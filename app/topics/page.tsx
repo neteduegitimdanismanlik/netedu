@@ -1,0 +1,502 @@
+'use client';
+
+// app/topics/page.tsx
+//
+// Topic Finder. İki mod: konu öner / fikri test et.
+// Rubrik listesi topic-rules.ts'ten türetiliyor — burada elle liste yok.
+
+import { useEffect, useMemo, useState } from 'react';
+import Navbar from '../components/Navbar';
+import { supabase } from '../../lib/supabase';
+import {
+  listTopicRuleSets,
+  topicRulesNeedLevel,
+  getTopicRules,
+  getRule,
+  VERDICT_LABELS,
+  VERDICT_DESCRIPTIONS,
+  type TopicVerdict,
+} from '../rubrics/topic-rules';
+
+type Mode = 'suggest' | 'test';
+
+interface SuggestedTopic {
+  title: string;
+  contextId?: string;
+  personalHook?: string | null;
+  mathematics?: string;
+  data?: string;
+  watchOut?: string;
+  firstStep?: string;
+}
+
+interface SuggestResult {
+  mode: 'suggest';
+  generic?: boolean;
+  note?: string;
+  topics?: SuggestedTopic[];
+  profileUsed?: boolean;
+}
+
+interface TriggeredRule {
+  ruleId: string;
+  why: string;
+}
+
+interface TestResult {
+  mode: 'test';
+  verdict?: TopicVerdict;
+  summary?: string;
+  triggeredRules?: TriggeredRule[];
+  fixes?: string[];
+  sharpenedTitle?: string;
+  mathematicsNeeded?: string;
+  dataRealism?: string | null;
+  nextSteps?: string[];
+  profileUsed?: boolean;
+}
+
+type Result = (SuggestResult | TestResult) & { rubricId?: string; level?: string | null };
+
+const VERDICT_STYLES: Record<TopicVerdict, string> = {
+  strong: 'bg-emerald-50 text-emerald-900 border-emerald-300',
+  workable: 'bg-indigo-50 text-indigo-900 border-indigo-300',
+  risky: 'bg-amber-50 text-amber-900 border-amber-300',
+  unworkable: 'bg-rose-50 text-rose-900 border-rose-300',
+};
+
+const LEVELS = ['SL', 'HL'];
+
+export default function TopicsPage() {
+  const ruleSets = useMemo(() => listTopicRuleSets(), []);
+
+  const [mode, setMode] = useState<Mode>('suggest');
+  const [rubricId, setRubricId] = useState(ruleSets[0]?.rubricId ?? '');
+  const [level, setLevel] = useState('');
+  const [contextIds, setContextIds] = useState<string[]>([]);
+  const [idea, setIdea] = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<Result | null>(null);
+
+  const activeSet = getTopicRules(rubricId);
+  const needsLevel = rubricId ? topicRulesNeedLevel(rubricId) : false;
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth
+      .getUser()
+      .then(({ data }) => {
+        if (!cancelled) setUserId(data?.user?.id ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setUserId(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    setContextIds([]);
+    setResult(null);
+    setError(null);
+    if (!topicRulesNeedLevel(rubricId)) setLevel('');
+  }, [rubricId]);
+
+  function toggleContext(id: string) {
+    setContextIds((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    );
+  }
+
+  const canSubmit =
+    Boolean(rubricId) &&
+    (!needsLevel || Boolean(level)) &&
+    (mode === 'suggest' || idea.trim().length >= 20) &&
+    !loading;
+
+  async function run() {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const res = await fetch('/api/topics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode,
+          rubricId,
+          level: level || undefined,
+          userId: userId || undefined,
+          idea: mode === 'test' ? idea : undefined,
+          contextIds: mode === 'suggest' && contextIds.length ? contextIds : undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data?.error) {
+        throw new Error(data?.error || `İstek başarısız (${res.status})`);
+      }
+      setResult(data as Result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Bilinmeyen hata');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <Navbar />
+
+      <header className="bg-indigo-900 text-white">
+        <div className="mx-auto max-w-4xl px-6 py-10">
+          <p className="text-xs uppercase tracking-widest text-indigo-300">Coach Corner</p>
+          <h1 className="mt-2 text-3xl font-semibold">Topic Finder</h1>
+          <p className="mt-3 max-w-2xl text-indigo-100">
+            Konu seçmek IA&apos;nın en zor kısmı. Bu araç fikri baştan eler: on beş saat
+            sonra öğreneceğin sorunu şimdi söyler.
+          </p>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-4xl px-6 py-8">
+        {/* Mod */}
+        <div className="mb-6 inline-flex rounded-lg border border-slate-300 bg-white p-1">
+          {(['suggest', 'test'] as Mode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => {
+                setMode(m);
+                setResult(null);
+                setError(null);
+              }}
+              className={`rounded-md px-4 py-2 text-sm font-medium transition ${
+                mode === m
+                  ? 'bg-indigo-900 text-white'
+                  : 'text-slate-600 hover:text-indigo-900'
+              }`}
+            >
+              {m === 'suggest' ? 'Konu öner' : 'Fikrimi test et'}
+            </button>
+          ))}
+        </div>
+
+        <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          {/* Rubrik */}
+          <label className="block text-sm font-medium text-slate-700">
+            Ne üzerinde çalışıyorsun?
+          </label>
+          <select
+            value={rubricId}
+            onChange={(e) => setRubricId(e.target.value)}
+            className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          >
+            {ruleSets.map((s) => (
+              <option key={s.rubricId} value={s.rubricId}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+          <p className="mt-2 text-xs text-slate-500">
+            Listede olmayan dersler için konu kuralları henüz yüklü değil. Yanlış kural,
+            kural olmamasından kötü.
+          </p>
+
+          {/* Seviye */}
+          {needsLevel && (
+            <div className="mt-5">
+              <label className="block text-sm font-medium text-slate-700">Seviye</label>
+              <div className="mt-2 flex gap-2">
+                {LEVELS.map((l) => (
+                  <button
+                    key={l}
+                    type="button"
+                    onClick={() => setLevel(l)}
+                    className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                      level === l
+                        ? 'border-indigo-900 bg-indigo-900 text-white'
+                        : 'border-slate-300 text-slate-700 hover:border-indigo-400'
+                    }`}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+              {activeSet?.levelNotes && level && (
+                <p className="mt-2 text-xs text-slate-500">{activeSet.levelNotes[level]}</p>
+              )}
+            </div>
+          )}
+
+          {/* Bağlam filtresi — sadece suggest */}
+          {mode === 'suggest' && activeSet && (
+            <div className="mt-5">
+              <label className="block text-sm font-medium text-slate-700">
+                Alan sınırlaması{' '}
+                <span className="font-normal text-slate-500">(isteğe bağlı)</span>
+              </label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {activeSet.contexts.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    title={c.hint}
+                    onClick={() => toggleContext(c.id)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                      contextIds.includes(c.id)
+                        ? 'border-indigo-900 bg-indigo-900 text-white'
+                        : 'border-slate-300 text-slate-600 hover:border-indigo-400'
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Fikir — sadece test */}
+          {mode === 'test' && (
+            <div className="mt-5">
+              <label className="block text-sm font-medium text-slate-700">
+                Fikrin
+              </label>
+              <textarea
+                value={idea}
+                onChange={(e) => setIdea(e.target.value)}
+                rows={5}
+                placeholder="Ne yapmayı düşünüyorsun? Hangi veriyi, hangi matematiği kullanacağını da yaz."
+                className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              />
+              <p className="mt-1 text-xs text-slate-500">
+                {idea.trim().length < 20
+                  ? 'En az bir iki cümle gerekiyor.'
+                  : `${idea.trim().length} karakter`}
+              </p>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={run}
+            disabled={!canSubmit}
+            className="mt-6 w-full rounded-lg bg-indigo-900 px-4 py-3 font-medium text-white transition hover:bg-indigo-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            {loading
+              ? 'Çalışıyor…'
+              : mode === 'suggest'
+              ? 'Konu öner'
+              : 'Fikri değerlendir'}
+          </button>
+
+          {activeSet && (
+            <p className="mt-3 text-center text-xs text-slate-500">{activeSet.scopeNote}</p>
+          )}
+        </section>
+
+        {error && (
+          <div className="mt-6 rounded-lg border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900">
+            <p className="font-medium">İstek tamamlanamadı</p>
+            <p className="mt-1">{error}</p>
+          </div>
+        )}
+
+        {result && result.mode === 'suggest' && (
+          <SuggestView result={result as SuggestResult} rubricId={rubricId} />
+        )}
+        {result && result.mode === 'test' && (
+          <TestView result={result as TestResult} rubricId={rubricId} />
+        )}
+      </main>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
+function SuggestView({ result, rubricId }: { result: SuggestResult; rubricId: string }) {
+  const set = getTopicRules(rubricId);
+  const topics = result.topics ?? [];
+
+  return (
+    <section className="mt-8">
+      {result.generic && (
+        <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+          Profilin boş olduğu için bu öneriler genel. Portfolio ve onboarding
+          bilgilerini doldurursan öneriler kendi hayatına bağlanır.
+        </div>
+      )}
+      {result.note && <p className="mb-4 text-sm text-slate-600">{result.note}</p>}
+
+      <div className="space-y-4">
+        {topics.map((t, i) => {
+          const context = set?.contexts.find((c) => c.id === t.contextId);
+          return (
+            <article
+              key={`${t.title}-${i}`}
+              className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <h3 className="text-lg font-semibold text-slate-900">{t.title}</h3>
+                {context && (
+                  <span className="shrink-0 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-900">
+                    {context.label}
+                  </span>
+                )}
+              </div>
+
+              {t.personalHook && (
+                <p className="mt-3 border-l-2 border-indigo-900 pl-3 text-sm text-slate-700">
+                  {t.personalHook}
+                </p>
+              )}
+
+              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                <Field label="Gereken matematik" value={t.mathematics} />
+                <Field label="Veri" value={t.data} />
+                <Field label="Dikkat" value={t.watchOut} />
+                <Field label="İlk adım" value={t.firstStep} />
+              </dl>
+            </article>
+          );
+        })}
+      </div>
+
+      {topics.length === 0 && (
+        <p className="rounded-lg border border-slate-200 bg-white p-5 text-sm text-slate-600">
+          Öneri dönmedi. Tekrar dene.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function TestView({ result, rubricId }: { result: TestResult; rubricId: string }) {
+  const verdict = result.verdict;
+  const style = verdict ? VERDICT_STYLES[verdict] : 'bg-slate-50 text-slate-900 border-slate-300';
+
+  return (
+    <section className="mt-8 space-y-4">
+      <div className={`rounded-xl border p-5 ${style}`}>
+        <p className="text-xs font-semibold uppercase tracking-widest opacity-70">Karar</p>
+        <h2 className="mt-1 text-2xl font-semibold">
+          {verdict ? VERDICT_LABELS[verdict] : '—'}
+        </h2>
+        <p className="mt-1 text-sm opacity-80">
+          {verdict ? VERDICT_DESCRIPTIONS[verdict] : 'Karar dönmedi.'}
+        </p>
+        {result.summary && <p className="mt-3 text-sm">{result.summary}</p>}
+      </div>
+
+      {result.sharpenedTitle && (
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            Keskinleştirilmiş başlık
+          </p>
+          <p className="mt-2 text-lg font-medium text-slate-900">{result.sharpenedTitle}</p>
+        </div>
+      )}
+
+      {result.triggeredRules && result.triggeredRules.length > 0 && (
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            Takıldığı kurallar
+          </p>
+          <ul className="mt-3 space-y-3">
+            {result.triggeredRules.map((tr, i) => {
+              const rule = getRule(rubricId, tr.ruleId);
+              return (
+                <li key={`${tr.ruleId}-${i}`} className="border-l-2 border-slate-300 pl-3">
+                  <p className="text-sm font-medium text-slate-900">
+                    {rule?.label ?? tr.ruleId}
+                    {rule && (
+                      <span className="ml-2 rounded bg-slate-100 px-2 py-0.5 text-xs font-normal text-slate-600">
+                        {rule.severity}
+                        {rule.hits?.length ? ` · kriter ${rule.hits.join(', ')}` : ''}
+                      </span>
+                    )}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">{tr.why}</p>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {result.mathematicsNeeded && (
+          <Panel label="Gereken matematik" body={result.mathematicsNeeded} />
+        )}
+        {result.dataRealism && (
+          <Panel label="Veri gerçekçiliği" body={result.dataRealism} />
+        )}
+      </div>
+
+      {result.fixes && result.fixes.length > 0 && (
+        <ListPanel label="Düzeltme" items={result.fixes} />
+      )}
+      {result.nextSteps && result.nextSteps.length > 0 && (
+        <ListPanel label="Sonraki adımlar" items={result.nextSteps} ordered />
+      )}
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
+function Field({ label, value }: { label: string; value?: string }) {
+  if (!value) return null;
+  return (
+    <div>
+      <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+        {label}
+      </dt>
+      <dd className="mt-1 text-slate-700">{value}</dd>
+    </div>
+  );
+}
+
+function Panel({ label, body }: { label: string; body: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+        {label}
+      </p>
+      <p className="mt-2 text-sm text-slate-700">{body}</p>
+    </div>
+  );
+}
+
+function ListPanel({
+  label,
+  items,
+  ordered,
+}: {
+  label: string;
+  items: string[];
+  ordered?: boolean;
+}) {
+  const List = ordered ? 'ol' : 'ul';
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+        {label}
+      </p>
+      <List
+        className={`mt-3 space-y-2 text-sm text-slate-700 ${
+          ordered ? 'list-decimal pl-5' : 'list-disc pl-5'
+        }`}
+      >
+        {items.map((it, i) => (
+          <li key={i}>{it}</li>
+        ))}
+      </List>
+    </div>
+  );
+}
