@@ -150,7 +150,7 @@ export default function TopicsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navbar />
+   <Navbar showBack backHref="/coach" backLabel="Coach Corner" />
 
       <header className="bg-indigo-900 text-white">
         <div className="mx-auto max-w-4xl px-6 py-10">

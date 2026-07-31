@@ -3,6 +3,13 @@ import Navbar from '../components/Navbar'
 
 const tools = [
   {
+    href: '/topics',
+    icon: '🧭',
+    title: 'Topic Finder',
+    desc: 'Find an IA topic tied to your own life, or test an idea you already have before you spend fifteen hours on it.',
+    color: 'bg-amber-100',
+  },
+  {
     href: '/checker',
     icon: '✍️',
     title: 'Coursework Checker',
