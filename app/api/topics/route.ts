@@ -1,13 +1,14 @@
 // app/api/topics/route.ts
 //
 // Topic Finder engine. Two modes:
-//   suggest — builds 6 topics from the profile, at least 3 tied to the student's own life
+//   suggest — builds 3 topics from the profile, at least 2 tied to the student's own life
 //   test    — judges the student's idea: strong / workable / risky / unworkable
 //
 // Design decisions:
 // - NO new Supabase columns. `level` only goes into the prompt.
 // - Rubrics and rules come from data files; no hardcoded lists here.
 // - Errors never turn into a silently empty result (the bug we fixed in the checker).
+// - Output is deliberately short: generation time scales with length.
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
@@ -25,6 +26,7 @@ const MODEL = 'claude-sonnet-4-6';
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
 const OUTPUT_LANGUAGE = 'English';
 const MAX_IDEA_CHARS = 4000;
+const TOPIC_COUNT = 3;
 
 type Mode = 'suggest' | 'test';
 
@@ -160,6 +162,10 @@ ${set.dataGuidance.map((t) => `- ${t}`).join('\n')}
 
 Write all student-facing strings in ${OUTPUT_LANGUAGE}. Keep rule ids and context ids exactly as given.
 Never invent a rule id that is not in the list above.
+
+Be brief. Every field is one sentence unless stated otherwise. No hedging, no restating the question,
+no filler openers. A student reads this on a phone between lessons.
+
 Respond with JSON only. No preamble, no markdown fences.`;
 }
 
@@ -179,11 +185,11 @@ ${describeProfile(profile)}
 Available contexts:
 ${describeContexts(set, contextIds)}
 
-Task: propose exactly 6 topics.
+Task: propose exactly ${TOPIC_COUNT} topics. Three good ones beat six padded ones.
 ${
   empty
     ? 'The profile is empty. Propose generic but well-formed topics and set "generic": true. Do not pretend to know the student.'
-    : 'At least 3 of the 6 must be anchored in something specific from the profile above — name the connection explicitly. Set "generic": false.'
+    : `At least 2 of the ${TOPIC_COUNT} must be anchored in something specific from the profile above — name the connection explicitly. Set "generic": false.`
 }
 Each topic must be narrow enough to finish, and must require mathematics at or near course level.
 Do not propose a topic whose mathematics would sit entirely in prior learning.
@@ -191,16 +197,16 @@ Do not propose a topic whose mathematics would sit entirely in prior learning.
 JSON shape:
 {
   "generic": boolean,
-  "note": "one sentence on what these suggestions are based on",
+  "note": "one short sentence on what these are based on",
   "topics": [
     {
       "title": "a working title that states the question, not the field",
       "contextId": "one of the context ids above",
-      "personalHook": "why this one belongs to this student, or null if generic",
-      "mathematics": "the specific mathematics it would use",
-      "data": "what data is needed and whether the student can realistically get it",
-      "watchOut": "the single most likely way this topic goes wrong",
-      "firstStep": "what to do in the next hour to test whether it works"
+      "personalHook": "one sentence on why this belongs to this student, or null if generic",
+      "mathematics": "one sentence naming the specific mathematics",
+      "data": "one sentence on what data is needed and whether it is obtainable",
+      "watchOut": "one sentence on the most likely way this goes wrong",
+      "firstStep": "one sentence on what to do in the next hour"
     }
   ]
 }`;
@@ -231,18 +237,20 @@ Verdicts:
 - "risky": there is a serious gap; hours will be wasted if it is not fixed.
 - "unworkable": the criteria cannot be applied to this as written. The idea must change.
 
+Report at most 3 triggered rules — the ones that matter most. At most 3 fixes, at most 3 next steps.
+
 JSON shape:
 {
   "verdict": "strong" | "workable" | "risky" | "unworkable",
   "summary": "two sentences, plain, no encouragement filler",
   "triggeredRules": [
-    { "ruleId": "exact id from the rule list", "why": "what in the idea triggers it" }
+    { "ruleId": "exact id from the rule list", "why": "one sentence on what in the idea triggers it" }
   ],
-  "fixes": ["concrete change, each one actionable today"],
+  "fixes": ["one concrete change per item, one sentence each"],
   "sharpenedTitle": "the idea restated as a title that states the question",
-  "mathematicsNeeded": "the mathematics this would actually require, named specifically",
-  "dataRealism": "whether the data can be obtained at the size the technique needs, or null if no data involved",
-  "nextSteps": ["what to do next, in order"]
+  "mathematicsNeeded": "one sentence naming the mathematics this actually requires",
+  "dataRealism": "one sentence on whether the data is obtainable at the size the technique needs, or null if no data involved",
+  "nextSteps": ["one sentence per step, in order"]
 }
 
 If no rule is triggered, return an empty triggeredRules array. Do not pad it.`;
@@ -265,7 +273,7 @@ async function callClaude(prompt: string): Promise<string> {
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 4000,
+      max_tokens: 2000,
       messages: [{ role: 'user', content: prompt }],
     }),
   });

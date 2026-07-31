@@ -5,7 +5,7 @@
 // Topic Finder. Two modes: suggest topics / test an idea.
 // The subject list is derived from topic-rules.ts — no hardcoded list here.
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Navbar from '../components/Navbar';
 import { supabase } from '../../lib/supabase';
 import {
@@ -78,8 +78,11 @@ export default function TopicsPage() {
   const [userId, setUserId] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
+
+  const resultsRef = useRef<HTMLDivElement | null>(null);
 
   const activeSet = getTopicRules(rubricId);
   const needsLevel = rubricId ? topicRulesNeedLevel(rubricId) : false;
@@ -106,6 +109,17 @@ export default function TopicsPage() {
     if (!topicRulesNeedLevel(rubricId)) setLevel('');
   }, [rubricId]);
 
+  // Elapsed-time counter while waiting.
+  useEffect(() => {
+    if (!loading) return;
+    setElapsed(0);
+    const started = Date.now();
+    const timer = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - started) / 1000));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [loading]);
+
   function toggleContext(id: string) {
     setContextIds((prev) =>
       prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
@@ -122,6 +136,7 @@ export default function TopicsPage() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
     try {
       const res = await fetch('/api/topics', {
         method: 'POST',
@@ -150,7 +165,7 @@ export default function TopicsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-   <Navbar showBack backHref="/coach" backLabel="Coach Corner" />
+      <Navbar showBack backHref="/coach" backLabel="Coach Corner" />
 
       <header className="bg-indigo-900 text-white">
         <div className="mx-auto max-w-4xl px-6 py-10">
@@ -299,25 +314,76 @@ export default function TopicsPage() {
           )}
         </section>
 
-        {error && (
-          <div className="mt-6 rounded-lg border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900">
-            <p className="font-medium">Request didn&apos;t complete</p>
-            <p className="mt-1">{error}</p>
-          </div>
-        )}
+        <div ref={resultsRef}>
+          {loading && <Waiting mode={mode} elapsed={elapsed} />}
 
-        {result && result.mode === 'suggest' && (
-          <SuggestView result={result as SuggestResult} rubricId={rubricId} />
-        )}
-        {result && result.mode === 'test' && (
-          <TestView result={result as TestResult} rubricId={rubricId} />
-        )}
+          {error && (
+            <div className="mt-6 rounded-lg border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900">
+              <p className="font-medium">Request didn&apos;t complete</p>
+              <p className="mt-1">{error}</p>
+            </div>
+          )}
+
+          {!loading && result && result.mode === 'suggest' && (
+            <SuggestView result={result as SuggestResult} rubricId={rubricId} />
+          )}
+          {!loading && result && result.mode === 'test' && (
+            <TestView result={result as TestResult} rubricId={rubricId} />
+          )}
+        </div>
       </main>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
+
+function Waiting({ mode, elapsed }: { mode: Mode; elapsed: number }) {
+  const expected = mode === 'suggest' ? 20 : 15;
+  const over = elapsed > expected + 15;
+  const cards = mode === 'suggest' ? 3 : 1;
+
+  return (
+    <section className="mt-8" aria-live="polite">
+      <div className="mb-4 flex items-center justify-between rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-900">
+        <span>
+          {mode === 'suggest'
+            ? 'Reading your profile and working through the rules…'
+            : 'Checking your idea against the rules…'}
+        </span>
+        <span className="tabular-nums text-indigo-700">
+          {elapsed}s{' '}
+          <span className="text-indigo-400">/ ~{expected}s</span>
+        </span>
+      </div>
+
+      {over && (
+        <p className="mb-4 text-xs text-slate-500">
+          Taking longer than usual. It will either finish or show an error — nothing is lost.
+        </p>
+      )}
+
+      <div className="space-y-4">
+        {Array.from({ length: cards }).map((_, i) => (
+          <div
+            key={i}
+            className="animate-pulse rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+          >
+            <div className="h-5 w-2/3 rounded bg-slate-200" />
+            <div className="mt-4 h-3 w-full rounded bg-slate-100" />
+            <div className="mt-2 h-3 w-5/6 rounded bg-slate-100" />
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="h-3 w-1/2 rounded bg-slate-100" />
+              <div className="h-3 w-1/2 rounded bg-slate-100" />
+              <div className="h-3 w-2/3 rounded bg-slate-100" />
+              <div className="h-3 w-2/3 rounded bg-slate-100" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 function SuggestView({ result, rubricId }: { result: SuggestResult; rubricId: string }) {
   const set = getTopicRules(rubricId);
