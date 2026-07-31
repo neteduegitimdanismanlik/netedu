@@ -1,13 +1,13 @@
 // app/api/topics/route.ts
 //
-// Topic Finder motoru. İki mod:
-//   suggest — profilden 6 konu üretir, en az 3'ü öğrencinin kendi hayatına bağlı
-//   test    — öğrencinin fikrini strong/workable/risky/unworkable diye eler
+// Topic Finder engine. Two modes:
+//   suggest — builds 6 topics from the profile, at least 3 tied to the student's own life
+//   test    — judges the student's idea: strong / workable / risky / unworkable
 //
-// Tasarım kararları:
-// - Yeni Supabase sütunu YOK. `level` sadece prompt'a gidiyor.
-// - Rubrik ve kurallar veri dosyalarından geliyor, burada sabit liste yok.
-// - Hata sessizce boş sonuca dönüşmüyor (checker'da yaşanan hata).
+// Design decisions:
+// - NO new Supabase columns. `level` only goes into the prompt.
+// - Rubrics and rules come from data files; no hardcoded lists here.
+// - Errors never turn into a silently empty result (the bug we fixed in the checker).
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
@@ -23,7 +23,7 @@ export const maxDuration = 60;
 
 const MODEL = 'claude-sonnet-4-6';
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
-const OUTPUT_LANGUAGE = 'Turkish';
+const OUTPUT_LANGUAGE = 'English';
 const MAX_IDEA_CHARS = 4000;
 
 type Mode = 'suggest' | 'test';
@@ -33,9 +33,9 @@ interface RequestBody {
   rubricId?: string;
   level?: string;
   userId?: string;
-  /** test modu */
+  /** test mode */
   idea?: string;
-  /** suggest modu — öğrencinin daraltmak istediği bağlam id'leri */
+  /** suggest mode — context ids the student wants to narrow to */
   contextIds?: string[];
 }
 
@@ -60,9 +60,9 @@ function supabaseClient() {
 }
 
 /**
- * profiles tablosundan öğrenciyi çeker.
- * Birincil anahtar `id` mi `user_id` mi — ikisini de dener, select('*') ile
- * bilinmeyen sütun hatasına düşmez.
+ * Reads the student from the profiles table.
+ * The primary key may be `id` or `user_id` — tries both, and uses select('*')
+ * so an unknown column never fails the request.
  */
 async function fetchProfile(userId: string): Promise<StudentProfile | null> {
   const supabase = supabaseClient();
@@ -77,7 +77,7 @@ async function fetchProfile(userId: string): Promise<StudentProfile | null> {
         .maybeSingle();
       if (!error && data) return data as StudentProfile;
     } catch {
-      // sıradaki sütunu dene
+      // try the next column
     }
   }
   return null;
@@ -105,7 +105,7 @@ function describeProfile(p: StudentProfile | null): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* Prompt parçaları                                                    */
+/* Prompt pieces                                                       */
 /* ------------------------------------------------------------------ */
 
 function describeRules(set: TopicRuleSet): string {
@@ -254,7 +254,7 @@ If no rule is triggered, return an empty triggeredRules array. Do not pad it.`;
 
 async function callClaude(prompt: string): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY tanımlı değil.');
+  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set.');
 
   const res = await fetch(ANTHROPIC_URL, {
     method: 'POST',
@@ -270,7 +270,7 @@ async function callClaude(prompt: string): Promise<string> {
     }),
   });
 
-  // Checker'daki hata: res.ok kontrol edilmeyince 401/429/529 boş sonuca dönüşüyordu.
+  // The checker bug: without an res.ok check, a 401/429/529 turned into an empty result.
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`Anthropic ${res.status}: ${text.slice(0, 300)}`);
@@ -278,7 +278,7 @@ async function callClaude(prompt: string): Promise<string> {
 
   const data = await res.json();
   if (data?.error) {
-    throw new Error(`Anthropic: ${data.error?.message ?? 'bilinmeyen hata'}`);
+    throw new Error(`Anthropic: ${data.error?.message ?? 'unknown error'}`);
   }
 
   const out = Array.isArray(data?.content)
@@ -288,7 +288,7 @@ async function callClaude(prompt: string): Promise<string> {
         .trim()
     : '';
 
-  if (!out) throw new Error('Model boş yanıt döndürdü.');
+  if (!out) throw new Error('The model returned an empty response.');
   return out;
 }
 
@@ -303,7 +303,7 @@ function parseJson<T>(raw: string): T {
   try {
     return JSON.parse(text) as T;
   } catch {
-    throw new Error('Model geçerli JSON döndürmedi.');
+    throw new Error('The model did not return valid JSON.');
   }
 }
 
@@ -318,7 +318,7 @@ export async function POST(req: Request) {
     const rubricId = (body.rubricId ?? '').trim();
 
     if (!rubricId) {
-      return NextResponse.json({ error: 'rubricId gerekli.' }, { status: 400 });
+      return NextResponse.json({ error: 'rubricId is required.' }, { status: 400 });
     }
 
     const set = getTopicRules(rubricId);
@@ -326,7 +326,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error:
-            'Bu ders için konu kuralları henüz yüklü değil. Yanlış kural, kural olmamasından kötü.',
+            'Topic rules are not loaded for this subject yet. A wrong rule is worse than no rule.',
         },
         { status: 400 }
       );
@@ -335,12 +335,12 @@ export async function POST(req: Request) {
     const level = body.level?.trim() || undefined;
     if (topicRulesNeedLevel(rubricId) && !level) {
       return NextResponse.json(
-        { error: 'Bu ders için SL/HL seçimi gerekli.' },
+        { error: 'This subject needs an SL/HL selection.' },
         { status: 400 }
       );
     }
     if (level && set.levelNotes && !set.levelNotes[level]) {
-      return NextResponse.json({ error: `Geçersiz seviye: ${level}` }, { status: 400 });
+      return NextResponse.json({ error: `Invalid level: ${level}` }, { status: 400 });
     }
 
     const profile = body.userId ? await fetchProfile(body.userId) : null;
@@ -350,7 +350,7 @@ export async function POST(req: Request) {
       const idea = (body.idea ?? '').trim();
       if (idea.length < 20) {
         return NextResponse.json(
-          { error: 'Fikri biraz daha aç — en az bir iki cümle gerekiyor.' },
+          { error: 'Say a bit more about the idea — a sentence or two at minimum.' },
           { status: 400 }
         );
       }
@@ -370,7 +370,7 @@ export async function POST(req: Request) {
       ...parsed,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Bilinmeyen hata';
+    const message = err instanceof Error ? err.message : 'Unknown error';
     console.error('[api/topics]', message);
     return NextResponse.json({ error: message }, { status: 500 });
   }

@@ -1,50 +1,51 @@
 // app/rubrics/topic-rules.ts
 //
-// Topic Finder'ın kural verisi. KOD DEĞİL VERİ.
-// Yeni bir çerçeve (A-Level, AP) eklemek = buraya yeni bir TopicRuleSet girdisi.
+// Rule data for Topic Finder. DATA, NOT CODE.
+// Adding a new framework (A-Level, AP) = a new TopicRuleSet entry here.
 //
-// Kaynak: IB Mathematics AA teacher support material (TSM) — "Choosing a topic",
-// "Frequently asked questions about the IA", kriter açıklamaları.
-// KURAL: IB'nin cümleleri kopyalanmaz. Aşağıdaki metinler kaynaktan çıkarılan
-// olgu ve kısıtların kendi ifademizle yazılmış halidir.
+// Source: IB Mathematics AA teacher support material (TSM) — "Choosing a topic",
+// "Frequently asked questions about the IA", criterion notes.
+// RULE: IB's sentences are never copied. The text below is our own wording of
+// the facts and constraints extracted from that source.
 //
-// ÜRÜNE KONMAYAN: TSM appendix'indeki ~200 örnek IA başlığı. Sadece kategori
-// adları alındı. (Not: o başlıklar "çeşitli notlar almış" işlerden derlenmiş,
-// yani kalite sinyali taşımıyor — telif dışında da koymaya değmezdi.)
+// DELIBERATELY NOT SHIPPED: the ~200 sample IA titles in the TSM appendix. Only
+// the category names were taken. (Those titles come from work that "attained a
+// variety of marks" — they carry no quality signal, so copyright aside they
+// were not worth shipping.)
 
 export type TopicVerdict = 'strong' | 'workable' | 'risky' | 'unworkable';
 
 export type RuleSeverity = 'fatal' | 'major' | 'minor';
 
 export interface TopicRule {
-  /** Modelin döndürdüğü id. UI bu id ile etiketi buluyor. */
+  /** The id the model returns. The UI looks up the label from this. */
   id: string;
   label: string;
-  /** Modele giden açıklama. Kuralın ne zaman tetiklendiği. */
+  /** Sent to the model: when this rule fires. */
   detail: string;
   severity: RuleSeverity;
-  /** Hangi kriteri vurduğu — rapor "neden" diyebilsin diye. */
+  /** Which criteria it damages — so the report can say why. */
   hits?: string[];
 }
 
 export interface TopicContext {
   id: string;
   label: string;
-  /** Öğrenciye gösterilen kısa açıklama. */
+  /** Short hint shown to the student. */
   hint: string;
 }
 
 export interface TopicRuleSet {
   rubricId: string;
   label: string;
-  /** Öğrenciye "hangi alandan" diye sorulacak bağlam listesi. */
+  /** The context list the student can narrow by. */
   contexts: TopicContext[];
   rules: TopicRule[];
-  /** SL/HL farkı. Anahtar `level` değeriyle eşleşiyor. */
+  /** SL/HL difference. Keys match the `level` value. */
   levelNotes?: Record<string, string>;
   titleGuidance: string[];
   dataGuidance: string[];
-  /** Aracın sınırı — prompt'a ve UI'a giriyor. */
+  /** The tool's boundary — goes into both the prompt and the UI. */
   scopeNote: string;
 }
 
@@ -53,241 +54,242 @@ export interface TopicRuleSet {
 /* ------------------------------------------------------------------ */
 
 /**
- * TSM appendix'inin kategori başlıkları. ONU (10) — geçen sürümde 7 vardı,
- * People / Sport and leisure / Travel and transport eksikti.
+ * The category headings from the TSM appendix. TEN of them — the previous
+ * version had 7, missing People / Sport and leisure / Travel and transport.
  */
 const IB_MATHS_CONTEXTS: TopicContext[] = [
   {
     id: 'aesthetics',
-    label: 'Estetik ve tasarım',
-    hint: 'Oran, simetri, mimari biçim, renk, görsel algı',
+    label: 'Aesthetics',
+    hint: 'Proportion, symmetry, architectural form, colour, visual perception',
   },
   {
     id: 'business-finance',
-    label: 'İş ve finans',
-    hint: 'Fiyatlama, faiz, risk, optimizasyon, kaynak dağıtımı',
+    label: 'Business and finance',
+    hint: 'Pricing, interest, risk, optimization, allocation of resources',
   },
   {
     id: 'food-drink',
-    label: 'Yiyecek ve içecek',
-    hint: 'Tarif ölçekleme, ısı transferi, paketleme hacmi, tüketim',
+    label: 'Food and drink',
+    hint: 'Scaling recipes, heat transfer, packaging volume, consumption',
   },
   {
     id: 'health-fitness',
-    label: 'Sağlık ve form',
-    hint: 'Antrenman yükü, büyüme eğrileri, doz, epidemiyoloji',
+    label: 'Health and fitness',
+    hint: 'Training load, growth curves, dosage, epidemiology',
   },
   {
     id: 'geometry-trigonometry',
-    label: 'Geometri ve trigonometri',
-    hint: 'Eğri uydurma, döşeme, izdüşüm, üç boyutlu biçim',
+    label: 'Geometry and trigonometry',
+    hint: 'Curve fitting, tiling, projection, three-dimensional form',
   },
   {
     id: 'nature-resources',
-    label: 'Doğa ve doğal kaynaklar',
-    hint: 'Popülasyon, iklim serisi, su, enerji, biyolojik desen',
+    label: 'Nature and natural resources',
+    hint: 'Populations, climate series, water, energy, biological pattern',
   },
   {
     id: 'number',
-    label: 'Sayı',
-    hint: 'Diziler, asallar, modüler aritmetik, sayı desenleri',
+    label: 'Number',
+    hint: 'Sequences, primes, modular arithmetic, numerical patterns',
   },
   {
     id: 'people',
-    label: 'İnsan ve toplum',
-    hint: 'Nüfus, seçim sistemleri, dil, davranış, anket verisi',
+    label: 'People',
+    hint: 'Population, voting systems, language, behaviour, survey data',
   },
   {
     id: 'sport-leisure',
-    label: 'Spor ve boş zaman',
-    hint: 'Performans istatistiği, oyun teorisi, hareket, şans oyunları',
+    label: 'Sport and leisure',
+    hint: 'Performance statistics, game theory, motion, games of chance',
   },
   {
     id: 'travel-transport',
-    label: 'Seyahat ve ulaşım',
-    hint: 'Rota, trafik akışı, zaman çizelgesi, yakıt, navigasyon',
+    label: 'Travel and transport',
+    hint: 'Routing, traffic flow, timetables, fuel, navigation',
   },
 ];
 
 const IB_MATHS_RULES: TopicRule[] = [
   {
     id: 'prior-learning-only',
-    label: 'Matematik ders seviyesinin altında',
+    label: 'Mathematics below course level',
     detail:
-      'Kullanılacak matematik tamamen DP öncesi seviyede kalıyorsa (ortalama, yüzde, ' +
-      'basit oran, sütun grafiği) konu kriter E\'de tavana çarpar. Kullanılan matematiğin ' +
-      'ders müfredatıyla aynı seviyede olması bekleniyor. Fikir yalnızca betimleyici ' +
-      'istatistik içeriyorsa bu kural tetiklenir.',
+      'If the mathematics involved sits entirely at pre-DP level (means, percentages, ' +
+      'simple ratios, bar charts), the topic hits a ceiling on criterion E. The ' +
+      'mathematics is expected to be commensurate with the level of the course. ' +
+      'Fires when the idea involves only descriptive statistics.',
     severity: 'fatal',
     hits: ['E'],
   },
   {
     id: 'descriptive-or-historical',
-    label: 'Salt betimleyici veya tarihsel',
+    label: 'Purely descriptive or historical',
     detail:
-      'Konu bir matematikçinin hayatını, bir teoremin tarihini veya bir alanı anlatmakla ' +
-      'yetiniyorsa kriterler uygulanamaz. Öğrencinin kendi yaptığı bir matematiksel iş ' +
-      'olmalı; anlatılan bir matematik değil.',
+      'If the topic only recounts a mathematician\'s life, the history of a theorem, or ' +
+      'the shape of a field, the criteria cannot be applied. There must be mathematics ' +
+      'the student does, not mathematics the student describes.',
     severity: 'fatal',
     hits: ['C', 'D', 'E'],
   },
   {
     id: 'complexity-for-show',
-    label: 'Gösteriş için karmaşıklık',
+    label: 'Complexity for its own sake',
     detail:
-      'Basit matematiğin yeteceği bir yerde ağır makine kullanmak konuyu güçlendirmez; ' +
-      'kullanılan matematiğin işi ilerletmesi gerekir. Fikir "zor görünsün" diye seçilmiş ' +
-      'bir yöntem içeriyorsa bu kural tetiklenir. Az şeyi iyi yapmak, çok şeyi yarım ' +
-      'yapmaktan iyidir.',
+      'Heavy machinery where simple mathematics would do does not strengthen a topic; ' +
+      'the mathematics has to move the work forward. Fires when a method appears to ' +
+      'have been chosen to look difficult. A few things done well beats many done poorly.',
     severity: 'major',
     hits: ['E'],
   },
   {
     id: 'scope-too-broad',
-    label: 'Kapsam çok geniş',
+    label: 'Scope too broad',
     detail:
-      'Birden fazla bağımsız soruyu aynı anda kovalayan fikirler 12-20 sayfada ' +
-      'derinleşemez. Tek bir iyi tanımlanmış amaç gerekir. "X\'i inceleyeceğim" ' +
-      'biçimindeki fikirler genelde buraya düşer.',
+      'Ideas chasing several independent questions at once cannot go deep in 12-20 ' +
+      'pages. One well-defined aim is required. Ideas phrased as "I will investigate X" ' +
+      'usually land here.',
     severity: 'major',
     hits: ['A', 'E'],
   },
   {
     id: 'data-insufficient',
-    label: 'Veri tekniği taşımıyor',
+    label: 'Not enough data for the technique',
     detail:
-      'Veri kullanılacaksa, seçilen tekniğin geçerli olmasına yetecek kadar veri ' +
-      'üretilebilmeli. Küçük örneklem üzerine regresyon veya hipotez testi kurmak ' +
-      'sonucu geçersiz kılar. Veri kaynağı ve büyüklüğü baştan belli değilse tetiklenir.',
+      'If data is used, enough of it must be obtainable for the chosen technique to be ' +
+      'valid. Building a regression or a hypothesis test on a tiny sample invalidates ' +
+      'the result. Fires when the data source and size are not established up front.',
     severity: 'major',
     hits: ['E', 'D'],
   },
   {
     id: 'data-reused',
-    label: 'Veri başka DP işinden geliyor',
+    label: 'Data comes from other DP work',
     detail:
-      'EE, fen IA\'sı veya saha çalışmasında toplanmış verinin yeniden kullanımı ' +
-      'önerilmiyor. Aynı veri ancak tamamen farklı bir biçimde analiz edilirse ve ' +
-      'öğretmen bilgilendirilirse kullanılabilir.',
+      'Reusing data collected for an EE, a science IA, or fieldwork is discouraged. It ' +
+      'is only acceptable if analysed in a completely different way and the teacher is ' +
+      'informed.',
     severity: 'minor',
   },
   {
     id: 'no-personal-hook',
-    label: 'Kişisel bağ yok',
+    label: 'No personal connection',
     detail:
-      'Konu başkasının kurduğu bir problemin çözümüyse kriter C zayıf kalır. ' +
-      'Öğrencinin işi kendine mal ettiğini gösteren bir giriş noktası gerekiyor: ' +
-      'kendi sorusu, kendi verisi, kendi bağlamı.',
+      'If the topic is someone else\'s problem being solved, criterion C stays weak. ' +
+      'There must be an entry point showing the student has made the work their own: ' +
+      'their own question, their own data, their own context.',
     severity: 'major',
     hits: ['C'],
   },
   {
     id: 'title-is-stimulus',
-    label: 'Başlık sadece tetikleyici kelime',
+    label: 'Title is just the stimulus',
     detail:
-      'Başlık "Sayı desenleri" gibi çıplak bir alan adıysa işin nereye gittiğini ' +
-      'göstermiyor. Başlık, tetikleyiciden hareketle varılan asıl soruyu söylemeli.',
+      'A bare field name like "Number patterns" does not say where the work goes. The ' +
+      'title should state the actual question the stimulus led to.',
     severity: 'minor',
     hits: ['A'],
   },
   {
     id: 'audience-mismatch',
-    label: 'Hedef kitle akran değil',
+    label: 'Wrong target audience',
     detail:
-      'Metin sınıf arkadaşlarının okuyabileceği bir seviyede olmalı. Fikir ancak ' +
-      'uzman bir okurun takip edebileceği bir alandaysa iletişim kriteri zorlanır.',
+      'The writing should be accessible to fellow students. If the idea sits in a field ' +
+      'only a specialist reader could follow, the communication criterion suffers.',
     severity: 'minor',
     hits: ['B'],
   },
   {
     id: 'outside-syllabus-drift',
-    label: 'Müfredat dışına sapma',
+    label: 'Drifting outside the syllabus',
     detail:
-      'Müfredat dışı matematik tam puan için gerekli değil. Kullanılacaksa seviyesi ' +
-      'müfredatla karşılaştırılabilir olmalı ve açıklanıp kaynak gösterilmeli. ' +
-      'Fikir yalnızca "ileri konu" olduğu için seçilmişse tetiklenir.',
+      'Mathematics beyond the syllabus is not needed for full marks. If used, its level ' +
+      'should be comparable to the syllabus and it must be explained and referenced. ' +
+      'Fires when a topic was chosen only because it is "advanced".',
     severity: 'minor',
     hits: ['E'],
   },
   {
     id: 'technology-substitution',
-    label: 'Yazılıma girdi girmek',
+    label: 'Feeding numbers into software',
     detail:
-      'Değerleri bir formüle veya yazılıma girip çıktıyı raporlamak anlayış ' +
-      'göstermez. Teknoloji serbest ama sonucun neden o sonuç olduğu gösterilmeli.',
+      'Entering values into a formula or a package and reporting the output does not ' +
+      'demonstrate understanding. Technology is unrestricted, but the reasoning behind ' +
+      'the result has to be shown.',
     severity: 'minor',
     hits: ['E'],
   },
   {
     id: 'interpretation-deferred',
-    label: 'Yorum sona bırakılmış',
+    label: 'Interpretation left to the end',
     detail:
-      'Sonuçlar üretildikleri yerde yorumlanmalı, sonuç bölümünde toparlanmalı. ' +
-      'Plan tüm yorumu en sona yığıyorsa iletişim ve yansıtma zayıflar.',
+      'Results should be interpreted where they are produced and summarized in the ' +
+      'conclusion. If the plan piles all interpretation at the end, communication and ' +
+      'reflection both weaken.',
     severity: 'minor',
     hits: ['B', 'D'],
   },
   {
     id: 'repetition-padding',
-    label: 'Tekrarla şişirme',
+    label: 'Padding through repetition',
     detail:
-      'Aynı hesabı farklı sayılarla defalarca yapmak uzunluk katar, puan katmaz. ' +
-      'Özlülük eksikliği cezalandırılıyor. Fikrin planı "10 farklı örnek için ' +
-      'tekrarlayacağım" ise tetiklenir.',
+      'Repeating the same calculation with different numbers adds length, not marks. ' +
+      'Lack of conciseness is penalized. Fires when the plan is "I will repeat this for ' +
+      '10 different examples".',
     severity: 'minor',
     hits: ['A'],
   },
   {
     id: 'class-duplicate-risk',
-    label: 'Sınıfla çakışma riski',
+    label: 'Risk of overlapping with classmates',
     detail:
-      'Aynı başlık serbest ama iki öğrencinin matematiği aynı olamaz. Çok yaygın ' +
-      'bir kalıp seçildiyse (ör. altın oran ölçümü, basketbol atış açısı) ayrışma ' +
-      'noktası baştan belirlenmeli.',
+      'The same title is allowed, but no two students may submit the same mathematics. ' +
+      'If a very common pattern is chosen (golden ratio measurements, basketball shot ' +
+      'angles), the point of difference must be settled up front.',
     severity: 'minor',
   },
 ];
 
 const IB_MATHS_LEVEL_NOTES: Record<string, string> = {
   SL:
-    'SL\'de en üst seviye için matematiğin müfredat seviyesinde, ilgili ve doğru olması ' +
-    've anlayışın gösterilmesi yeterli. Egzotik konu gerekmiyor. Bu yüzden SL için ' +
-    'sade ama iyi kurulmuş bir fikir "strong" olabilir.',
+    'At SL, the top level asks for mathematics that is at course level, relevant and ' +
+    'correct, with understanding demonstrated. An exotic topic is not required. A plain ' +
+    'but well-constructed idea can be "strong" at SL.',
   HL:
-    'HL\'de en üst seviye ayrıca sofistikasyon ve rigor istiyor: ya HL müfredatı ' +
-    'seviyesinde matematik, ya da SL matematiğinin bir SL öğrencisinden beklenmeyecek ' +
-    'karmaşıklıkta kullanımı; ayrıca iddiaların gerekçelendirilmesi. Rutin bir SL ' +
-    'işlemesi HL\'de tavana çarpar — SL\'de "strong" olan fikir HL\'de "workable" olabilir.',
+    'At HL, the top level additionally asks for sophistication and rigour: either ' +
+    'mathematics at HL level, or SL mathematics used in a way beyond what an SL student ' +
+    'would be expected to manage, with claims justified. A routine SL treatment hits a ' +
+    'ceiling at HL — an idea that is "strong" at SL may be "workable" at HL.',
 };
 
 const IB_MATHS_RULESET: TopicRuleSet = {
   rubricId: 'ib-ia-maths',
-  label: 'IB Matematik IA (Exploration)',
+  label: 'IB Mathematics IA (Exploration)',
   contexts: IB_MATHS_CONTEXTS,
   rules: IB_MATHS_RULES,
   levelNotes: IB_MATHS_LEVEL_NOTES,
   titleGuidance: [
-    'Başlık alanı değil soruyu söylemeli.',
-    'Tetikleyici kelime başlık değildir; başlık o kelimeden nereye gidildiğini gösterir.',
-    'Tek cümle, tek amaç.',
+    'The title should state the question, not the field.',
+    'A stimulus word is not a title; the title shows where that word led.',
+    'One sentence, one aim.',
   ],
   dataGuidance: [
-    'Veri nereden gelecek, kaç gözlem olacak, bu teknik için yeter mi — üçü de baştan belli olmalı.',
-    'İkincil veri kullanılıyorsa kaynak ve örnekleme yöntemi belirtilmeli.',
-    'Başka bir DP işi için toplanmış veri yeniden kullanılmamalı.',
+    'Where the data comes from, how many observations there will be, and whether that is enough for the technique — all three settled up front.',
+    'If secondary data is used, the source and the sampling method must be stated.',
+    'Data collected for another DP task should not be reused.',
   ],
   scopeNote:
-    'Bu araç IA yazmaz. Konu önerir ve eler. Çıktı, öğrencinin öğretmeniyle ' +
-    'konuşmaya götüreceği bir kısa listedir.',
+    'This tool does not write the IA. It suggests topics and rules them out. The output ' +
+    'is a shortlist to take to your teacher.',
 };
 
 /* ------------------------------------------------------------------ */
-/* Kayıt                                                               */
+/* Registry                                                            */
 /* ------------------------------------------------------------------ */
 
 const TOPIC_RULE_SETS: TopicRuleSet[] = [IB_MATHS_RULESET];
 
-/** Rubriği olan konu kural setleri. UI seçim listesini buradan kuruyor. */
+/** Rule sets that have a rubric. The UI builds its selector from this. */
 export function listTopicRuleSets(): TopicRuleSet[] {
   return TOPIC_RULE_SETS;
 }
@@ -304,27 +306,27 @@ export function getRule(rubricId: string, ruleId: string): TopicRule | undefined
   return getTopicRules(rubricId)?.rules.find((r) => r.id === ruleId);
 }
 
-/** Seviye seçimi gereken kural setleri. */
+/** Rule sets that require a level selection. */
 export function topicRulesNeedLevel(rubricId: string): boolean {
   const set = getTopicRules(rubricId);
   return Boolean(set?.levelNotes && Object.keys(set.levelNotes).length > 0);
 }
 
 export const VERDICT_LABELS: Record<TopicVerdict, string> = {
-  strong: 'Güçlü',
-  workable: 'Çalışılabilir',
-  risky: 'Riskli',
-  unworkable: 'Yürümez',
+  strong: 'Strong',
+  workable: 'Workable',
+  risky: 'Risky',
+  unworkable: 'Unworkable',
 };
 
 export const VERDICT_DESCRIPTIONS: Record<TopicVerdict, string> = {
-  strong: 'Fikir kurulmuş. Kriterlerin hepsine tutunacak yer var.',
-  workable: 'Yürür, ama en az bir yerde daraltma veya güçlendirme gerekiyor.',
-  risky: 'Ciddi bir açık var. Düzeltilmezse çalışılan saatler boşa gider.',
-  unworkable: 'Bu haliyle kriterler uygulanamaz. Fikir değişmeli.',
+  strong: 'The idea holds. There is room to score across every criterion.',
+  workable: 'It runs, but at least one thing needs narrowing or strengthening.',
+  risky: 'There is a serious gap. Left unfixed, the hours are wasted.',
+  unworkable: 'The criteria cannot be applied as written. The idea has to change.',
 };
 
-/** Rapor metnini prompt'a çevirirken kullanılan sıralama. */
+/** Ordering used when turning the report into a prompt. */
 export const SEVERITY_ORDER: Record<RuleSeverity, number> = {
   fatal: 0,
   major: 1,
