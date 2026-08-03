@@ -3,11 +3,13 @@
 // app/topics/page.tsx
 //
 // Topic Finder. Two modes: suggest topics / test an idea.
-// The subject list is derived from topic-rules.ts — no hardcoded list here.
+// Subject-driven: the student picks their subject, the rubric is resolved from it.
+// Only subjects with BOTH a rubric and a topic rule set are offered.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Navbar from '../components/Navbar';
 import { supabase } from '../../lib/supabase';
+import { resolveIaRubric, subjectGroups } from '../rubrics/subject-map';
 import {
   listTopicRuleSets,
   topicRulesNeedLevel,
@@ -67,11 +69,45 @@ const VERDICT_STYLES: Record<TopicVerdict, string> = {
 
 const LEVELS = ['SL', 'HL'];
 
+interface Choice {
+  key: string;
+  label: string;
+  subject: string;
+  rubricId: string;
+}
+
 export default function TopicsPage() {
-  const ruleSets = useMemo(() => listTopicRuleSets(), []);
+  const { groups, choices } = useMemo(() => {
+    const groups: { group: string; items: Choice[] }[] = [];
+    const choices: Choice[] = [];
+
+    for (const g of subjectGroups) {
+      const items: Choice[] = [];
+      for (const subject of g.subjects) {
+        const r = resolveIaRubric(subject);
+        if (r.kind !== 'rubric') continue;
+        if (!getTopicRules(r.rubricId)) continue;
+        const c = { key: `subject:${subject}`, label: subject, subject, rubricId: r.rubricId };
+        items.push(c);
+        choices.push(c);
+      }
+      if (items.length) groups.push({ group: g.group, items });
+    }
+
+    const subjectRubricIds = new Set(choices.map((c) => c.rubricId));
+    const others: Choice[] = listTopicRuleSets()
+      .filter((s) => !subjectRubricIds.has(s.rubricId))
+      .map((s) => ({ key: `rubric:${s.rubricId}`, label: s.label, subject: '', rubricId: s.rubricId }));
+    if (others.length) {
+      groups.push({ group: 'Other assessments', items: others });
+      choices.push(...others);
+    }
+
+    return { groups, choices };
+  }, []);
 
   const [mode, setMode] = useState<Mode>('suggest');
-  const [rubricId, setRubricId] = useState(ruleSets[0]?.rubricId ?? '');
+  const [choiceKey, setChoiceKey] = useState(choices[0]?.key ?? '');
   const [level, setLevel] = useState('');
   const [contextIds, setContextIds] = useState<string[]>([]);
   const [idea, setIdea] = useState('');
@@ -84,7 +120,10 @@ export default function TopicsPage() {
 
   const resultsRef = useRef<HTMLDivElement | null>(null);
 
-  const activeSet = getTopicRules(rubricId);
+  const choice = choices.find((c) => c.key === choiceKey);
+  const rubricId = choice?.rubricId ?? '';
+  const subject = choice?.subject ?? '';
+  const activeSet = rubricId ? getTopicRules(rubricId) : undefined;
   const needsLevel = rubricId ? topicRulesNeedLevel(rubricId) : false;
 
   useEffect(() => {
@@ -106,10 +145,9 @@ export default function TopicsPage() {
     setContextIds([]);
     setResult(null);
     setError(null);
-    if (!topicRulesNeedLevel(rubricId)) setLevel('');
-  }, [rubricId]);
+    if (!rubricId || !topicRulesNeedLevel(rubricId)) setLevel('');
+  }, [choiceKey, rubricId]);
 
-  // Elapsed-time counter while waiting.
   useEffect(() => {
     if (!loading) return;
     setElapsed(0);
@@ -144,6 +182,7 @@ export default function TopicsPage() {
         body: JSON.stringify({
           mode,
           rubricId,
+          subject: subject || undefined,
           level: level || undefined,
           userId: userId || undefined,
           idea: mode === 'test' ? idea : undefined,
@@ -179,7 +218,6 @@ export default function TopicsPage() {
       </header>
 
       <main className="mx-auto max-w-4xl px-6 py-8">
-        {/* Mode */}
         <div className="mb-6 inline-flex rounded-lg border border-slate-300 bg-white p-1">
           {(['suggest', 'test'] as Mode[]).map((m) => (
             <button
@@ -202,27 +240,29 @@ export default function TopicsPage() {
         </div>
 
         <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          {/* Assessment */}
           <label className="block text-sm font-medium text-slate-700">
-            What are you working on?
+            Your subject
           </label>
           <select
-            value={rubricId}
-            onChange={(e) => setRubricId(e.target.value)}
+            value={choiceKey}
+            onChange={(e) => setChoiceKey(e.target.value)}
             className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200"
           >
-            {ruleSets.map((s) => (
-              <option key={s.rubricId} value={s.rubricId}>
-                {s.label}
-              </option>
+            {groups.map((g) => (
+              <optgroup key={g.group} label={g.group}>
+                {g.items.map((c) => (
+                  <option key={c.key} value={c.key}>
+                    {c.label}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
           <p className="mt-2 text-xs text-slate-500">
-            Subjects not listed here don&apos;t have topic rules loaded yet. A wrong rule is
-            worse than no rule.
+            Only subjects with topic rules loaded appear here. A wrong rule is worse than no rule —
+            if your subject is missing, we haven&apos;t read its guide yet.
           </p>
 
-          {/* Level */}
           {needsLevel && (
             <div className="mt-5">
               <label className="block text-sm font-medium text-slate-700">Level</label>
@@ -248,7 +288,6 @@ export default function TopicsPage() {
             </div>
           )}
 
-          {/* Context filter — suggest only */}
           {mode === 'suggest' && activeSet && (
             <div className="mt-5">
               <label className="block text-sm font-medium text-slate-700">
@@ -275,7 +314,6 @@ export default function TopicsPage() {
             </div>
           )}
 
-          {/* Idea — test only */}
           {mode === 'test' && (
             <div className="mt-5">
               <label className="block text-sm font-medium text-slate-700">
@@ -285,7 +323,7 @@ export default function TopicsPage() {
                 value={idea}
                 onChange={(e) => setIdea(e.target.value)}
                 rows={5}
-                placeholder="What are you thinking of doing? Include the data and the mathematics you expect to use."
+                placeholder="What are you thinking of doing? Include the data you would collect and the method you expect to use."
                 className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200"
               />
               <p className="mt-1 text-xs text-slate-500">
@@ -352,8 +390,7 @@ function Waiting({ mode, elapsed }: { mode: Mode; elapsed: number }) {
             : 'Checking your idea against the rules…'}
         </span>
         <span className="tabular-nums text-indigo-700">
-          {elapsed}s{' '}
-          <span className="text-indigo-400">/ ~{expected}s</span>
+          {elapsed}s <span className="text-indigo-400">/ ~{expected}s</span>
         </span>
       </div>
 
@@ -423,7 +460,7 @@ function SuggestView({ result, rubricId }: { result: SuggestResult; rubricId: st
               )}
 
               <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                <Field label="Mathematics required" value={t.mathematics} />
+                <Field label="Method required" value={t.mathematics} />
                 <Field label="Data" value={t.data} />
                 <Field label="Watch out" value={t.watchOut} />
                 <Field label="First step" value={t.firstStep} />
@@ -497,7 +534,7 @@ function TestView({ result, rubricId }: { result: TestResult; rubricId: string }
 
       <div className="grid gap-4 sm:grid-cols-2">
         {result.mathematicsNeeded && (
-          <Panel label="Mathematics required" body={result.mathematicsNeeded} />
+          <Panel label="Method required" body={result.mathematicsNeeded} />
         )}
         {result.dataRealism && (
           <Panel label="Is the data realistic?" body={result.dataRealism} />

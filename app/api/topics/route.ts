@@ -5,8 +5,8 @@
 //   test    — judges the student's idea: strong / workable / risky / unworkable
 //
 // Design decisions:
-// - NO new Supabase columns. `level` only goes into the prompt.
-// - Rubrics and rules come from data files; no hardcoded lists here.
+// - NO new Supabase columns. `level` and `subject` only go into the prompt.
+// - Rubrics, rules and exemplars come from data files; no hardcoded lists here.
 // - Errors never turn into a silently empty result (the bug we fixed in the checker).
 // - Output is deliberately short: generation time scales with length.
 
@@ -18,6 +18,7 @@ import {
   topicRulesNeedLevel,
   type TopicRuleSet,
 } from '../../rubrics/topic-rules';
+import { getExemplars } from '../../rubrics/topic-exemplars';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -33,6 +34,7 @@ type Mode = 'suggest' | 'test';
 interface RequestBody {
   mode?: Mode;
   rubricId?: string;
+  subject?: string;
   level?: string;
   userId?: string;
   /** test mode */
@@ -142,11 +144,42 @@ Criteria:
 ${criteria}${guidance}`;
 }
 
-function sharedPreamble(set: TopicRuleSet, rubricId: string, level?: string): string {
+/**
+ * Worked examples at the expected standard. These calibrate specificity —
+ * they are never to be reused or lightly reworded as the student's topic.
+ */
+function describeExemplars(subject: string, rubricId: string): string {
+  const list = getExemplars(subject, rubricId);
+  if (!list.length) return '';
+  const body = list
+    .map(
+      (e, i) =>
+        `${i + 1}. ${e.title}
+   Why it works: ${e.why}
+   Data: ${e.data}
+   The trap: ${e.watchOut}`
+    )
+    .join('\n\n');
+  return `
+
+Calibration — worked examples at the standard expected. They show how specific a title must be
+and the kind of trap worth naming. Do NOT reuse or lightly reword them; the student's topic must
+come from their own profile and interests.
+
+${body}`;
+}
+
+function sharedPreamble(
+  set: TopicRuleSet,
+  rubricId: string,
+  level?: string,
+  subject?: string
+): string {
   const levelNote = level && set.levelNotes?.[level] ? `\n${set.levelNotes[level]}` : '';
+  const subjectLine = subject ? `\nSubject: ${subject}\n` : '';
   return `You are advising an IB student on choosing a topic. You are not encouraging; you are deciding.
 Your job is to surface, now, the problem the student would otherwise discover fifteen hours into the work.
-
+${subjectLine}
 ${describeRubric(rubricId, level)}
 
 Scope of this tool: ${set.scopeNote}${levelNote}
@@ -158,7 +191,7 @@ Title guidance:
 ${set.titleGuidance.map((t) => `- ${t}`).join('\n')}
 
 Data guidance:
-${set.dataGuidance.map((t) => `- ${t}`).join('\n')}
+${set.dataGuidance.map((t) => `- ${t}`).join('\n')}${describeExemplars(subject ?? '', rubricId)}
 
 Write all student-facing strings in ${OUTPUT_LANGUAGE}. Keep rule ids and context ids exactly as given.
 Never invent a rule id that is not in the list above.
@@ -174,10 +207,11 @@ function suggestPrompt(
   rubricId: string,
   level: string | undefined,
   profile: StudentProfile | null,
-  contextIds?: string[]
+  contextIds?: string[],
+  subject?: string
 ): string {
   const empty = profileIsEmpty(profile);
-  return `${sharedPreamble(set, rubricId, level)}
+  return `${sharedPreamble(set, rubricId, level, subject)}
 
 Student profile:
 ${describeProfile(profile)}
@@ -191,8 +225,8 @@ ${
     ? 'The profile is empty. Propose generic but well-formed topics and set "generic": true. Do not pretend to know the student.'
     : `At least 2 of the ${TOPIC_COUNT} must be anchored in something specific from the profile above — name the connection explicitly. Set "generic": false.`
 }
-Each topic must be narrow enough to finish, and must require mathematics at or near course level.
-Do not propose a topic whose mathematics would sit entirely in prior learning.
+Each topic must be narrow enough to finish in the time available, and must sit at the level the course expects.
+Do not propose a topic whose method would sit entirely in prior learning.
 
 JSON shape:
 {
@@ -203,7 +237,7 @@ JSON shape:
       "title": "a working title that states the question, not the field",
       "contextId": "one of the context ids above",
       "personalHook": "one sentence on why this belongs to this student, or null if generic",
-      "mathematics": "one sentence naming the specific mathematics",
+      "mathematics": "one sentence naming the specific method or mathematics required",
       "data": "one sentence on what data is needed and whether it is obtainable",
       "watchOut": "one sentence on the most likely way this goes wrong",
       "firstStep": "one sentence on what to do in the next hour"
@@ -217,9 +251,10 @@ function testPrompt(
   rubricId: string,
   level: string | undefined,
   idea: string,
-  profile: StudentProfile | null
+  profile: StudentProfile | null,
+  subject?: string
 ): string {
-  return `${sharedPreamble(set, rubricId, level)}
+  return `${sharedPreamble(set, rubricId, level, subject)}
 
 Student profile (context only, may be empty):
 ${describeProfile(profile)}
@@ -248,7 +283,7 @@ JSON shape:
   ],
   "fixes": ["one concrete change per item, one sentence each"],
   "sharpenedTitle": "the idea restated as a title that states the question",
-  "mathematicsNeeded": "one sentence naming the mathematics this actually requires",
+  "mathematicsNeeded": "one sentence naming the method or mathematics this actually requires",
   "dataRealism": "one sentence on whether the data is obtainable at the size the technique needs, or null if no data involved",
   "nextSteps": ["one sentence per step, in order"]
 }
@@ -278,7 +313,7 @@ async function callClaude(prompt: string): Promise<string> {
     }),
   });
 
-  // The checker bug: without an res.ok check, a 401/429/529 turned into an empty result.
+  // Without an res.ok check, a 401/429/529 turns into an empty result.
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`Anthropic ${res.status}: ${text.slice(0, 300)}`);
@@ -324,6 +359,7 @@ export async function POST(req: Request) {
     const body = (await req.json()) as RequestBody;
     const mode: Mode = body.mode === 'test' ? 'test' : 'suggest';
     const rubricId = (body.rubricId ?? '').trim();
+    const subject = body.subject?.trim() || undefined;
 
     if (!rubricId) {
       return NextResponse.json({ error: 'rubricId is required.' }, { status: 400 });
@@ -362,9 +398,9 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
-      prompt = testPrompt(set, rubricId, level, idea.slice(0, MAX_IDEA_CHARS), profile);
+      prompt = testPrompt(set, rubricId, level, idea.slice(0, MAX_IDEA_CHARS), profile, subject);
     } else {
-      prompt = suggestPrompt(set, rubricId, level, profile, body.contextIds);
+      prompt = suggestPrompt(set, rubricId, level, profile, body.contextIds, subject);
     }
 
     const raw = await callClaude(prompt);
@@ -373,6 +409,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       mode,
       rubricId,
+      subject: subject ?? null,
       level: level ?? null,
       profileUsed: !profileIsEmpty(profile),
       ...parsed,

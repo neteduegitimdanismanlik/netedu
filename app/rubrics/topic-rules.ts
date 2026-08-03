@@ -282,12 +282,226 @@ const IB_MATHS_RULESET: TopicRuleSet = {
     'This tool does not write the IA. It suggests topics and rules them out. The output ' +
     'is a shortlist to take to your teacher.',
 };
+/* ------------------------------------------------------------------ */
+/* IB Sciences IA (Biology / Chemistry / Physics)                      */
+/* ------------------------------------------------------------------ */
 
+const IB_SCIENCES_CONTEXTS: TopicContext[] = [
+  { id: 'lab-practical', label: 'Hands-on lab', hint: 'You run the experiment yourself with school equipment' },
+  { id: 'fieldwork', label: 'Fieldwork', hint: 'Sampling outside the lab — a site, a habitat, a population' },
+  { id: 'database', label: 'Database study', hint: 'Published datasets analysed in a way the original authors did not' },
+  { id: 'modelling', label: 'Spreadsheet modelling', hint: 'A quantitative model built and tested against real values' },
+  { id: 'simulation', label: 'Simulation', hint: 'Software that produces variation, not the same answer every run' },
+];
+
+const IB_SCIENCES_RULES: TopicRule[] = [
+  {
+    id: 'answerable-by-search',
+    label: 'The answer is already published',
+    detail:
+      'If the research question can be settled by looking it up, there is nothing to investigate. ' +
+      'Fires on questions with a known textbook answer and no new variable, range or system of the student\'s own.',
+    severity: 'fatal',
+    hits: ['A'],
+  },
+  {
+    id: 'no-quantitative-data',
+    label: 'No quantitative data',
+    detail:
+      'Quantitative data is required. Qualitative observation can support but cannot carry the ' +
+      'investigation. A purely descriptive idea is invalid from the start.',
+    severity: 'fatal',
+    hits: ['B'],
+  },
+  {
+    id: 'variable-not-quantifiable',
+    label: 'Variable cannot be measured',
+    detail:
+      'Both the independent and dependent variable must be measurable with available equipment. ' +
+      'Fires on vague constructs ("freshness", "quality", "effectiveness") with no stated method of measurement.',
+    severity: 'fatal',
+    hits: ['A', 'B'],
+  },
+  {
+    id: 'interdisciplinary-drift',
+    label: 'Drifting into another subject',
+    detail:
+      'The investigation must sit in the subject being assessed. A chemistry IA that turns into a ' +
+      'health claim, or a biology IA that becomes a physics measurement, loses the subject-specific depth.',
+    severity: 'major',
+    hits: ['A', 'C'],
+  },
+  {
+    id: 'repeat-of-class-prac',
+    label: 'A class practical repeated',
+    detail:
+      'Running a standard prescribed practical unchanged gives nothing to design. There must be a ' +
+      'genuine extension: a different range, a different system, a different dependent variable.',
+    severity: 'major',
+    hits: ['A'],
+  },
+  {
+    id: 'below-five-datapoints',
+    label: 'Too few levels of the independent variable',
+    detail:
+      'An investigation looking for a trend needs at least five values of the independent variable. ' +
+      'Four is acceptable only with a stated reason, such as an expensive or hazardous reagent.',
+    severity: 'major',
+    hits: ['A', 'B'],
+  },
+  {
+    id: 'scope-exceeds-10h',
+    label: 'Too big for the time available',
+    detail:
+      'The IA is a ten-hour task. Longitudinal designs, organism growth over weeks, or equipment the ' +
+      'school does not own will not finish.',
+    severity: 'major',
+    hits: ['A'],
+  },
+  {
+    id: 'scope-too-narrow',
+    label: 'Too thin to reach the descriptors',
+    detail:
+      'The opposite failure: a question so small that evaluation and conclusion have nothing to work ' +
+      'with. There must be enough depth for every criterion to be met meaningfully.',
+    severity: 'major',
+    hits: ['C', 'D'],
+  },
+  {
+    id: 'uncontrolled-environment',
+    label: 'Control variables not actually controlled',
+    detail:
+      'Naming a control variable is not controlling it. Fires when temperature, light or pH are listed ' +
+      'as controlled with no method — "room temperature" is not control.',
+    severity: 'major',
+    hits: ['A'],
+  },
+  {
+    id: 'no-uncertainty-plan',
+    label: 'No plan for uncertainty',
+    detail:
+      'In physics and chemistry, measurement uncertainty has to be planned from the start — instrument ' +
+      'precision, propagation, and how it will be shown. Without it the conclusion cannot be fully ' +
+      'consistent with the processed data.',
+    severity: 'major',
+    hits: ['B', 'C'],
+  },
+  {
+    id: 'stats-mismatch',
+    label: 'Statistical treatment does not fit the subject',
+    detail:
+      'Biology expects statistical treatment with sample sizes that justify it. Physics does not expect ' +
+      'statistical tests at all — uncertainty propagation takes their place. Chemistry sits between. ' +
+      'Fires when the planned analysis does not match the subject or the sample is too small for the test.',
+    severity: 'major',
+    hits: ['B'],
+  },
+  {
+    id: 'sample-not-characterized',
+    label: 'Sample not properly described',
+    detail:
+      'A material has to be specified well enough to be reproducible: variety, origin, concentration, ' +
+      'storage. "Red wine" or "soil" is not a description. In biology the organism needs its binomial name.',
+    severity: 'major',
+    hits: ['A'],
+  },
+  {
+    id: 'safety-or-disposal-unaddressed',
+    label: 'Safety, ethics or disposal not addressed',
+    detail:
+      'Naming a hazard is not enough — it has to be mitigated, and chemical waste needs a stated disposal ' +
+      'route. Human participants need consent. If there is genuinely no safety, ethical or environmental ' +
+      'issue, say so explicitly.',
+    severity: 'major',
+    hits: ['A'],
+  },
+  {
+    id: 'published-table-source',
+    label: 'Data lifted from a published table',
+    detail:
+      'Tables inside published papers are rarely suitable as a data source — usually already processed ' +
+      'and too small. A genuine database study needs a dataset large enough to sample from.',
+    severity: 'major',
+    hits: ['A', 'B'],
+  },
+  {
+    id: 'simulation-no-variation',
+    label: 'Simulation with no variation',
+    detail:
+      'A simulation that returns the identical value on every run produces no uncertainty and no spread, ' +
+      'so there is almost nothing to analyse or evaluate.',
+    severity: 'major',
+    hits: ['B', 'D'],
+  },
+  {
+    id: 'class-duplicate-risk',
+    label: 'Overlaps with classmates',
+    detail:
+      'Group work is capped at three students and no two may submit the same raw data set. If the idea is ' +
+      'a common one, the point of difference must be settled up front.',
+    severity: 'minor',
+  },
+  {
+    id: 'duplicate-with-ee',
+    label: 'Same work as the Extended Essay',
+    detail: 'The same investigation cannot be submitted as both an IA and an EE.',
+    severity: 'minor',
+  },
+  {
+    id: 'unrealistic-range',
+    label: 'Range not realistic for the system',
+    detail:
+      'The values chosen have to make sense for the system being studied. Testing sea water at 50 °C when ' +
+      'the warmest surface sea is near 32 °C signals weak understanding of the context.',
+    severity: 'minor',
+    hits: ['A'],
+  },
+  {
+    id: 'vague-outcome-terms',
+    label: 'Vague outcome wording',
+    detail:
+      'Words like "efficient", "better" or "suitable" in the research question have no measurable meaning. ' +
+      'State what is actually being measured.',
+    severity: 'minor',
+    hits: ['A'],
+  },
+  {
+    id: 'background-too-general',
+    label: 'Background too general',
+    detail:
+      'The theoretical background has to be directly relevant to this question. A broad survey of the ' +
+      'field caps the first strand of research design.',
+    severity: 'minor',
+    hits: ['A'],
+  },
+];
+
+const IB_SCIENCES_RULESET: TopicRuleSet = {
+  rubricId: 'ib-ia-sciences',
+  label: 'IB Sciences IA (Biology / Chemistry / Physics)',
+  contexts: IB_SCIENCES_CONTEXTS,
+  rules: IB_SCIENCES_RULES,
+  titleGuidance: [
+    'The research question must name the independent and dependent variable, or the two variables being related.',
+    'It must include a brief description of the system, not just the variables in the abstract.',
+    'Avoid immeasurable words — say what is measured and in what units.',
+  ],
+  dataGuidance: [
+    'At least five levels of the independent variable when looking for a trend; four only with a stated reason.',
+    'Repeats are not fixed at a number but must be justified.',
+    'Control variables need a stated method of control, not just a name.',
+    'Uncertainty is planned before collection in physics and chemistry, not added afterwards.',
+    'The sample or material must be described well enough for someone else to obtain the same thing.',
+  ],
+  scopeNote:
+    'This tool does not design the experiment. It suggests investigations and rules them out. ' +
+    'Take the shortlist to your teacher before you start collecting.',
+};
 /* ------------------------------------------------------------------ */
 /* Registry                                                            */
 /* ------------------------------------------------------------------ */
 
-const TOPIC_RULE_SETS: TopicRuleSet[] = [IB_MATHS_RULESET];
+const TOPIC_RULE_SETS: TopicRuleSet[] = [IB_MATHS_RULESET, IB_SCIENCES_RULESET];
 
 /** Rule sets that have a rubric. The UI builds its selector from this. */
 export function listTopicRuleSets(): TopicRuleSet[] {
