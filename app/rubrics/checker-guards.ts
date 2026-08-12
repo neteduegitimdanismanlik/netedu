@@ -27,6 +27,8 @@ export interface SixVersusFour {
   four: string
   /** What the student must change to move up. */
   movingLine: string
+  /** Empty = applies to every subject on this rubric. */
+  subjects?: string[]
 }
 
 export interface MarkingModel {
@@ -54,6 +56,7 @@ const IB_SCIENCES_MARKING: MarkingModel = {
     'Criteria are independent. A report can score 6 on one criterion and 2 on another, and in the samples it did.',
     'The top band does not mean flawless. It means depth across the strands.',
     'Evidence for one criterion may be scattered across the report. Students are not expected to answer the criteria in order, and a missing heading is not a missing criterion.',
+    'A single misstatement in an otherwise consistent report is a slip, not a band-defining error. In the assessed samples a report that once described the relationship incorrectly still scored 6 on Conclusion because the derivation, the graph and the rest of the text were coherent. Ask whether the error runs through the work or appears once.',
   ],
 
   zeroRules: [
@@ -63,10 +66,10 @@ const IB_SCIENCES_MARKING: MarkingModel = {
 
   distributionFacts: [
     'Across seven officially assessed physics samples the totals were 11, 15, 16, 17, 19, 21 and 24 out of 24.',
-    'Evaluation is the choke point: six of seven samples scored 4 or below (2, 2, 3, 3, 3, 4, 6). It has by far the lowest average of the four criteria.',
+    'Evaluation is the choke point: six of seven samples scored 4 or below. It has by far the lowest average of the four criteria.',
     'Conclusion is the most generous: five of seven scored 5 or 6.',
     'Research design clustered at 3-5; only one sample reached 6.',
-    'One sample was a database study (15/24) and one a simulation (17/24). Neither was capped for its method — their losses came from Research design and Evaluation.',
+    'One sample was a database study and one a simulation. Neither was capped for its method — their losses came from Research design and Evaluation.',
   ],
 
   sixVersusFour: [
@@ -78,9 +81,9 @@ const IB_SCIENCES_MARKING: MarkingModel = {
     },
     {
       criterionId: 'B',
-      six: 'Communication is both clear and precise: the processing chain is followable at a glance and units, decimal places, significant figures and graph labelling are all conventionally correct; uncertainty is propagated at every stage; gradient uncertainty comes from max/min lines; every processing step targets the research question.',
+      six: 'Communication is both clear and precise: the processing chain is followable at a glance and units, decimal places, significant figures and graph labelling are all conventionally correct; uncertainty is propagated at every stage; every processing step targets the research question.',
       four: 'Communication is clear or precise but not both — either the processing follows but conventions are inconsistent, or conventions are right but the chain cannot be traced. Uncertainty is considered but with notable gaps: absent from some columns, conceptually wrong in others.',
-      movingLine: 'Treat uncertainty as a chain, not a result: state its source in every raw column, propagate it through every step, show it as bars on the graph, carry it to the gradient with max/min lines, and express the result as a range. Remove all intermediate rounding.',
+      movingLine: 'Treat uncertainty as a chain, not a result: state its source in every raw column, propagate it through every step, show it on the graph, carry it to the gradient, and express the result as a range. Remove all intermediate rounding.',
     },
     {
       criterionId: 'C',
@@ -92,7 +95,35 @@ const IB_SCIENCES_MARKING: MarkingModel = {
       criterionId: 'D',
       six: 'Weaknesses are specific to this investigation and each one is explained in terms of the direction and size of its effect on the result; limitations are treated separately from weaknesses (data range, boundaries of the system, validity of assumptions); each improvement maps onto a named weakness and is realistic in a school setting.',
       four: 'Weaknesses are specific and identified but almost all procedural, and their effects are not written down; improvements are relevant but brief; there is no evaluation of the method as a whole and no discussion of limitations.',
-      movingLine: 'Add one sentence behind every weakness: this pushed the result in this direction by roughly this much. Alongside the procedural complaints put at least one question about the method as a whole and one boundary of validity. If the graph shows a systematic offset, name its direction and a possible physical cause.',
+      movingLine: 'Add one sentence behind every weakness: this pushed the result in this direction by roughly this much. Alongside the procedural complaints put at least one question about the method as a whole and one boundary of validity.',
+    },
+    {
+      criterionId: 'B',
+      subjects: ['Chemistry'],
+      six: 'Decimal places are consistent between raw data, stated precision and processed values; outliers are named even when kept; uncertainty is attacked from two or more routes.',
+      four: 'Precise but not clear, or clear but not precise; propagation is present but with inaccuracies; outliers are unidentified or silently dropped.',
+      movingLine: 'What separates the bands here is whether outliers are identified and any exclusion justified — not whether error bars or statistics appear. With sample sizes typically under 15, a silently dropped point is highly visible; present the result with and without it.',
+    },
+    {
+      criterionId: 'D',
+      subjects: ['Chemistry'],
+      six: 'Weaknesses are ranked by impact with the direction of systematic error tied to the feature that caused it; improvements made during design are credited; infeasible fixes are named as infeasible.',
+      four: 'Weaknesses are specific and described, but the significant ones should have been solved at the design stage.',
+      movingLine: 'The question is whether the classic technique limitation was designed around before it is discussed. Naming heat loss after working in an open uninsulated vessel, or an uncalibrated meter after using one, earns nothing.',
+    },
+    {
+      criterionId: 'B',
+      subjects: ['Biology'],
+      six: 'Means and dispersion are calculated, a realistic trend line is fitted before R² is read, an appropriate correlation coefficient or significance test is applied and its choice justified, and the bar type on every graph is named in the title.',
+      four: 'Means and standard deviations are calculated and the graphing is appropriate, but no trend line, no R² and no significance test appear — processing stops at description.',
+      movingLine: 'Add the inferential step the data already supports, and say in one sentence why that test fits this question shape rather than another.',
+    },
+    {
+      criterionId: 'C',
+      subjects: ['Biology'],
+      six: 'The statistic is interpreted for what it actually means, its uncertainty is carried into the strength of the claim, and published biological mechanism is used to explain why the result came out this way.',
+      four: 'The trend is read correctly and the question is answered, but the scientific context is general background rather than mechanism specific to the organism, enzyme or system studied.',
+      movingLine: 'Cite a source addressing the specific mechanism, not the general phenomenon, and use it to explain the direction and size of your result.',
     },
   ],
 
@@ -185,7 +216,7 @@ const IB_SCIENCES_MARKING: MarkingModel = {
       id: 'insufficient-data-always-penalized',
       severity: 'medium',
       claim: 'Little data always means a low mark, and a fixed minimum number of measurements applies to every investigation.',
-      reality: 'There is no single standard for data sufficiency; the amount depends on the nature of the investigation and the time available. An investigation looking for a trend needs at least five levels of the independent variable, exceptionally four. If insufficient data was collected through no fault of the student and the processing matches the level of the research question, the highest marks are still available — what matters is that the report shows the student is aware of the limitation. But if there is no good reason for not collecting more, Data analysis is affected.',
+      reality: 'There is no single standard for data sufficiency; the amount depends on the nature of the investigation and the time available. An investigation looking for a trend needs at least five levels of the independent variable, exceptionally four. If insufficient data was collected through no fault of the student and the processing matches the level of the research question, the highest marks are still available — what matters is that the report shows the student is aware of the limitation.',
       detector: 'Output invents a fixed "at least N measurements" rule, or treats a small dataset as an automatic deduction.',
     },
 
@@ -205,6 +236,66 @@ const IB_SCIENCES_MARKING: MarkingModel = {
       claim: 'The number of digits an instrument displays is its uncertainty.',
       reality: 'Realistic uncertainty accounts for how the instrument is actually used. A hand-operated stopwatch cannot claim ±0.001 s; human reaction time dominates. Uncertainty carries one significant figure, two only when it begins with 1, and is written to the same decimal place as the value.',
       detector: 'Output accepts an instrument-precision claim that ignores how the reading was taken, or writes value and uncertainty to different decimal places.',
+    },
+
+    /* Chemistry-specific */
+    {
+      id: 'sig-figs-expected',
+      severity: 'high',
+      subjects: ['Chemistry'],
+      claim: 'Significant-figure discipline is part of precise communication and its absence is a defect.',
+      reality: 'Significant-figure conventions are not expected in this subject. Consistent decimal places matched to instrument precision are what is assessed; significant figures are judged only when the student chooses to use them.',
+      detector: 'Feedback flags significant-figure inconsistency, or recommends rounding to a stated number of significant figures, on a report whose decimal places are already consistent.',
+    },
+    {
+      id: 'statistics-rewarded',
+      severity: 'high',
+      subjects: ['Chemistry'],
+      claim: 'A t-test, ANOVA or correlation test strengthens the analysis and should be suggested.',
+      reality: 'Statistical testing is discouraged in this subject and merely tolerated when well executed. Standard deviation is unjustified below n=5, standard error of the mean below n=30, other tests below n=10 — and a range from maximum minus minimum is explicitly acceptable instead.',
+      detector: 'Feedback proposes a named statistical test, or accepts a standard deviation computed on three or four replicates without comment.',
+    },
+    {
+      id: 'logarithmic-quantities-averaged',
+      severity: 'high',
+      subjects: ['Chemistry'],
+      claim: 'Replicate pH or absorbance values can be averaged and propagated like any other measurement.',
+      reality: 'Logarithmic quantities need separate treatment; averaging pH values directly is a case requiring special mathematical attention.',
+      detector: 'Feedback credits a mean pH, or propagates an uncertainty through a logarithmic quantity by simple addition of absolutes.',
+    },
+    {
+      id: 'uncertainty-bars-required',
+      severity: 'medium',
+      subjects: ['Chemistry'],
+      claim: 'Graphs without error bars show inadequate consideration of uncertainty.',
+      reality: 'Uncertainty bars are not required in this subject. Propagation, replicate spread, gradient bounds and comparison with theoretical values are each sufficient on their own.',
+      detector: 'Any recommendation to add error bars, or a criterion B deduction whose stated reason is their absence.',
+    },
+
+    /* Biology-specific */
+    {
+      id: 'statistics-treated-as-optional',
+      severity: 'critical',
+      subjects: ['Biology'],
+      claim: 'Means, standard deviation and a trend line are sufficient processing, and a significance test is a nice extra.',
+      reality: 'In biology a correlation coefficient or significance test is the normal expectation for top-band processing. Graded work sitting at means-plus-SD with no trend line, no R² and no test lands in the middle band on criterion B. Do not carry the physics or chemistry stance across.',
+      detector: 'Feedback praises processing as complete while no inferential statistic appears anywhere, or attaches "optional" or "if you have time" to significance testing.',
+    },
+    {
+      id: 'wrong-test-recommended',
+      severity: 'high',
+      subjects: ['Biology'],
+      claim: 'ANOVA or a t-test suits a question about the relationship between two continuous variables, or a correlation coefficient suits a comparison between discrete treatment groups.',
+      reality: 'Test choice must follow question shape: correlational questions take Pearson or Spearman plus a significance step; group comparisons take a t-test or ANOVA with a post-hoc. A mismatched test scores worse than no test, because it produces an answer that does not address the research question.',
+      detector: 'The recommended statistic and the research question shape disagree, or ANOVA is suggested with no post-hoc test named.',
+    },
+    {
+      id: 'error-bar-type-unchallenged',
+      severity: 'high',
+      subjects: ['Biology'],
+      claim: '"Error bars added" satisfies the uncertainty strand.',
+      reality: 'The bar type must be named in the figure title and the choice justified. SD and range bars cannot support significance claims through overlap, and SEM on a small sample is indefensible.',
+      detector: 'Feedback credits error bars while the report never states whether they are range, SD, SEM or 95% CI, or while overlap is used to argue significance.',
     },
   ],
 }

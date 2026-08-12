@@ -428,6 +428,89 @@ const IB_SCIENCES_RULES: TopicRule[] = [
     severity: 'minor',
     hits: ['A', 'B'],
   },
+  /* Chemistry-specific */
+  {
+    id: 'visual-only-computational-work',
+    label: 'Modelling that returns no calculated property',
+    detail:
+      'Fires when a computational or molecular-modelling route produces images rather than numbers — "3D model", "visualise the molecule", "show the geometry". Visual-only modelling is rarely suitable as the basis of an investigation; the package must calculate properties, and the level of theory and convergence settings then function as control variables.',
+    severity: 'fatal',
+    hits: ['A', 'B'],
+  },
+  {
+    id: 'waste-disposal-unspecified',
+    label: 'Disposal route not described',
+    detail:
+      'Fires when reagents are named but no disposal method is given — heavy metal salts, organic solvents, strong acids, transition metal waste. Awareness of a hazard is not mitigation of it; the student must state what happened to the specific chemicals and organic matter, even where a technician handles it under school policy.',
+    severity: 'major',
+    hits: ['A'],
+  },
+  {
+    id: 'reagent-identity-vague',
+    label: 'Sample or solution specified only by category',
+    detail:
+      'Fires on a sample named only by its class — "tap water", "red wine", "soil", "commercial bleach" — or a solution given without concentration and preparation route. The properties that vary within the category are the ones that move the result, so the data cannot be assessed without them.',
+    severity: 'major',
+    hits: ['A', 'B'],
+  },
+  {
+    id: 'technique-limitation-not-designed-out',
+    label: 'Known technique limitation left in the design',
+    detail:
+      'Fires on an open uninsulated calorimeter, an uncalibrated pH meter or colorimeter, or unmanaged sample storage. These belong to the design phase; carrying them through means the evaluation reports an avoidable error instead of a ranked impact.',
+    severity: 'major',
+    hits: ['A', 'D'],
+  },
+  {
+    id: 'unbalanced-or-stateless-equations',
+    label: 'Equations unbalanced or missing state symbols',
+    detail:
+      'Fires when a reaction is written without balancing or without state symbols. Treated as a baseline convention, so failure signals imprecise communication across the whole report rather than an isolated slip.',
+    severity: 'minor',
+    hits: ['B'],
+  },
+
+  /* Biology-specific */
+  {
+    id: 'unregulated-living-material',
+    label: 'Living material without ethics or consent handling',
+    detail:
+      'Fires on human participants, vertebrates, or field organisms where no consent form, no ethical statement and no consideration of harm to the organism or site appears. Human participants require an informed consent form; fieldwork requires consideration of impact on the site.',
+    severity: 'fatal',
+    hits: ['A'],
+  },
+  {
+    id: 'missing-binomial-name',
+    label: 'Organism named only in common terms',
+    detail:
+      'Fires when the research question or method names a living organism as "onion", "yeast", "grass" or "beetle" without genus and species. Biology expects the scientific name wherever an organism is relevant, correctly italicised with a lower-case species epithet. Common names alone leave the study material undefined and weaken both the question and the method description.',
+    severity: 'major',
+    hits: ['A', 'B'],
+  },
+  {
+    id: 'sample-too-small-for-test',
+    label: 'Planned n cannot carry the planned statistic',
+    detail:
+      'Fires when the design promises a t-test, ANOVA or standard error of the mean but the replicate count falls below the threshold that statistic needs — three replicates with a t-test, or SEM quoted on a handful of readings. Either raise n or switch to range bars and a rank-based test.',
+    severity: 'major',
+    hits: ['A', 'B'],
+  },
+  {
+    id: 'correlation-strength-misread',
+    label: 'R² used as a claim about data quality',
+    detail:
+      'Fires when a high R² is offered as evidence that data are reliable or accurate, or when R² is used to describe the direction of a relationship. It measures fit only and is directionless. Also fires when R² is displayed on a polynomial or geometric trend line, where it does not apply.',
+    severity: 'major',
+    hits: ['B', 'C'],
+  },
+  {
+    id: 'biological-variability-ignored',
+    label: 'Between-specimen variation treated as error',
+    detail:
+      'Fires when variation across individual organisms, tissue samples or field sites is described purely as measurement error to be eliminated. In biology this variation is part of the system and belongs in the uncertainty treatment and the evaluation, not written off.',
+    severity: 'minor',
+    hits: ['B', 'D'],
+  },
 ];
 
 const IB_SCIENCES_RULESET: TopicRuleSet = {

@@ -28,6 +28,43 @@ export const subjectNotes: SubjectNotes[] = [
       'Safety, ethics and environment: where the investigation raises none of these, the student should say so explicitly. For database, simulation and modelling work, safety and environmental considerations do not apply; an ethical dimension around use of the data source counts in the student\'s favour if raised.',
     ],
   },
+  {
+    rubricId: 'ib-ia-sciences',
+    subject: 'Chemistry',
+    notes: [
+      'Statistical testing is discouraged, not expected. If a student uses it anyway it is accepted when well executed. Thresholds: standard deviation from n=5, standard error of the mean only above n=30, any other test from n=10. A range from maximum minus minimum is explicitly acceptable instead.',
+      'Significant-figure conventions are not expected. What is expected is a consistent number of decimal places matched to instrument precision, held consistent between raw data, stated precision and processed values. If significant figures are used they must be used correctly.',
+      'Uncertainty bars are not a requirement. Their absence is not a defect; uncertainties too small to plot should simply be noted in the text.',
+      'Uncertainty of a single measurement is written to the same decimal precision as the reading: for 87.4 cm³, ±0.1 is correct while ±0.05 and ±1 are both wrong. Final percentage uncertainty is quoted to one significant figure at or above 2%, to no more than two below it.',
+      'Logarithmic quantities need separate handling — pH and Beer–Lambert absorbance cannot be averaged or propagated as if linear.',
+      'Balanced equations with state symbols are treated as standard practice, not as a bonus.',
+      'Metric flexibility is accepted: mL or cm³, L or dm³. Non-decimal units must be converted rather than reported.',
+      'Temperature control means a thermostatic bath. Setting a room thermostat or air conditioning does not count as control; in temperature-sensitive work the ambient value must be recorded.',
+      'Sample and reagent identity must be specific enough that the analyte is determined by it — variety and origin, concentration, how solutions were prepared and diluted, how the limiting reactant was established, sampling location and storage conditions.',
+      'The student describes disposal for the specific chemicals and organic matter used, even when a technician handles it under school policy, and green-chemistry principles are endorsed where possible.',
+      'Sample sizes are typically under 15, so an unjustified outlier removal is highly visible; presenting the result with and without the outlier is the accepted route.',
+      'Typical weaknesses in this subject are heat loss in calorimetry and endpoint judgement in titration. Both are valid limitations only where minimisation was attempted at design; naming heat loss after working in an open uninsulated vessel earns nothing.',
+    ],
+  },
+  {
+    rubricId: 'ib-ia-sciences',
+    subject: 'Biology',
+    notes: [
+      'Statistical testing is expected here, not optional: a correlation coefficient, t-test, chi-squared or ANOVA is the normal route to top-band processing. Absence of any test where the data supports one caps Criterion B.',
+      'Sample-size thresholds govern which test is defensible: n>30 large, 15–30 small, 5–14 very small. A t-test is generally unsafe below n=10; Mann–Whitney tolerates very small samples; as a rule any test wants n≥10.',
+      'Standard deviation may be calculated from n≥5. SEM is strongly sample-size dependent and should be reserved for n>30. Range is the fallback when replicates are too few for either.',
+      'Range or error bars are expected on graphs showing means of discrete data sets. They are useful but not required for continuous data or correlations. The bar type must be named in the figure title and its choice justified.',
+      'Bars of identical length across all means signal the statistic was plotted wrongly — each mean carries its own dispersion.',
+      'SD and range ignore sample size, so bar overlap says nothing about significance. SEM and 95% CI do account for it, but a t-test or ANOVA is still expected to confirm any inference drawn from overlap.',
+      'ANOVA must be paired with a post-hoc test such as Tukey, or it cannot identify which treatments differ.',
+      'R² shows goodness of fit only — not direction, not reliability, not accuracy. It is appropriate for linear and logarithmic regression, not for polynomial or geometric relationships. Fit the trend line first, then read R²; selecting a curve type to maximise R² is unscientific.',
+      'Binomial nomenclature is required wherever an organism is named, including in the research question: genus capitalised, species lower case, both italicised. Format errors count against the precision half of Criterion B.',
+      'Live-material work carries ethical load: informed consent forms for human participants, and consideration of impact on field sites and organisms. Database, simulation and modelling work has no safety or environmental dimension — a single sentence saying so is the expected treatment, and raising ethical issues around data provenance is credit-worthy.',
+      'Environmental conditions are a live control variable in physiology and behaviour work. Setting a thermostat is not controlling temperature; the condition must be monitored and recorded.',
+      'Biology-specific processing tools that count as appropriate: Simpson reciprocal index, Lincoln index, chi-squared, t-test, rates of change read from graphed data, magnification scaling.',
+      'Typical weaknesses in this subject: unquantified sampling area or quadrat placement, non-metric units, unidentified error bars, treating a device-reported rate as processed data, and biological variability between specimens left unaddressed.',
+    ],
+  },
 ]
 
 export function getSubjectNotes(rubricId: string, subject: string): string[] {

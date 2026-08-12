@@ -35,7 +35,11 @@ function buildGuardBlock(rubricId: string, subject: string, criteriaIds: string[
 ${model.bestFit.map(r => `- ${r}`).join('\n')}
 ${model.zeroRules.map(r => `- ${r}`).join('\n')}`)
 
-  const relevant = model.sixVersusFour.filter(s => criteriaIds.includes(s.criterionId))
+ const subj = (subject || '').toLowerCase()
+  const relevant = model.sixVersusFour.filter(
+    s => criteriaIds.includes(s.criterionId) &&
+         (!s.subjects || s.subjects.some(x => subj.includes(x.toLowerCase())))
+  )
   if (relevant.length) {
     parts.push(`TOP BAND VERSUS MIDDLE BAND
 ${relevant.map(s => `Criterion ${s.criterionId}
