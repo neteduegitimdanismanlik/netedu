@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getRubric, calculateGrade } from '@/app/rubrics/schema'
+import { getMarkingModel, getPitfalls } from '@/app/rubrics/checker-guards'
+import { getSubjectNotes } from '@/app/rubrics/subject-notes'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,6 +14,51 @@ const supabase = createClient(
 // input cost by 3 (three-shot averaging) — that is the intended trade.
 const MAX_CONTENT_CHARS = 60000
 const MAX_STORED_CHARS = 60000
+
+/* ------------------------------------------------------------------ */
+/* Marking guards                                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Marking behaviour that is not rubric text: how to apply best-fit, what
+ * separates the top band from the middle, and the mistakes a model reliably
+ * makes on this rubric. Subject-specific entries are filtered in; the
+ * six-versus-four block is trimmed to the criteria actually being marked.
+ */
+function buildGuardBlock(rubricId: string, subject: string, criteriaIds: string[]): string {
+  const model = getMarkingModel(rubricId)
+  if (!model) return ''
+
+  const parts: string[] = []
+
+  parts.push(`HOW TO APPLY THE BANDS
+${model.bestFit.map(r => `- ${r}`).join('\n')}
+${model.zeroRules.map(r => `- ${r}`).join('\n')}`)
+
+  const relevant = model.sixVersusFour.filter(s => criteriaIds.includes(s.criterionId))
+  if (relevant.length) {
+    parts.push(`TOP BAND VERSUS MIDDLE BAND
+${relevant.map(s => `Criterion ${s.criterionId}
+  Top band: ${s.six}
+  Middle band: ${s.four}
+  What moves the work up: ${s.movingLine}`).join('\n\n')}`)
+  }
+
+  const pitfalls = getPitfalls(rubricId, subject)
+  if (pitfalls.length) {
+    parts.push(`COMMON MARKING ERRORS — do not make these
+${pitfalls.map(p => `[${p.severity}] Wrong assumption: ${p.claim}
+  Actually: ${p.reality}`).join('\n\n')}`)
+  }
+
+  const notes = getSubjectNotes(rubricId, subject)
+  if (notes.length) {
+    parts.push(`SUBJECT-SPECIFIC EXPECTATIONS — ${subject}
+${notes.map(n => `- ${n}`).join('\n')}`)
+  }
+
+  return '\n\n' + parts.join('\n\n') + '\n'
+}
 
 /* ------------------------------------------------------------------ */
 /* Exemplar calibration                                                */
@@ -75,7 +122,8 @@ async function scoreOnce(
   title: string,
   content: string,
   level: string,
-  calibration: string
+  calibration: string,
+  guards: string
 ) {
   const criteriaText = rubric.criteria.map((c: any) =>
     `Criterion ${c.id}: ${c.name} (max ${c.max})\n${c.description}\nBands:\n${c.bands.map((b: any) => `  ${b.range}: ${b.descriptor}`).join('\n')}`
@@ -93,7 +141,7 @@ TITLE / RESEARCH QUESTION: ${title}
 
 OFFICIAL RUBRIC:
 ${criteriaText}
-${calibration}
+${guards}${calibration}
 STUDENT WORK:
 """
 ${content.slice(0, MAX_CONTENT_CHARS)}
@@ -184,12 +232,13 @@ export async function POST(req: Request) {
     }
 
     const calibration = await buildCalibrationBlock(rubric.id, subject)
+    const guards = buildGuardBlock(rubric.id, subject, rubric.criteria.map((c: any) => c.id))
 
     // Three-shot averaging. allSettled so one malformed run cannot sink the request.
     const settled = await Promise.allSettled([
-      scoreOnce(rubric, subject, title, content, level || '', calibration),
-      scoreOnce(rubric, subject, title, content, level || '', calibration),
-      scoreOnce(rubric, subject, title, content, level || '', calibration),
+      scoreOnce(rubric, subject, title, content, level || '', calibration, guards),
+      scoreOnce(rubric, subject, title, content, level || '', calibration, guards),
+      scoreOnce(rubric, subject, title, content, level || '', calibration, guards),
     ])
 
     const runs = settled
@@ -293,6 +342,7 @@ export async function POST(req: Request) {
       rubricLabel: rubric.label,
       runsCompleted: runs.length,
       calibrated: calibration.length > 0,
+      guarded: guards.length > 0,
     })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })

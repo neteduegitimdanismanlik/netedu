@@ -72,26 +72,28 @@ export const topicExemplars: SubjectExemplars[] = [
     rubricId: 'ib-ia-sciences',
     exemplars: [
       {
-        title: 'How does the length of a simple pendulum (0.2–1.0 m) affect its period, and does the gradient of T² against L give a value of g consistent with 9.81 m s⁻²?',
-        why: 'Linearisation is justified by theory, the gradient yields a physical constant, and there is an accepted value to compare against.',
-        data: 'Six lengths, ten oscillations timed per trial, three trials, T² plotted against L with uncertainty bars and min/max gradient lines.',
-        watchOut: 'A hand stopwatch cannot claim millisecond precision. Start each swing from the same amplitude and say how — the small-angle approximation is an assumption you must state.'
+        title: 'How accurately does the relationship between the threshold voltage of LEDs of different wavelength and the frequency of the light they emit give the Planck constant?',
+        why: 'The independent variable is discrete but more than five levels are available, the dependent variable is measured directly, and because the gradient corresponds to h/e there is a published value to compare against. Whether the experimental range contains the accepted value maps exactly onto what criterion C asks for.',
+        data: 'Six LEDs of different colour (roughly 470–940 nm), a current–voltage sweep in 0.05 V steps for each, five repeats per LED; the threshold voltage is found by extrapolating the linear region to the voltage axis. Frequency is derived from the manufacturer peak wavelength and spectral width.',
+        watchOut: 'The definition of threshold voltage is arbitrary: "the point where current becomes visible" and "extrapolation of the linear region" give different answers and impose the same systematic shift on every LED. If the definition used is not stated, the gradient cannot be defended. An LED also does not emit a single wavelength — the manufacturer spectral width is the real source of uncertainty in frequency, and this x-axis uncertainty is omitted in most reports.',
+        context: 'hands-on'
       },
       {
-        title: 'How does the angle of a ramp affect the terminal velocity of a marble in a viscous liquid, and is the relationship consistent with Stokes\' law?',
-        why: 'Connects a measurable to a model, so the conclusion can be tested against theory rather than just described.',
-        data: 'Five or more angles, video analysis frame-by-frame, terminal velocity read from the flat region of the velocity–time graph.',
-        watchOut: 'Do not force the best-fit line through the origin — a systematic offset is exactly what you want to detect, not hide.'
+        title: 'In a simple pendulum simulation, how does the deviation of the period from the small-angle approximation scale with initial amplitude?',
+        why: 'The simulation makes accessible a region above 60° where clean data is hard to obtain in a real lab, and because the research question targets the boundary of validity of an approximation, there is a concrete assumption to discuss in the evaluation. The measured deviation can be compared against the closed-form series expansion, so scientific context is ready for criterion C.',
+        data: 'Eight initial amplitudes from 10° to 150°, the total time of 20 oscillations divided by the period at each; held constant: length, gravitational field strength, undamped mode, integration step. Deviation is processed as T(θ)/T₀ − 1.',
+        watchOut: 'The simulation is deterministic: repeats with identical input return identical numbers, so the half-range method produces zero uncertainty, and zero uncertainty is not accepted. Uncertainty must be justified from the time resolution of the simulation and the integration step size — doubling the step and measuring how far the result shifts gives that number directly. Since identical repeats do not count as sufficient data, the variety has to come from the amplitude levels rather than from repeats.',
+        context: 'simulation'
       },
       {
-        title: 'How does the separation between two slits affect the fringe spacing in a double-slit interference pattern?',
-        why: 'A well-defined relationship with a known theoretical form, and the uncertainty in fringe measurement is genuinely worth propagating.',
-        data: 'At least five slit separations, fringe spacing averaged over ten fringes to reduce reading uncertainty, uncertainty propagated to the calculated wavelength.',
-        watchOut: 'Statistical tests are not expected here — uncertainty propagation is. Measuring one fringe instead of ten throws away precision you cannot recover.'
+        title: 'Using transit data from an open exoplanet archive, how closely does the orbital period of hot Jupiters follow Kepler\'s third law against orbital radius?',
+        why: 'A database approach supplies many points across a range no single student could measure, and the selection criteria themselves — stellar mass range, transit quality, mass cut-off — satisfy what criterion A asks for in methodological decisions. On a log–log plot the closeness of the gradient to 3/2 is a concrete prediction testable against the uncertainty range.',
+        data: 'Thirty systems selected within a single narrow stellar mass range (say 0.95–1.05 solar masses); period, stellar mass and their archive uncertainties are extracted from each record; filtering steps documented with screenshots; log P against log a plotted and the gradient with its uncertainty found.',
+        watchOut: 'The trap specific to this topic is circularity: a significant share of semi-major axis values in these archives are not observed but already computed from the period using Kepler\'s third law. Testing the law against such a column tests the law with itself and the result comes out perfect by construction. Each record must be checked for whether its radius was derived or independently measured, derived ones excluded, and that decision written into the methodology. If stellar mass is not held narrow, the gradient reflects the mass distribution rather than the law.',
+        context: 'database'
       },
-    ]
-  },
-  {
+      ]
+    
     subject: 'Mathematics AA',
     rubricId: 'ib-ia-maths',
     exemplars: [

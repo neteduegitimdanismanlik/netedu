@@ -286,193 +286,147 @@ const IB_MATHS_RULESET: TopicRuleSet = {
 /* IB Sciences IA (Biology / Chemistry / Physics)                      */
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ */
+/* IB Sciences IA — Biology / Chemistry / Physics                      */
+/* Source: subject guides + TSM + officially assessed student work.     */
+/* ------------------------------------------------------------------ */
+
 const IB_SCIENCES_CONTEXTS: TopicContext[] = [
-  { id: 'lab-practical', label: 'Hands-on lab', hint: 'You run the experiment yourself with school equipment' },
-  { id: 'fieldwork', label: 'Fieldwork', hint: 'Sampling outside the lab — a site, a habitat, a population' },
-  { id: 'database', label: 'Database study', hint: 'Published datasets analysed in a way the original authors did not' },
-  { id: 'modelling', label: 'Spreadsheet modelling', hint: 'A quantitative model built and tested against real values' },
-  { id: 'simulation', label: 'Simulation', hint: 'Software that produces variation, not the same answer every run' },
+  { id: 'hands-on', label: 'Laboratory experiment', hint: 'The student changes the independent variable physically and takes their own measurements.' },
+  { id: 'fieldwork', label: 'Fieldwork', hint: 'Variables are not controlled but selected from conditions as found.' },
+  { id: 'database', label: 'Database study', hint: 'Data is drawn from an external archive; the selection and filtering decisions are the student\'s methodology.' },
+  { id: 'simulation', label: 'Simulation', hint: 'Data is produced by a software model; the model itself is a source of limitation.' },
+  { id: 'spreadsheet-model', label: 'Spreadsheet or computational model', hint: 'The student builds a mathematical model and sweeps its parameters.' },
 ];
 
 const IB_SCIENCES_RULES: TopicRule[] = [
   {
-    id: 'answerable-by-search',
-    label: 'The answer is already published',
+    id: 'no-quantifiable-variables',
+    label: 'No measurable independent or dependent variable',
     detail:
-      'If the research question can be settled by looking it up, there is nothing to investigate. ' +
-      'Fires on questions with a known textbook answer and no new variable, range or system of the student\'s own.',
+      'Fires when the research question does not name two quantities and a relationship between them. The dependent variable may be derived (a rate, a ratio), but it must be measurable. Without variables, the first strand of criterion A and the whole of C and D become inapplicable.',
+    severity: 'fatal',
+    hits: ['A', 'C', 'D'],
+  },
+  {
+    id: 'off-subject-focus',
+    label: 'Focus sits outside the subject',
+    detail:
+      'Fires when the research question is predominantly a biology, chemistry, engineering-design or psychology question rather than one belonging to the subject being assessed. The IA is not an opportunity for interdisciplinary work; a question that drifts out of the subject cannot be marked against its criteria. Reframe it around variables that belong to the subject.',
     severity: 'fatal',
     hits: ['A'],
   },
   {
-    id: 'no-quantitative-data',
-    label: 'No quantitative data',
+    id: 'shared-raw-data',
+    label: 'Raw data shared with another student',
     detail:
-      'Quantitative data is required. Qualitative observation can support but cannot carry the ' +
-      'investigation. A purely descriptive idea is invalid from the start.',
-    severity: 'fatal',
-    hits: ['B'],
-  },
-  {
-    id: 'variable-not-quantifiable',
-    label: 'Variable cannot be measured',
-    detail:
-      'Both the independent and dependent variable must be measurable with available equipment. ' +
-      'Fires on vague constructs ("freshness", "quality", "effectiveness") with no stated method of measurement.',
+      'Fires when the same raw data set would appear in two reports. Groups are capped at three students, and even where data is collected together each student must use a different independent variable, a different dependent variable, or a different subset of the shared pool. Otherwise it becomes an academic misconduct matter.',
     severity: 'fatal',
     hits: ['A', 'B'],
   },
   {
-    id: 'interdisciplinary-drift',
-    label: 'Drifting into another subject',
+    id: 'published-table-reanalysis',
+    label: 'Re-analysis of a table from a published paper',
     detail:
-      'The investigation must sit in the subject being assessed. A chemistry IA that turns into a ' +
-      'health claim, or a biology IA that becomes a physics measurement, loses the subject-specific depth.',
+      'Fires when the data comes from a table already processed and presented in a paper. The authors have made the sampling, filtering and derivation decisions, leaving the student no methodological decisions to show under criterion A. Choose an archive holding raw or minimally processed records.',
     severity: 'major',
-    hits: ['A', 'C'],
-  },
-  {
-    id: 'repeat-of-class-prac',
-    label: 'A class practical repeated',
-    detail:
-      'Running a standard prescribed practical unchanged gives nothing to design. There must be a ' +
-      'genuine extension: a different range, a different system, a different dependent variable.',
-    severity: 'major',
-    hits: ['A'],
+    hits: ['A', 'B'],
   },
   {
     id: 'below-five-datapoints',
-    label: 'Too few levels of the independent variable',
+    label: 'Fewer than five levels of the independent variable',
     detail:
-      'An investigation looking for a trend needs at least five values of the independent variable. ' +
-      'Four is acceptable only with a stated reason, such as an expensive or hazardous reagent.',
+      'Fires when a trend or relationship is sought and the independent variable takes fewer than five values. Four is acceptable in exceptional cases, fewer is not. Because it makes a gradient and its uncertainty impossible to extract, it pulls down B and C as well as A.',
     severity: 'major',
-    hits: ['A', 'B'],
+    hits: ['A', 'B', 'C'],
   },
   {
-    id: 'scope-exceeds-10h',
-    label: 'Too big for the time available',
+    id: 'no-uncertainty-source',
+    label: 'No stated source for measurement uncertainty',
     detail:
-      'The IA is a ten-hour task. Longitudinal designs, organism growth over weeks, or equipment the ' +
-      'school does not own will not finish.',
-    severity: 'major',
-    hits: ['A'],
-  },
-  {
-    id: 'scope-too-narrow',
-    label: 'Too thin to reach the descriptors',
-    detail:
-      'The opposite failure: a question so small that evaluation and conclusion have nothing to work ' +
-      'with. There must be enough depth for every criterion to be met meaningfully.',
-    severity: 'major',
-    hits: ['C', 'D'],
-  },
-  {
-    id: 'uncontrolled-environment',
-    label: 'Control variables not actually controlled',
-    detail:
-      'Naming a control variable is not controlling it. Fires when temperature, light or pH are listed ' +
-      'as controlled with no method — "room temperature" is not control.',
-    severity: 'major',
-    hits: ['A'],
-  },
-  {
-    id: 'no-uncertainty-plan',
-    label: 'No plan for uncertainty',
-    detail:
-      'In physics and chemistry, measurement uncertainty has to be planned from the start — instrument ' +
-      'precision, propagation, and how it will be shown. Without it the conclusion cannot be fully ' +
-      'consistent with the processed data.',
+      'Fires when uncertainty never appears in the tables and graphs, or a number is given without saying where it came from. Every raw column heading needs a unit and an uncertainty, justified from the instrument least count, the manufacturer specification, or the half-range of repeats. Without this, criterion B cannot exceed 3-4 and a fully consistent conclusion is not possible under C.',
     severity: 'major',
     hits: ['B', 'C'],
   },
   {
-    id: 'stats-mismatch',
-    label: 'Statistical treatment does not fit the subject',
+    id: 'identical-repeats',
+    label: 'Repeats return identical values',
     detail:
-      'Biology expects statistical treatment with sample sizes that justify it. Physics does not expect ' +
-      'statistical tests at all — uncertainty propagation takes their place. Chemistry sits between. ' +
-      'Fires when the planned analysis does not match the subject or the sample is too small for the test.',
-    severity: 'major',
-    hits: ['B'],
-  },
-  {
-    id: 'sample-not-characterized',
-    label: 'Sample not properly described',
-    detail:
-      'A material has to be specified well enough to be reproducible: variety, origin, concentration, ' +
-      'storage. "Red wine" or "soil" is not a description. In biology the organism needs its binomial name.',
-    severity: 'major',
-    hits: ['A'],
-  },
-  {
-    id: 'safety-or-disposal-unaddressed',
-    label: 'Safety, ethics or disposal not addressed',
-    detail:
-      'Naming a hazard is not enough — it has to be mitigated, and chemical waste needs a stated disposal ' +
-      'route. Human participants need consent. If there is genuinely no safety, ethical or environmental ' +
-      'issue, say so explicitly.',
-    severity: 'major',
-    hits: ['A'],
-  },
-  {
-    id: 'published-table-source',
-    label: 'Data lifted from a published table',
-    detail:
-      'Tables inside published papers are rarely suitable as a data source — usually already processed ' +
-      'and too small. A genuine database study needs a dataset large enough to sample from.',
-    severity: 'major',
-    hits: ['A', 'B'],
-  },
-  {
-    id: 'simulation-no-variation',
-    label: 'Simulation with no variation',
-    detail:
-      'A simulation that returns the identical value on every run produces no uncertainty and no spread, ' +
-      'so there is almost nothing to analyse or evaluate.',
+      'Fires in simulations and deterministic models where repeated runs with the same input produce the same output. Such repeats do not count as sufficient data and the half-range method yields zero uncertainty, which is not accepted. The student must either vary additional conditions or derive uncertainty from reading resolution and model step size.',
     severity: 'major',
     hits: ['B', 'D'],
   },
   {
-    id: 'class-duplicate-risk',
-    label: 'Overlaps with classmates',
+    id: 'context-bloat',
+    label: 'Background has become a textbook summary',
     detail:
-      'Group work is capped at three students and no two may submit the same raw data set. If the idea is ' +
-      'a common one, the point of difference must be settled up front.',
-    severity: 'minor',
-  },
-  {
-    id: 'duplicate-with-ee',
-    label: 'Same work as the Extended Essay',
-    detail: 'The same investigation cannot be submitted as both an IA and an EE.',
-    severity: 'minor',
-  },
-  {
-    id: 'unrealistic-range',
-    label: 'Range not realistic for the system',
-    detail:
-      'The values chosen have to make sense for the system being studied. Testing sea water at 50 °C when ' +
-      'the warmest surface sea is near 32 °C signals weak understanding of the context.',
-    severity: 'minor',
+      'Fires when the introduction runs to pages of general theory without focusing on the research question itself. Criterion A measures the effectiveness of communication, not the quantity of knowledge: broad general background counts as broad context and pins the first strand at 3-4. Context should describe precisely the relationship between the chosen variables and the boundaries of the system.',
+    severity: 'major',
     hits: ['A'],
   },
   {
-    id: 'vague-outcome-terms',
-    label: 'Vague outcome wording',
+    id: 'two-investigations-in-one',
+    label: 'Effectively two investigations in one report',
     detail:
-      'Words like "efficient", "better" or "suitable" in the research question have no measurable meaning. ' +
-      'State what is actually being measured.',
-    severity: 'minor',
-    hits: ['A'],
+      'Fires when the student adds a second surface, material or method, repeats the same procedure, and makes no meaningful comparison between the two sets. This spends the word limit on repetition instead of depth and thins out the methodological detail. Going deeper into one system always scores better.',
+    severity: 'major',
+    hits: ['A', 'D'],
   },
   {
-    id: 'background-too-general',
-    label: 'Background too general',
+    id: 'evaluation-as-afterthought',
+    label: 'Evaluation squeezed onto the last page',
     detail:
-      'The theoretical background has to be directly relevant to this question. A broad survey of the ' +
-      'field caps the first strand of research design.',
+      'Fires when the evaluation is a bulleted list of procedural complaints with no statement of how each weakness affected the result in direction and size. Evaluation is statistically the lowest-scoring criterion of the IA: identifying a specific weakness is the 3-4 band, explaining its relative impact is 5-6. Limitations — data range, validity of assumptions — must also be treated separately from weaknesses.',
+    severity: 'major',
+    hits: ['D'],
+  },
+  {
+    id: 'generic-limitations',
+    label: 'Generic list of limitations',
+    detail:
+      'Fires on phrases that would fit almost any experiment: human reaction time, ambient temperature not controlled, uncalibrated meter, more measurements should have been taken. These are generic by definition and correspond to the 1-2 band under D. A known limitation such as heat loss in calorimetry only carries weight if the student tried to reduce it at the design stage.',
+    severity: 'major',
+    hits: ['D'],
+  },
+  {
+    id: 'statistical-uncertainty-substitution',
+    label: 'Standard deviation used as gradient uncertainty',
+    detail:
+      'Fires when the standard deviation or standard error reported by graphing software is presented as the experimental uncertainty of the gradient. Standard deviation measures only the scatter of the points and takes no account of measurement uncertainty. The expected method is maximum and minimum gradient lines drawn by eye against the uncertainty bars.',
     severity: 'minor',
-    hits: ['A'],
+    hits: ['B', 'C'],
+  },
+  {
+    id: 'precision-overclaim',
+    label: 'Claiming precision the instrument cannot deliver',
+    detail:
+      'Fires on claims such as ±0.001 s from a hand-operated stopwatch, ±0.01 cm from a tape measure, or ±0.0005 m from a millimetre rule. The number of digits an instrument displays is not the realistic uncertainty; reaction time and reading conditions enlarge it. This is both a precision error under B and a missed weakness under D.',
+    severity: 'minor',
+    hits: ['B', 'D'],
+  },
+  {
+    id: 'answer-known-in-advance',
+    label: 'The answer is known before starting',
+    detail:
+      'Fires when the research question amounts to verifying a known law. This is not fatal on its own — a classic verification can score full marks — but it leaves no excuse for vague context or generic evaluation. Superficial work on a familiar topic is marked more harshly than usual.',
+    severity: 'minor',
+    hits: ['A', 'D'],
+  },
+  {
+    id: 'word-count-overrun',
+    label: 'Over 3,000 words',
+    detail:
+      'Fires when the report exceeds 3,000 words. The examiner is not obliged to read beyond the limit, which in practice leaves the conclusion and evaluation sections at the end without evidence. Data tables, graphs, equations, calculations, citations, the bibliography and headings are excluded from the count, so the limit is generous for a well-written report.',
+    severity: 'minor',
+    hits: ['C', 'D'],
+  },
+  {
+    id: 'appendix-dependency',
+    label: 'Critical information left in an appendix',
+    detail:
+      'Fires when method detail, processed data or a sample calculation sits in an appendix rather than the body. Appendices are not read; the only exception is participant consent forms. Evidence in an appendix counts as never written.',
+    severity: 'minor',
+    hits: ['A', 'B'],
   },
 ];
 
@@ -481,25 +435,28 @@ const IB_SCIENCES_RULESET: TopicRuleSet = {
   label: 'IB Sciences IA (Biology / Chemistry / Physics)',
   contexts: IB_SCIENCES_CONTEXTS,
   rules: IB_SCIENCES_RULES,
+  levelNotes: {
+    SL: 'The IA requirement, criteria, word limit and time allocation are identical at SL and HL. There is no separate threshold or allowance for SL.',
+    HL: 'HL students are not expected to produce more data or more advanced mathematics; the same rubric, the same 3,000 words and the same 10 hours apply. Beyond-syllabus topics are open to both levels.',
+  },
   titleGuidance: [
-    'The research question must name the independent and dependent variable, or the two variables being related.',
-    'It must include a brief description of the system, not just the variables in the abstract.',
-    'Avoid immeasurable words — say what is measured and in what units.',
+    'The title should reflect the research question rather than the field: it names two quantities and the relationship between them.',
+    'The dependent variable may be a derived quantity such as a rate or a ratio; in that case its link to the raw measured quantities is established in the background.',
+    'No cover page or contents page. The report opens with the title, the candidate code, any group members\' codes, and the word count.',
+    'Title and opening paragraph together should tell the reader what the investigation is.',
   ],
   dataGuidance: [
-    'At least five levels of the independent variable when looking for a trend; four only with a stated reason.',
-    'Repeats are not fixed at a number but must be justified.',
-    'Control variables need a stated method of control, not just a name.',
-    'Uncertainty is planned before collection in physics and chemistry, not added afterwards.',
-    'The sample or material must be described well enough for someone else to obtain the same thing.',
+    'At least five levels of the independent variable when seeking a trend, exceptionally four. The choice of range and interval must be justified, and the justification should come from preliminary trials.',
+    'The number of repeats is open but must be justified. Repeats do not reduce random error; they make the size of the uncertainty visible.',
+    'The amount of data should be proportionate to ten hours of work. Not every investigation is expected to generate a lot: systems that yield data quickly are not compared against slow ones on measurement count.',
+    'Rough processing while collecting is recommended — an inadequate range or interval only becomes visible once a graph is drawn, and at that point it can still be fixed.',
+    'The report carries a sample covering the range at regular intervals, not the full raw data set; the teacher must have seen the complete set.',
+    'For database and simulation work, the source name, address and extraction steps should be documented with screenshots; the filtering criteria are part of the methodology.',
+    'Unexpected or inconclusive data is not a flaw: the report is expected to describe what happened, including problems encountered and how they were handled.',
   ],
   scopeNote:
-    'This tool does not design the experiment. It suggests investigations and rules them out. ' +
-    'Take the shortlist to your teacher before you start collecting.',
+    'Assessment rests only on the evidence written in the report, and the four criteria measure different aspects of the same text; evidence is not expected in a linear or standard order. Each criterion mark is a holistic best-fit decision rather than an average of strands, and not every statement in a band must be met. Marking is positive: what the student did is credited, not what they could have done.',
 };
-/* ------------------------------------------------------------------ */
-/* Registry                                                            */
-/* ------------------------------------------------------------------ */
 
 const TOPIC_RULE_SETS: TopicRuleSet[] = [IB_MATHS_RULESET, IB_SCIENCES_RULESET];
 
