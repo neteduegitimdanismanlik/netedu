@@ -29,7 +29,7 @@ export default function ParentPanel() {
 
       if (link) {
         setStudentId(link.student_id)
-        await loadStudentData(link.student_id, data.user.email)
+       await loadStudentData(link.student_id, data.user.email || '')
       }
       setLoading(false)
     })

@@ -17,6 +17,7 @@ export interface Rubric {
   totalMax: number
   gradeScale: { grade: string; min: number }[]
   criteria: Criterion[]
+  guidance?: string
 }
 
 // NOTE on gradeScale: calculateGrade returns the first band whose `min` is met,
