@@ -511,6 +511,47 @@ const IB_SCIENCES_RULES: TopicRule[] = [
     severity: 'minor',
     hits: ['B', 'D'],
   },
+  /* SEHS-specific */
+  {
+    id: 'ingestion-protocol-banned',
+    label: 'Ingestion protocol is prohibited',
+    detail:
+      'Fires when the topic requires giving participants food, caffeine, energy drinks, sports gels, creatine, beta-alanine, supplements or any stimulant or medication. Investigations built on the effect of caffeine on reaction time, carbohydrate loading on endurance, or an energy drink on sprint speed all fall inside this. The topic must be reframed so that the ingested substance is no longer the independent variable — timing of the last meal, for instance, can be treated as a control variable.',
+    severity: 'fatal',
+    hits: ['A'],
+  },
+  {
+    id: 'human-subjects-consent',
+    label: 'Consent or parental consent missing',
+    detail:
+      'Fires when human participants are involved and there is no evidence of an informed consent form. The form must cover voluntariness, the right to withdraw, anonymity and use of the data; parental consent is additionally required for participants under 16. Consent forms are the one permitted appendix, so placing them there is fine — the problem is their absence. In assessed samples, not seeking consent caps the second strand of Research design at the 3-4 band rather than zeroing the criterion.',
+    severity: 'major',
+    hits: ['A'],
+  },
+  {
+    id: 'no-physical-readiness-screening',
+    label: 'No physical readiness screening',
+    detail:
+      'Fires when a protocol involves maximal or submaximal exertion — beep test, Wingate, one-rep max, run to exhaustion, repeated vertical jumps — without a tool screening participants for physical readiness. A PAR-Q or equivalent, a warm-up protocol, supervision arrangements and exclusion criteria are expected. Naming the risk is not enough; how it was mitigated must be shown.',
+    severity: 'major',
+    hits: ['A'],
+  },
+  {
+    id: 'order-and-practice-effects',
+    label: 'Order and practice effects unmanaged',
+    detail:
+      'Fires when the same participant enters more than one condition and the order of conditions is not randomised, or when the measurement drifts because the participant improves at the task. This applies to any design involving skill, coordination, reaction or a cognitive task. The expected solution is randomised condition order, practice trials and adequate rest between conditions, with the reasoning written down. It also carries into Evaluation: if the effect is not discussed, the relative-impact explanation is incomplete.',
+    severity: 'major',
+    hits: ['A', 'D'],
+  },
+  {
+    id: 'unlabelled-uncertainty-bars',
+    label: 'Uncertainty bar type not stated',
+    detail:
+      'Fires when a graph shows means without uncertainty bars, or with bars whose type (±1SD, ±2SD, SEM, 95% CI) is not labelled. Plotting standard deviation as a bar while never giving its numerical value anywhere amounts to the same thing. Overlap of SD or range bars also cannot support a significance claim; significance needs an inferential test.',
+    severity: 'major',
+    hits: ['B', 'D'],
+  },
 ];
 
 const IB_SCIENCES_RULESET: TopicRuleSet = {
@@ -541,8 +582,196 @@ const IB_SCIENCES_RULESET: TopicRuleSet = {
     'Assessment rests only on the evidence written in the report, and the four criteria measure different aspects of the same text; evidence is not expected in a linear or standard order. Each criterion mark is a holistic best-fit decision rather than an average of strands, and not every statement in a band must be met. Marking is positive: what the student did is credited, not what they could have done.',
 };
 
-const TOPIC_RULE_SETS: TopicRuleSet[] = [IB_MATHS_RULESET, IB_SCIENCES_RULESET];
+/* ------------------------------------------------------------------ */
+/* IB Psychology IA — research proposal                                 */
+/* ------------------------------------------------------------------ */
 
+const IB_PSYCHOLOGY_CONTEXTS: TopicContext[] = [
+  { id: 'experiment', label: 'Experiment', hint: 'Two or more conditions with a manipulated variable' },
+  { id: 'interview', label: 'Interview', hint: 'Semi-structured conversation producing transcript data' },
+  { id: 'observation', label: 'Observation', hint: 'Behaviour recorded in a natural or structured setting' },
+  { id: 'questionnaire', label: 'Questionnaire', hint: 'A written instrument administered to a defined sample' },
+];
+
+const IB_PSYCHOLOGY_RULES: TopicRule[] = [
+  {
+    id: 'prohibited-participant-group',
+    label: 'Participant group is not permitted',
+    detail:
+      'Fires when the proposal recruits participants under 16 without parental consent, people with a clinical diagnosis approached as patients, or anyone in a relationship of dependency on the researcher. These are not feasibility concerns — they are ethical limits that apply even though the study is never run.',
+    severity: 'fatal',
+    hits: ['B', 'D'],
+  },
+  {
+    id: 'method-not-one-of-four',
+    label: 'Method is outside the permitted four',
+    detail:
+      'Fires when the proposed method is not clearly one of experiment, interview, observation or questionnaire. Mixed designs that never settle on a primary method fall here too — the criteria are written against a single chosen method.',
+    severity: 'fatal',
+    hits: ['B'],
+  },
+  {
+    id: 'aim-too-broad',
+    label: 'The aim does not name a population or a variable',
+    detail:
+      'Fires on aims like "to investigate stress in teenagers" or "to explore social media use". The aim must carry who is being studied and what is being measured or compared. A broad aim caps the aim strand of Introduction at the bottom band and leaves the rest of the design unanchored.',
+    severity: 'major',
+    hits: ['A', 'B'],
+  },
+  {
+    id: 'single-study-foundation',
+    label: 'Only one published study behind the proposal',
+    detail:
+      'Fires when the introduction rests on a single piece of published research. At least two are expected, and their relationship to each other is what establishes the gap the proposal fills. This caps Introduction at 4 regardless of how well the single study is discussed.',
+    severity: 'major',
+    hits: ['A'],
+  },
+  {
+    id: 'instrument-too-thin',
+    label: 'Instrument has fewer than five items',
+    detail:
+      'Fires when a questionnaire or interview schedule carries fewer than five items, or when the items are not written out at all. Too thin to generate data the proposed analysis could act on; caps Analysis at 2.',
+    severity: 'major',
+    hits: ['B', 'C'],
+  },
+  {
+    id: 'scale-lifted-unadapted',
+    label: 'Published scale used without adaptation or justification',
+    detail:
+      'Fires when an existing measurement instrument is adopted wholesale with no reasoning about why it fits this population and this aim. The analysis criterion asks what the student decided; lifting a scale leaves nothing to assess.',
+    severity: 'major',
+    hits: ['B', 'C'],
+  },
+  {
+    id: 'method-stacking',
+    label: 'A second method added without reason',
+    detail:
+      'Fires when the proposal bolts on an extra method from the same family — a questionnaire alongside an interview, say — without stating what the second one adds. Reads as indecision rather than design, and caps Evaluation at 2.',
+    severity: 'minor',
+    hits: ['B', 'D'],
+  },
+];
+
+const IB_PSYCHOLOGY_RULESET: TopicRuleSet = {
+  rubricId: 'ib-ia-psychology',
+  label: 'IB Psychology IA (Research Proposal)',
+  contexts: IB_PSYCHOLOGY_CONTEXTS,
+  rules: IB_PSYCHOLOGY_RULES,
+  titleGuidance: [
+    'The aim names the population and the variables: who is being studied, and what is being measured or compared.',
+    'A relationship between two variables, or a comparison between two conditions, is what the aim should express.',
+    'Avoid words that cannot be operationalised — wellbeing, performance, success — unless the instrument defines them.',
+  ],
+  dataGuidance: [
+    'The study is never carried out, so no data is collected. What is assessed is the plan.',
+    'The sampling technique must fit the population named in the aim, and its limits should be acknowledged.',
+    'A questionnaire or interview schedule needs at least five items, written out in full.',
+    'A published scale may be used only if adapted, with reasoning about why it fits this population.',
+    'The planned treatment of the data must be named specifically: which test and why, or which analytic approach and how.',
+  ],
+  scopeNote:
+    'This is a research PROPOSAL — the study is not run, and feasibility is not assessed. A design requiring clinical participants or years of follow-up is acceptable if the reasoning holds. What is marked is the quality of the thinking, not whether it could be executed.',
+};
+
+/* ------------------------------------------------------------------ */
+/* IB Economics IA — one commentary from a portfolio of three           */
+/* ------------------------------------------------------------------ */
+
+const IB_ECONOMICS_CONTEXTS: TopicContext[] = [
+  { id: 'microeconomics', label: 'Microeconomics', hint: 'Markets, elasticity, market failure, intervention' },
+  { id: 'macroeconomics', label: 'Macroeconomics', hint: 'Growth, inflation, unemployment, fiscal and monetary policy' },
+  { id: 'global-economy', label: 'The global economy', hint: 'Trade, exchange rates, integration, development' },
+];
+
+const IB_ECONOMICS_RULES: TopicRule[] = [
+  {
+    id: 'article-carries-no-diagram',
+    label: 'The article cannot yield a diagram',
+    detail:
+      'Fires when the article reports a situation with no change to model — a description of an industry, a profile of a company, a statistical roundup. Every commentary needs at least one diagram that shows a movement, and the article has to contain something that moves.',
+    severity: 'fatal',
+    hits: ['A', 'C'],
+  },
+  {
+    id: 'article-too-old',
+    label: 'The article is outside the age limit',
+    detail:
+      'Fires when the article predates the limit set for the portfolio. Age is checked against the publication date, not the date of the events described. An old article invalidates the commentary at portfolio level.',
+    severity: 'fatal',
+    hits: ['F'],
+  },
+  {
+    id: 'article-is-analysis-not-news',
+    label: 'The source is already an economic analysis',
+    detail:
+      'Fires when the chosen piece is itself an economics commentary, an opinion column arguing a case, or a textbook extract. The commentary must supply the analysis; a source that already contains it leaves the student paraphrasing.',
+    severity: 'major',
+    hits: ['C', 'D'],
+  },
+  {
+    id: 'key-concept-not-chosen-early',
+    label: 'Key concept picked after the analysis',
+    detail:
+      'Fires when the key concept appears only in the title block or the closing paragraph. The concept is supposed to determine what the commentary examines; if the analysis would read the same without it, it was not organising anything.',
+    severity: 'major',
+    hits: ['D'],
+  },
+  {
+    id: 'repeats-unit-or-source',
+    label: 'Repeats a unit or source used elsewhere in the portfolio',
+    detail:
+      'Fires when this commentary draws on the same syllabus unit, the same publication or the same key concept as another commentary in the portfolio. Cannot be verified from a single commentary — surface it as a risk for the student to check against their other two.',
+    severity: 'major',
+    hits: ['F'],
+  },
+  {
+    id: 'scope-too-wide-for-800',
+    label: 'The chosen angle cannot fit 800 words',
+    detail:
+      'Fires when the commentary sets out to cover an entire policy, an entire market or several countries. Eight hundred words holds one diagram, one chain of reasoning and one evaluated judgement. Breadth here reads as thinness.',
+    severity: 'major',
+    hits: ['C', 'E'],
+  },
+  {
+    id: 'title-block-incomplete',
+    label: 'Title block missing required fields',
+    detail:
+      'Fires when the commentary omits the article title, source, publication date, date of commentary, word count, syllabus unit or key concept. These are formal requirements assessed at portfolio level.',
+    severity: 'minor',
+    hits: ['F'],
+  },
+];
+
+const IB_ECONOMICS_RULESET: TopicRuleSet = {
+  rubricId: 'ib-ia-economics',
+  label: 'IB Economics IA (Commentary Portfolio)',
+  contexts: IB_ECONOMICS_CONTEXTS,
+  rules: IB_ECONOMICS_RULES,
+  titleGuidance: [
+    'The commentary is built around one article, so the angle is chosen from what the article makes visible.',
+    'One diagram, one chain of reasoning and one evaluated judgement is what 800 words holds.',
+    'The key concept is chosen before writing and determines what the commentary examines.',
+  ],
+  dataGuidance: [
+    'The source is a news article, not an economic analysis. If the piece already argues the economics, there is nothing left to apply.',
+    'The article must contain a change — a policy, a price movement, a shock — so that a diagram has something to show.',
+    'Across the portfolio: three different syllabus units, three different sources, three different key concepts.',
+    'The title block carries the article title, source, publication date, commentary date, word count, unit and key concept.',
+  ],
+  scopeNote:
+    'The IA is a portfolio of three commentaries, marked at 14 each plus 3 for the portfolio as a whole — 45 in total. This tool works on ONE commentary at a time. Requirements that span the three (different units, sources and key concepts) are flagged as risks, not verified.',
+};
+
+/* ------------------------------------------------------------------ */
+/* Registry                                                            */
+/* ------------------------------------------------------------------ */
+
+const TOPIC_RULE_SETS: TopicRuleSet[] = [
+  IB_MATHS_RULESET,
+  IB_SCIENCES_RULESET,
+  IB_PSYCHOLOGY_RULESET,
+  IB_ECONOMICS_RULESET,
+];
 /** Rule sets that have a rubric. The UI builds its selector from this. */
 export function listTopicRuleSets(): TopicRuleSet[] {
   return TOPIC_RULE_SETS;

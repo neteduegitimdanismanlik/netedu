@@ -135,7 +135,7 @@ function describeRubric(rubricId: string, level?: string): string {
   const rubric = getRubric(rubricId);
   if (!rubric) return '';
   const criteria = rubric.criteria
-    .map((c) => `- ${c.id} ${c.name} (max ${c.max})`)
+  .map((c: any) => `- ${c.id} ${c.name} (max ${c.max})`)
     .join('\n');
   const guidance = rubric.guidance ? `\nMarking guidance:\n${rubric.guidance}` : '';
   const lvl = level ? `\nCourse level: ${level}` : '';

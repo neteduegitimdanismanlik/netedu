@@ -1,4 +1,5 @@
-// Rubric = data, not code.
+import { extraRubrics } from './rubrics-extra'
+// Rubric = data, not code.import { extraRubrics } from './rubrics-extra'
 // To add a new framework (A-Level, AP, college essay), just add an entry here.
 
 export interface Criterion {
@@ -283,8 +284,13 @@ export const rubrics: Rubric[] = [
   },
 ]
 
-export function getRubric(id: string): Rubric | undefined {
-  return rubrics.find(r => r.id === id)
+export function getRubric(id: string): any {
+  return rubrics.find(r => r.id === id) ?? extraRubrics.find(r => r.id === id)
+}
+
+/** Every rubric, base and extended. Use this for pickers and filters. */
+export function allRubrics(): any[] {
+  return [...rubrics, ...extraRubrics]
 }
 
 export function calculateGrade(rubric: Rubric, total: number): string {

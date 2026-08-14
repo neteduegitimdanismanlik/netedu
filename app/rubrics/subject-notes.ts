@@ -65,6 +65,25 @@ export const subjectNotes: SubjectNotes[] = [
       'Typical weaknesses in this subject: unquantified sampling area or quadrat placement, non-metric units, unidentified error bars, treating a device-reported rate as processed data, and biological variability between specimens left unaddressed.',
     ],
   },
+  {
+    rubricId: 'ib-ia-sciences',
+    subject: 'Sports Exercise and Health Science',
+    notes: [
+      'Word limit and weighting differ from the other sciences: 3,200 words, not 3,000, and 24 per cent of the course, not 20. Do not apply the general science figures here.',
+      'Every investigation with human participants needs evidence of an informed consent form. Parental consent is additionally required for participants under 16 — the threshold is 16, not 18. Having consent does not mean a safety assessment was done; the two are shown separately.',
+      'Protocols involving physical exertion need a screening tool for participant readiness (PAR-Q or equivalent). Warm-up detail, risk assessment and participant selection criteria are scored inside the second strand of Research design.',
+      'Investigations involving ingestion of food, caffeine, stimulants or medication are prohibited. This is an absolute limit, not a recommendation; a topic built on that axis has to be reframed.',
+      'Appendices are not read, with one SEHS exception: consent forms from people who took part in data collection are the only permitted and sometimes required appendix. Everything else — questionnaire samples, raw data, calculation steps — belongs in the body.',
+      'Uncertainty bars are expected on graphs showing means. The bar type (±1SD, ±2SD, SEM, 95% CI) must be labelled explicitly and the choice justified; this feeds directly into Data analysis and Evaluation. Every bar should differ in length — bars of identical length mean the statistic was applied wrongly.',
+      'Propagation of uncertainty is not systematically expected in SEHS. What is expected is discussion of the reliability and variability of the data. Inferential testing, by contrast, is generally expected. This pair is the clearest axis separating SEHS from physics.',
+      'Sample thresholds: standard deviation may be calculated from n≥5; standard error of the mean should be reserved for n>30; n>30 is large, 15-30 small, 5-14 very small. ANOVA must be accompanied by a post-hoc test such as Tukey. Significance for a correlation coefficient is a separate step.',
+      'Significant-figure conventions are not expected; what is expected is a consistent number of decimal places matched to measurement precision. Non-metric units (°F, inches, cups) are not appropriate and must be converted. Stating ±1 for counts is unnecessary, but values derived from counts need it — a 15-second pulse palpation carries ±4 beats per minute.',
+      'Vague terms such as "performance" are not accepted in the research question; the specific measured variable must be named. In assessed samples, examiners repeatedly credit a research question that carries the dependent and independent variable with their units and unit uncertainties, and its absence is the main source of loss in the first strand.',
+      'The system in which the research question sits — the definition of the participant population — must be restated in the Conclusion, not only in the introduction. In assessed samples, failing to name the system in the conclusion drops the first strand out of the 5-6 band.',
+      'The third strand of Conclusion measures practical implications, and these must be real-world applications relating to health or performance. This strand is concrete in a way specific to SEHS: an application at the level of "athletes should do this", with its reasoning.',
+      'The focus must be SEHS. Overlap with biology is not a problem — heart rate, for instance — but the investigation must be framed on a sport, exercise or health axis. Investigations centred on biochemical reactions in the body are rarely suitable for SEHS.',
+    ],
+  },
 ]
 
 export function getSubjectNotes(rubricId: string, subject: string): string[] {

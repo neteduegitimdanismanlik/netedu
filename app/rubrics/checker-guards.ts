@@ -31,11 +31,25 @@ export interface SixVersusFour {
   subjects?: string[]
 }
 
+export interface HardCeiling {
+  /** The condition, written so the model can test it against the work. */
+  when: string
+  criterionId: string
+  /** The mark this condition caps the criterion at. */
+  max: number
+  why: string
+  /** 'instance' caps one piece; 'portfolio' caps the whole submission. */
+  scope?: 'instance' | 'portfolio'
+}
+
 export interface MarkingModel {
   rubricId: string
-  /** How the criterion mark is decided from the strands. */
   bestFit: string[]
   zeroRules: string[]
+  /** Rule-based caps applied BEFORE best-fit. Empty for pure best-fit subjects. */
+  hardCeilings?: HardCeiling[]
+  /** Caps that bind a single strand, leaving the criterion free to best-fit above. */
+  strandCeilings?: HardCeiling[]
   distributionFacts?: string[]
   sixVersusFour: SixVersusFour[]
   pitfalls: ModelPitfall[]
@@ -297,6 +311,242 @@ const IB_SCIENCES_MARKING: MarkingModel = {
       reality: 'The bar type must be named in the figure title and the choice justified. SD and range bars cannot support significance claims through overlap, and SEM on a small sample is indefensible.',
       detector: 'Feedback credits error bars while the report never states whether they are range, SD, SEM or 95% CI, or while overlap is used to argue significance.',
     },
+    /* SEHS-specific */
+    {
+      id: 'sehs-read-as-biology',
+      severity: 'critical',
+      subjects: ['Sports Exercise'],
+      claim: 'SEHS is a Group 4 subject, so human-participant expectations are an edge case as in biology and a short ethics note suffices.',
+      reality: 'Human participants are the norm in SEHS. The consent form, parental consent for under-16s, physical readiness screening and risk mitigation are directly scored components of the second strand of Research design. Ingestion protocols are also entirely prohibited — biology has no such absolute ban.',
+      detector: 'Feedback mentions human participants but contains none of the words consent, parental consent, screening or right to withdraw; or it treats an ingested substance as an acceptable independent variable.',
+    },
+    {
+      id: 'small-n-auto-penalty',
+      severity: 'high',
+      subjects: ['Sports Exercise'],
+      claim: 'Eight participants is a weak sample and lowers the Data analysis mark by itself.',
+      reality: 'In SEHS a sample is typically accepted as small (n≤30) or very small (n<15). There is no single standard for data quantity; the criterion is proportionality to ten hours of work. If data was limited through no fault of the student and the processing matches what the research question needs, the highest marks remain available. The penalty comes not from small n itself but from the student failing to recognise that it limits the conclusion.',
+      detector: 'The comment gives "the sample is too small" as a reason for a deduction without checking whether the student addressed the limitation in Conclusion or Evaluation.',
+    },
+    {
+      id: 'uncertainty-propagation-imported',
+      severity: 'high',
+      subjects: ['Sports Exercise'],
+      claim: 'Uncertainty must be propagated through physiological measurements; without propagation the second strand of Data analysis is incomplete.',
+      reality: 'Propagation of uncertainties is not systematically expected in SEHS. What is expected is discussion of the reliability and variability of the data: standard deviation, range, uncertainty bars, R², significance testing. Inferential testing, by contrast, is generally expected — the opposite of the chemistry stance that statistics are discouraged.',
+      detector: 'Feedback lists "uncertainty propagation", "propagation" or "errors should be combined" as a shortcoming. The correct shortcoming here is absence of an inferential test or a superficial discussion of variability.',
+    },
+    {
+      id: 'ttest-threshold-overstated',
+      severity: 'medium',
+      subjects: ['Sports Exercise'],
+      claim: 'There is a single minimum sample size for a t-test, below which the test is invalid.',
+      reality: 'The source gives two thresholds: the mathematical tools section treats n≥5 as permitted for any data set, while the data analysis section says n<10 is generally too small and asks for at least 10 repeats for an effective t-test. This is not a contradiction but the difference between permitted and powerful. Presenting one number as an absolute threshold misleads the student; feedback should give both.',
+      detector: 'The comment states "a t-test needs at least X participants" as a single figure and never mentions the validity conditions — two groups, measurement data, similar standard deviations, normal distribution.',
+    },
+  ],
+  /* ------------------------------------------------------------------ */
+/* IB Psychology IA — research proposal                                 */
+/* ------------------------------------------------------------------ */
+
+
+}
+
+/* ------------------------------------------------------------------ */
+/* IB Psychology IA — research proposal                                 */
+/* ------------------------------------------------------------------ */
+
+const IB_PSYCHOLOGY_MARKING: MarkingModel = {
+  rubricId: 'ib-ia-psychology',
+
+  bestFit: [
+    'The criterion mark is a holistic best-fit judgement across the strands, not an average.',
+    'Only whole marks. Mark positively: credit what is there.',
+    'Criteria are independent — a proposal can be strong on Introduction and weak on Evaluation.',
+    'Apply the hard ceilings below BEFORE best-fit. Where a ceiling binds, best-fit operates only underneath it.',
+    'Strand ceilings bind one strand only. The criterion mark can still sit above a capped strand if the other strands are stronger.',
+  ],
+
+  zeroRules: [
+    'Zero applies at strand level here, not only at criterion level: a strand never addressed scores zero even when the rest of the criterion is sound.',
+    'A criterion scores zero only when no strand carries any creditable evidence.',
+  ],
+
+  hardCeilings: [
+    {
+      when: 'Only one published study is used to justify the proposal',
+      criterionId: 'A',
+      max: 4,
+      why: 'The introduction cannot establish a research problem from a single source; the guide expects the proposal to sit in a body of work.',
+    },
+    {
+      when: 'A published measurement scale or instrument is used without the student adapting or justifying it',
+      criterionId: 'C',
+      max: 2,
+      why: 'The analysis criterion asks what the student would do with the data, and lifting an existing scale wholesale leaves no methodological decision to assess.',
+    },
+    {
+      when: 'The instrument contains fewer than five items',
+      criterionId: 'C',
+      max: 2,
+      why: 'Too few items to generate data the proposed treatment could act on.',
+    },
+    {
+      when: 'A second method from the same family is added without a stated reason',
+      criterionId: 'D',
+      max: 2,
+      why: 'Method stacking without justification signals the design was not reasoned through.',
+    },
+  ],
+
+  strandCeilings: [
+    {
+      when: 'The aim is stated without naming the population or leaves a variable open',
+      criterionId: 'A',
+      max: 2,
+      why: 'A broad aim caps the aim strand, but the criterion can still rise on the strength of the research review.',
+    },
+    {
+      when: 'Researcher bias is named but its effect on this study is not traced',
+      criterionId: 'D',
+      max: 2,
+      why: 'Naming is the low band on this strand; the criterion can still rise on limitations and ethics.',
+    },
+  ],
+
+  sixVersusFour: [
+    {
+      criterionId: 'A',
+      six: 'The problem is argued rather than announced, two or more published studies are used to show what is missing, and the aim carries both the population and the variables.',
+      four: 'The problem is described, studies are present but connected only by topic, and the aim leaves one element open.',
+      movingLine: 'State what the existing studies did NOT settle, then write an aim that names who is being studied and what is being measured.',
+    },
+    {
+      criterionId: 'D',
+      six: 'Every limitation is tied to a feature of this design, ethics are specific to these participants, and researcher bias is traced through to an effect on the findings.',
+      four: 'Limitations and ethics are correct but would fit any study of this type, and bias is named without being followed through.',
+      movingLine: 'For each limitation, add the sentence "in this study that would mean...". Ethics points must name the actual participant group.',
+    },
+  ],
+
+  pitfalls: [
+    {
+      id: 'feasibility-marked',
+      severity: 'critical',
+      claim: 'A proposal that could not realistically be carried out — clinical populations, longitudinal designs, expensive equipment — should lose marks for being unworkable.',
+      reality: 'The study is never carried out. The IA is a proposal, and feasibility is not a criterion. A design requiring participants with a clinical diagnosis or years of follow-up is entirely acceptable if the reasoning is sound.',
+      detector: 'Feedback says the study is impractical, too expensive, or could not be completed in the time available, and treats that as a weakness.',
+    },
+    {
+      id: 'best-fit-overrides-ceiling',
+      severity: 'critical',
+      claim: 'Best-fit means every band is reachable if the overall quality is high enough.',
+      reality: 'Psychology applies rule-based ceilings before best-fit. One published study caps Introduction at 4 regardless of how well it is written; fewer than five items caps Analysis at 2. Best-fit then operates underneath the ceiling.',
+      detector: 'A criterion is awarded above a ceiling listed in this model, with quality of writing given as the reason.',
+    },
+    {
+      id: 'qualitative-treated-as-weaker',
+      severity: 'high',
+      claim: 'A quantitative design with a statistical test is stronger than an interview or observation study.',
+      reality: 'Qualitative and quantitative methods are equally valid. The criteria ask whether the chosen method is justified against the aim, not which family it belongs to.',
+      detector: 'Feedback suggests adding a statistical test to a qualitative proposal, or describes an interview design as less rigorous.',
+    },
+    {
+      id: 'sciences-structure-imported',
+      severity: 'high',
+      claim: 'The proposal should follow a scientific report structure with variables, controls, apparatus and a hypothesis.',
+      reality: 'This is a proposal in psychology, not a lab report. There is no requirement for control variables, apparatus lists or uncertainty. Ethics and researcher bias carry the weight that evaluation of method carries in the sciences.',
+      detector: 'Feedback asks for control variables, apparatus, uncertainty or repeat trials.',
+    },
+  ],
+}
+
+/* ------------------------------------------------------------------ */
+/* IB Economics IA — one commentary from a portfolio of three           */
+/* ------------------------------------------------------------------ */
+
+const IB_ECONOMICS_MARKING: MarkingModel = {
+  rubricId: 'ib-ia-economics',
+
+  bestFit: [
+    'Each criterion is judged on its own; the maxima are small (2 or 3) so a single clear failure moves the mark.',
+    'Only whole marks. Mark positively.',
+    'You are marking ONE commentary out of 14. Do not attempt to judge the portfolio as a whole.',
+    'Criterion F is a portfolio-level criterion and cannot be assessed from a single commentary. Do not award it.',
+  ],
+
+  zeroRules: [
+    'Zero for a criterion only where there is no creditable evidence at all — no diagram at all for A, no evaluative statement at all for E.',
+  ],
+
+  hardCeilings: [
+    {
+      when: 'A diagram is present but never referred to or explained in the body text',
+      criterionId: 'A',
+      max: 1,
+      scope: 'instance',
+      why: 'The criterion assesses explanation, not the presence of a figure.',
+    },
+    {
+      when: 'The key concept is named in the title block but does not appear in the analysis',
+      criterionId: 'D',
+      max: 1,
+      scope: 'instance',
+      why: 'Naming without organising is the bottom band.',
+    },
+    {
+      when: 'The same key concept is used in more than one commentary of the portfolio',
+      criterionId: 'D',
+      max: 0,
+      scope: 'portfolio',
+      why: 'The three commentaries must use three different key concepts. This cannot be checked from a single commentary — flag it as a risk rather than applying it.',
+    },
+  ],
+
+  sixVersusFour: [
+    {
+      criterionId: 'C',
+      six: 'Theory is applied to the specific event in the article and the chain runs from that event to an economic consequence.',
+      four: 'Theory is correct but general, or the chain stops before a consequence is reached.',
+      movingLine: 'Name the actual figure, policy or firm from the article inside the analysis, then follow it through to who gains and who loses.',
+    },
+    {
+      criterionId: 'E',
+      six: 'Judgements consider more than one side and rest on the analysis already made in the commentary.',
+      four: 'Evaluation is one-sided, or the judgement appears without the analysis behind it.',
+      movingLine: 'Add the other side — short run against long run, or a stakeholder who loses — and tie the judgement back to a step already argued.',
+    },
+  ],
+
+  pitfalls: [
+    {
+      id: 'portfolio-total-confused',
+      severity: 'critical',
+      claim: 'The economics IA is marked out of 45, so this commentary should be scored on that scale.',
+      reality: 'One commentary is marked out of 14 across criteria A to E. The portfolio total of 45 is (14 x 3) + 3, where the extra 3 come from criterion F applied once to all three commentaries together. Never score a single commentary out of 45.',
+      detector: 'The total or any criterion is expressed against 45, or criterion F is awarded a mark.',
+    },
+    {
+      id: 'diagram-presence-credited',
+      severity: 'high',
+      claim: 'A correct, well-drawn diagram earns full marks on criterion A.',
+      reality: 'Criterion A assesses whether the diagram is explained in the body. A flawless diagram that the text merely points at sits at the bottom of the range; the reader must be walked through the movement.',
+      detector: 'Feedback praises the diagram for accuracy or presentation without checking whether the text explains it.',
+    },
+    {
+      id: 'article-summary-as-analysis',
+      severity: 'high',
+      claim: 'A commentary that accurately summarises the article and then explains the relevant theory has applied that theory.',
+      reality: 'Application means the theory acts on the specifics of the article. A summary followed by a textbook passage, with nothing joining them, is the bottom band of criterion C.',
+      detector: 'Feedback credits application while the analysis would read identically with a different article.',
+    },
+    {
+      id: 'sciences-verb-ladder-imported',
+      severity: 'medium',
+      claim: 'The bands climb from stating to describing to explaining, as in the sciences.',
+      reality: 'Economics bands climb a quality ladder: limited, then appropriate, then effective, with balance carrying weight in evaluation. Looking for the science verbs mismarks the middle band.',
+      detector: 'Feedback justifies a mark by saying the student described rather than explained.',
+    },
   ],
 }
 
@@ -304,7 +554,11 @@ const IB_SCIENCES_MARKING: MarkingModel = {
 /* Registry                                                            */
 /* ------------------------------------------------------------------ */
 
-const MARKING_MODELS: MarkingModel[] = [IB_SCIENCES_MARKING]
+const MARKING_MODELS: MarkingModel[] = [
+  IB_SCIENCES_MARKING,
+  IB_PSYCHOLOGY_MARKING,
+  IB_ECONOMICS_MARKING,
+]
 
 export function getMarkingModel(rubricId: string): MarkingModel | undefined {
   return MARKING_MODELS.find(m => m.rubricId === rubricId)

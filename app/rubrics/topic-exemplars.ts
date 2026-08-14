@@ -127,6 +127,60 @@ export const topicExemplars: SubjectExemplars[] = [
       },
     ]
   },
+  {
+    subject: 'Psychology',
+    rubricId: 'ib-ia-psychology',
+    exemplars: [
+      {
+        title: 'Does the presence of a smartphone in view reduce recall accuracy on a word list task among Grade 11 students in a single school?',
+        why: 'The aim carries the population and both variables, the manipulation is a single visible change, and two published studies on attentional drain give the introduction a gap to sit in rather than a topic to summarise.',
+        data: 'Two conditions, phone visible and phone absent, with the same 20-word list; recall counted as words correctly reproduced in three minutes; independent groups to avoid the same participant learning the list twice.',
+        watchOut: 'The obvious flaw is that participants who own no smartphone are not equivalent to those who do, and that difference has nothing to do with the manipulation. Naming that as a limitation is worth more than adding another condition. Feasibility is not marked, so the proposal is not weakened by never being run.',
+        context: 'experiment'
+      },
+      {
+        title: 'How do Grade 12 students describe the influence of parental expectation on their university choice?',
+        why: 'A qualitative aim is equally valid here, and the population and focus are both named. The interview route makes the analysis criterion about thematic treatment rather than a test, which is where most qualitative proposals lose marks by staying vague.',
+        data: 'Semi-structured interviews with six to eight participants, an interview schedule of at least eight open questions written out in full, transcripts analysed thematically with the coding stages described.',
+        watchOut: 'Writing "the interviews will be analysed for themes" is the bottom of the analysis criterion. The stages have to be named — how transcripts are coded, how codes become themes, what counts as a theme. Researcher bias also bites hardest here: the student shares the population and has their own views on parental expectation, and that has to be traced through to an effect rather than merely admitted.',
+        context: 'interview'
+      },
+      {
+        title: 'Is there a relationship between self-reported sleep duration and academic self-efficacy among students aged 16 to 18?',
+        why: 'A correlational questionnaire design with two clearly operationalised variables. The instrument is where the marks sit, so writing out the items makes the difference between a capped Analysis and an open one.',
+        data: 'A questionnaire of at least ten items, written out in full, covering sleep duration on school nights and a self-efficacy measure adapted with stated reasoning; Spearman correlation with the significance step named.',
+        watchOut: 'Adopting a published self-efficacy scale unchanged caps Analysis at 2 — the criterion asks what the student decided, and lifting an instrument leaves nothing decided. Adapt it and say why the wording fits this age group. Self-reported sleep is also not measured sleep, and that gap belongs in the evaluation as a limitation of this design, not as a generic caveat.',
+        context: 'questionnaire'
+      },
+    ]
+  },
+  {
+    subject: 'Economics',
+    rubricId: 'ib-ia-economics',
+    exemplars: [
+      {
+        title: 'A news report on a national minimum wage rise, analysed through the key concept of intervention',
+        why: 'The article contains a policy change, so a labour market diagram has a movement to show. Minimum wage is a price floor, which gives a clean chain from the intervention to a surplus and then to who gains and who loses — exactly what criterion C asks for.',
+        data: 'One labour market diagram with the floor above equilibrium, the excess supply marked; the actual figure from the article used in the analysis; evaluation weighing higher earnings for those employed against reduced hours for others, short run against long run.',
+        watchOut: 'The trap here is drawing the diagram correctly and then writing only "as shown above" — criterion A marks the explanation, not the figure, so a flawless diagram with no walkthrough sits at the bottom. Also resist covering the whole policy: 800 words holds one market and one judgement, not a survey of national employment.',
+        context: 'microeconomics'
+      },
+      {
+        title: 'A central bank interest rate decision reported in a news article, analysed through the key concept of change',
+        why: 'A rate decision is a discrete event with a transmission mechanism, so the chain from the decision to aggregate demand to inflation has real steps rather than a single leap. The article supplies a figure, which keeps the analysis specific.',
+        data: 'An aggregate demand and supply diagram showing the leftward shift; the rate and the inflation target from the article carried into the text; evaluation comparing the effect on borrowers against savers, and the lag before the effect appears.',
+        watchOut: 'Interest rate commentaries drift into describing the whole economy. Pick one channel — investment, or consumption, or the exchange rate — and follow it properly rather than listing all three. Choosing the concept after writing shows: if the analysis would read identically without the word change, criterion D caps at 1.',
+        context: 'macroeconomics'
+      },
+      {
+        title: 'A report on a newly imposed tariff on imported steel, analysed through the key concept of interdependence',
+        why: 'A tariff has a standard diagram, a clear domestic winner and a clear foreign loser, and the concept of interdependence organises the commentary around who else is affected rather than sitting decoratively at the top.',
+        data: 'A tariff diagram with world price, domestic price, the quantity gap and the revenue rectangle labelled; the tariff rate from the article used in the reasoning; evaluation covering domestic producers, consumers, the exporting country and the possibility of retaliation.',
+        watchOut: 'The commonest failure is a diagram whose areas are labelled but never referred to — the revenue rectangle has to appear in the sentences, not only on the figure. Check the article is a news report and not an opinion column arguing against tariffs, because a source that already contains the analysis leaves the student paraphrasing.',
+        context: 'global-economy'
+      },
+    ]
+  },
 ]
 
 /** Exemplars for a subject, falling back to rubric-level ones if the subject has none. */

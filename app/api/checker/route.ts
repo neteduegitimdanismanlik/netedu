@@ -18,7 +18,6 @@ const MAX_STORED_CHARS = 60000
 /* ------------------------------------------------------------------ */
 /* Marking guards                                                      */
 /* ------------------------------------------------------------------ */
-
 /**
  * Marking behaviour that is not rubric text: how to apply best-fit, what
  * separates the top band from the middle, and the mistakes a model reliably
@@ -29,13 +28,38 @@ function buildGuardBlock(rubricId: string, subject: string, criteriaIds: string[
   const model = getMarkingModel(rubricId)
   if (!model) return ''
 
+  const subj = (subject || '').toLowerCase()
   const parts: string[] = []
+
+  // Subject-level constants that differ from the shared rubric.
+  const subjOverrides: Record<string, string> = {
+    'sports exercise': 'For this subject the word limit is 3,200 words and the weighting is 24 per cent of the course — not the 3,000 words and 20 per cent that apply to the other sciences.',
+  }
+  const overrideKey = Object.keys(subjOverrides).find(k => subj.includes(k))
+  if (overrideKey) {
+    parts.push(`SUBJECT OVERRIDES\n- ${subjOverrides[overrideKey]}`)
+  }
 
   parts.push(`HOW TO APPLY THE BANDS
 ${model.bestFit.map(r => `- ${r}`).join('\n')}
 ${model.zeroRules.map(r => `- ${r}`).join('\n')}`)
+// Rule-based caps. These bind BEFORE best-fit, so they go first in the prompt.
+  if (model.hardCeilings?.length) {
+    parts.push(`HARD CEILINGS — apply these BEFORE best-fit
+${model.hardCeilings.map(h =>
+  `- If ${h.when}, criterion ${h.criterionId} cannot exceed ${h.max}. ${h.why}${
+    h.scope === 'portfolio' ? ' NOTE: this depends on the other pieces of the portfolio, which you cannot see. Do not apply it — state it as a risk in the comment.' : ''
+  }`
+).join('\n')}`)
+  }
 
- const subj = (subject || '').toLowerCase()
+  if (model.strandCeilings?.length) {
+    parts.push(`STRAND CEILINGS — bind one strand only
+${model.strandCeilings.map(h =>
+  `- If ${h.when}, that strand of criterion ${h.criterionId} cannot exceed ${h.max}, but the criterion mark may still rise above it on the strength of the other strands. ${h.why}`
+).join('\n')}`)
+  }
+  // Only the criteria being marked, and only thresholds that apply to this subject.
   const relevant = model.sixVersusFour.filter(
     s => criteriaIds.includes(s.criterionId) &&
          (!s.subjects || s.subjects.some(x => subj.includes(x.toLowerCase())))
@@ -307,7 +331,7 @@ export async function POST(req: Request) {
       }
     })
 
-    const total = criteriaScores.reduce((sum, c) => sum + c.score, 0)
+   const total = criteriaScores.reduce((sum: number, c: any) => sum + c.score, 0)
     const grade = calculateGrade(rubric, total)
     const best = runs[0]
 
@@ -339,11 +363,20 @@ export async function POST(req: Request) {
         .single()
       saved = data
     }
-
+// Portfolio subjects: the mark is for one piece, not the whole submission.
+    const r: any = rubric
+    const portfolioNote = r.shape === 'portfolio'
+      ? `Bu bir ${r.instanceLabel ?? 'parça'} puanı: ${total}/${r.totalMax}. ` +
+        `Tam portfolyo ${r.instanceCount} ${r.instanceLabel} içeriyor. ` +
+        (r.portfolioCriteria?.length
+          ? `Ayrıca ${r.portfolioCriteria.map((c: any) => `${c.id} (${c.max} puan)`).join(', ')} kriteri üç parçaya birlikte uygulanır ve tek parçadan değerlendirilemez.`
+          : '')
+      : null
     return NextResponse.json({
       ...report,
       id: saved?.id || null,
       rubricLabel: rubric.label,
+      portfolioNote,
       runsCompleted: runs.length,
       calibrated: calibration.length > 0,
       guarded: guards.length > 0,

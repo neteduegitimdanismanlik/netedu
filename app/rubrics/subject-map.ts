@@ -50,7 +50,19 @@ export function resolveIaRubric(subject: string): IaResolution {
   if (!subject) {
     return { kind: 'unsupported', reason: 'Pick your subject first.' }
   }
+if (matches(subject, ['psychology'])) {
+    return { kind: 'rubric', rubricId: 'ib-ia-psychology', needsLevel: false, confidence: 'high' }
+  }
 
+  if (matches(subject, ['economics'])) {
+    return {
+      kind: 'rubric',
+      rubricId: 'ib-ia-economics',
+      needsLevel: false,
+      confidence: 'high',
+      note: 'The economics IA is a portfolio of three commentaries. Upload one at a time — it will be marked out of 14.'
+    }
+  }
   if (matches(subject, MATHS)) {
     return {
       kind: 'rubric',

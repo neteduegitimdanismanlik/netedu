@@ -201,7 +201,7 @@ export default function Checker() {
                   Marking against: <span className="text-indigo-900">{activeRubric.label}</span>
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {activeRubric.criteria.map(c => `${c.id} ${c.name} (${c.max})`).join(' · ')} — {activeRubric.totalMax} marks total
+                  {activeRubric.criteria.map((c: any) => `${c.id} ${c.name} (${c.max})`).join(' · ')} — {activeRubric.totalMax} marks total
                 </p>
                 {resolution.confidence === 'low' && resolution.note && (
                   <p className="text-xs text-amber-700 mt-2">⚠ {resolution.note}</p>
@@ -341,7 +341,11 @@ export default function Checker() {
                 annotations={result.criteria_scores || []}
               />
             )}
-
+{result.portfolioNote && (
+              <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
+                <p className="text-xs text-indigo-800 leading-relaxed">{result.portfolioNote}</p>
+              </div>
+            )}
             {typeof result.runsCompleted === 'number' && result.runsCompleted < 3 && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
                 <p className="text-xs text-amber-700">
