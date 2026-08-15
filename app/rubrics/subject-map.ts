@@ -11,7 +11,11 @@ const MATHS = [
   'mathematics analysis and approaches', 'mathematics applications and interpretation'
 ]
 
-const SCIENCES_CONFIRMED = ['biology', 'chemistry', 'physics']
+/** Verified against the subject guide: four criteria, 6 marks each, 24 total. */
+const SCIENCES_CONFIRMED = [
+  'biology', 'chemistry', 'physics',
+  'sports exercise and health science', 'sehs',
+]
 
 /** Guide states the IA framework is shared, but we have not read these guides directly. */
 const SCIENCES_ASSUMED = [
