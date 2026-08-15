@@ -12,7 +12,7 @@
 // the category names were taken. (Those titles come from work that "attained a
 // variety of marks" — they carry no quality signal, so copyright aside they
 // were not worth shipping.)
-
+import { globalPoliticsRulesSL, globalPoliticsRulesHL } from './global-politics'
 export type TopicVerdict = 'strong' | 'workable' | 'risky' | 'unworkable';
 
 export type RuleSeverity = 'fatal' | 'major' | 'minor';
@@ -771,6 +771,8 @@ const TOPIC_RULE_SETS: TopicRuleSet[] = [
   IB_SCIENCES_RULESET,
   IB_PSYCHOLOGY_RULESET,
   IB_ECONOMICS_RULESET,
+  globalPoliticsRulesSL,
+  globalPoliticsRulesHL,
 ];
 /** Rule sets that have a rubric. The UI builds its selector from this. */
 export function listTopicRuleSets(): TopicRuleSet[] {

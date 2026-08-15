@@ -3,6 +3,7 @@
 // Rubrics that need fields the base Rubric interface does not carry:
 // portfolio shape, per-instance word limits, calibration anchors, verb ladders.
 // Self-contained: defines its own types so schema.ts stays untouched.
+import { globalPoliticsRubricSL, globalPoliticsRubricHL } from './global-politics'
 
 export interface ExtendedBand {
   range: string
@@ -45,6 +46,8 @@ export interface ExtendedRubric {
 }
 
 export const extraRubrics: ExtendedRubric[] = [
+  globalPoliticsRubricSL,
+  globalPoliticsRubricHL,
   {
     id: 'ib-ia-psychology',
     framework: 'IB',

@@ -7,7 +7,7 @@
 // Sources: IB subject guides + TSM + officially assessed student work with
 // moderator commentary. IB sentences are never reproduced; these are our own
 // statements of the facts and thresholds.
-
+import { globalPoliticsMarkingSL, globalPoliticsMarkingHL } from './global-politics'
 export interface ModelPitfall {
   id: string
   severity: 'critical' | 'high' | 'medium'
@@ -345,11 +345,6 @@ const IB_SCIENCES_MARKING: MarkingModel = {
       detector: 'The comment states "a t-test needs at least X participants" as a single figure and never mentions the validity conditions — two groups, measurement data, similar standard deviations, normal distribution.',
     },
   ],
-  /* ------------------------------------------------------------------ */
-/* IB Psychology IA — research proposal                                 */
-/* ------------------------------------------------------------------ */
-
-
 }
 
 /* ------------------------------------------------------------------ */
@@ -558,6 +553,8 @@ const MARKING_MODELS: MarkingModel[] = [
   IB_SCIENCES_MARKING,
   IB_PSYCHOLOGY_MARKING,
   IB_ECONOMICS_MARKING,
+  globalPoliticsMarkingSL,
+  globalPoliticsMarkingHL,
 ]
 
 export function getMarkingModel(rubricId: string): MarkingModel | undefined {

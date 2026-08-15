@@ -155,6 +155,60 @@ export const topicExemplars: SubjectExemplars[] = [
     ]
   },
   {
+    subject: 'Global Politics SL',
+    rubricId: 'ib-ia-global-politics-sl',
+    exemplars: [
+      {
+        title: 'Whose turn to speak at neighbourhood budget meetings? Agenda-setting power in a participatory budgeting process',
+        why: 'The issue is narrow and observable: who gets to put an item on the agenda inside a mechanism that calls itself participation. The engagement and the issue are the same thing — the student walks into the room where power operates. Classifications of power (power to, power over, power with; structural and relational power) settle onto the analysis without being forced, which feeds the concept strand of criterion C naturally.',
+        data: 'Attending two separate neighbourhood budget meetings as an observer and noting the roles of those who speak; interviewing a municipal officer who prepares the agenda; interviewing separately a resident whose proposal was not taken up and a representative of an association whose proposal was; the published minutes of previous rounds.',
+        watchOut: 'Participatory budgeting presents itself as democratic participation and the institution hands you that framing ready-made. If the report confirms the framing it stays descriptive; the real question is who can place an item on the agenda and which proposals were filtered out before the meeting. Names of residents who speak must not appear in the report — anonymity is required for anyone without an official role.',
+        context: 'core-power'
+      },
+      {
+        title: 'A right or a shortage of resources? Comparing how a tenants\' solidarity network and a municipal housing unit frame the social housing waiting list',
+        why: 'Two stakeholders describe the same issue in two different languages, which guarantees the synthesis strand of criterion C at the design stage. The issue is local and concrete — a waiting list — while connecting directly to the inequality and resource-distribution debates of the development and sustainability theme.',
+        data: 'Four sessions volunteering at a tenants\' network advice desk, noting the problems applicants raise most often; interviewing an officer from the municipal housing unit; comparing an advocacy document produced by the network with the municipality\'s official allocation criteria; the city\'s housing allocation statistics for the past three years.',
+        watchOut: 'Sitting at an advice desk is emotionally heavy and pulls the student towards one side; individual stories look like evidence but cannot carry a systematic claim on their own. Reaching the top band of criterion D requires the report to say this outright: which position it was written from, and which finding that position bent, in which direction. No personal information about applicants may enter the report or its appendices.',
+        context: 'development-sustainability'
+      },
+      {
+        title: 'The language of tension in out-of-school youth groups: does mediation in a local reconciliation programme reach structural violence?',
+        why: 'The issue sits squarely in conflict theory but the scale is held at community level. The distinction between direct and structural violence gives a ready analytical tool for asking what mediation resolves and what it leaves alone — without that distinction the report stays descriptive, with it the route to the top band of criterion C opens. The engagement is as observer and trainee, not as a party to the conflict.',
+        data: 'Attending an open mediation training session run by a local reconciliation programme and analysing the training materials; interviewing two programme coordinators; interviewing an officer from the municipal youth unit about the need the programme grew out of; the district\'s youth services budget and distribution of facilities.',
+        watchOut: 'This topic is very open to drifting into a narrative that frames particular groups as problematic, and the coordinators\' success stories amplify that risk. In evaluating the mediation the report must ask whether it addresses the source of the problem or only its symptom. If interviews with participating young people are planned, written parental consent is required for the 12-16 group and written consent from the relevant teachers in a school setting; where consent cannot be obtained, contact should be limited to adult coordinators.',
+        context: 'peace-conflict'
+      },
+    ]
+  },
+  {
+    subject: 'Global Politics HL',
+    rubricId: 'ib-ia-global-politics-hl',
+    exemplars: [
+      {
+        title: 'Whose turn to speak at neighbourhood budget meetings? Agenda-setting power in a participatory budgeting process',
+        why: 'The issue is narrow and observable: who gets to put an item on the agenda inside a mechanism that calls itself participation. The engagement and the issue are the same thing — the student walks into the room where power operates. Classifications of power settle onto the analysis without being forced, which feeds the concept strand of criterion C naturally. For criterion F the recommendation writes itself out of the findings: a concrete change to how the agenda is compiled, addressed to the officer who compiles it.',
+        data: 'Attending two separate neighbourhood budget meetings as an observer and noting the roles of those who speak; interviewing a municipal officer who prepares the agenda; interviewing separately a resident whose proposal was not taken up and a representative of an association whose proposal was; the published minutes of previous rounds.',
+        watchOut: 'Participatory budgeting presents itself as democratic participation and the institution hands you that framing ready-made. If the report confirms the framing it stays descriptive; the real question is who can place an item on the agenda and which proposals were filtered out before the meeting. Names of residents must not appear. In the separate 400-word recommendation, "participation should be increased" does not get past 4/6 — name who implements the change, with what resource, and against what resistance.',
+        context: 'core-power'
+      },
+      {
+        title: 'A right or a shortage of resources? Comparing how a tenants\' solidarity network and a municipal housing unit frame the social housing waiting list',
+        why: 'Two stakeholders describe the same issue in two different languages, which guarantees the synthesis strand of criterion C at the design stage. The issue is local and concrete while connecting to the inequality and resource-distribution debates of the development and sustainability theme. The competing framings also give the recommendation a specific target: which criterion in the allocation rules, changed how.',
+        data: 'Four sessions volunteering at a tenants\' network advice desk, noting the problems applicants raise most often; interviewing an officer from the municipal housing unit; comparing an advocacy document produced by the network with the municipality\'s official allocation criteria; the city\'s housing allocation statistics for the past three years.',
+        watchOut: 'Sitting at an advice desk pulls the student towards one side; individual stories look like evidence but cannot carry a systematic claim alone. The top band of criterion D requires the report to say which position it was written from and which finding that position bent. No personal information about applicants may enter the report or appendices. The recommendation is a separate text with its own word count — declare both figures.',
+        context: 'development-sustainability'
+      },
+      {
+        title: 'The language of tension in out-of-school youth groups: does mediation in a local reconciliation programme reach structural violence?',
+        why: 'The issue sits squarely in conflict theory but the scale is held at community level. The direct-versus-structural violence distinction gives a ready tool for asking what mediation resolves and what it leaves alone. The engagement is as observer and trainee, not as a party. For criterion F the gap the analysis exposes — symptom addressed, source untouched — points straight at what should change.',
+        data: 'Attending an open mediation training session run by a local reconciliation programme and analysing the training materials; interviewing two programme coordinators; interviewing an officer from the municipal youth unit about the need the programme grew out of; the district\'s youth services budget and distribution of facilities.',
+        watchOut: 'This topic is very open to drifting into a narrative that frames particular groups as problematic, and coordinators\' success stories amplify that risk. Written parental consent is required for interviews with 12-16 year olds, plus written consent from teachers in a school setting; where consent cannot be obtained, limit contact to adult coordinators. A recommendation that only asks for "more funding" is the generic kind that caps at 4/6.',
+        context: 'peace-conflict'
+      },
+    ]
+  },
+  {
     subject: 'Economics',
     rubricId: 'ib-ia-economics',
     exemplars: [
@@ -189,7 +243,8 @@ export function getExemplars(subject: string, rubricId: string): TopicExemplar[]
     e => e.subject.toLowerCase() === (subject || '').toLowerCase()
   )
   if (exact) return exact.exemplars
-
+const byRubric = topicExemplars.find(e => e.rubricId === rubricId)
+  if (byRubric) return byRubric.exemplars
   const sameRubric = topicExemplars.filter(e => e.rubricId === rubricId)
   return sameRubric.flatMap(e => e.exemplars).slice(0, 3)
 }

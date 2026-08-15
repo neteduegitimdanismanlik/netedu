@@ -50,7 +50,38 @@ export function resolveIaRubric(subject: string): IaResolution {
   if (!subject) {
     return { kind: 'unsupported', reason: 'Pick your subject first.' }
   }
-if (matches(subject, ['psychology'])) {
+
+  /* Global Politics carries its level in the subject name, so the checker never
+     has to ask. Order matters: the two level-bearing entries are tested before
+     the bare name, which is deliberately left unsupported. */
+  if (matches(subject, ['global politics hl'])) {
+    return {
+      kind: 'rubric',
+      rubricId: 'ib-ia-global-politics-hl',
+      needsLevel: false,
+      confidence: 'high',
+      note: 'HL is marked out of 30. Alongside the report, paste your separate recommendation text (up to 400 words) — criterion F is marked from it.'
+    }
+  }
+
+  if (matches(subject, ['global politics sl'])) {
+    return {
+      kind: 'rubric',
+      rubricId: 'ib-ia-global-politics-sl',
+      needsLevel: false,
+      confidence: 'high',
+      note: 'SL is marked out of 24 across criteria A to E. Criterion F (Recommendation) is HL only.'
+    }
+  }
+
+  if (matches(subject, ['global politics'])) {
+    return {
+      kind: 'unsupported',
+      reason: 'Global Politics is marked differently at SL and HL — SL is out of 24, HL is out of 30. Pick "Global Politics SL" or "Global Politics HL" so we mark against the right one.'
+    }
+  }
+
+  if (matches(subject, ['psychology'])) {
     return { kind: 'rubric', rubricId: 'ib-ia-psychology', needsLevel: false, confidence: 'high' }
   }
 
@@ -63,6 +94,7 @@ if (matches(subject, ['psychology'])) {
       note: 'The economics IA is a portfolio of three commentaries. Upload one at a time — it will be marked out of 14.'
     }
   }
+
   if (matches(subject, MATHS)) {
     return {
       kind: 'rubric',
@@ -132,7 +164,9 @@ export const subjectGroups: { group: string; subjects: string[] }[] = [
   {
     group: 'Group 3 — Individuals and Societies',
     subjects: [
-      'Business Management', 'Economics', 'Geography', 'Global Politics', 'History',
+      'Business Management', 'Economics', 'Geography',
+      'Global Politics SL', 'Global Politics HL',
+      'History',
       'Information Technology in a Global Society', 'Philosophy', 'Psychology',
       'Social and Cultural Anthropology', 'World Religions', 'Digital Society',
     ]
