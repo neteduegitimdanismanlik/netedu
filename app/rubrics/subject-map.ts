@@ -20,8 +20,9 @@ const SCIENCES_CONFIRMED = [
 /** Guide states the IA framework is shared, but we have not read these guides directly. */
 const SCIENCES_ASSUMED = [
   'sports exercise and health science', 'sehs',
-  'environmental systems and societies', 'ess',
-  'computer science', 'design technology'
+// 'ess' is NOT listed as a key: matches() uses substring matching, so it
+  // would swallow "busin-ess management" and any other subject containing it.
+  'environmental systems and societies',  'computer science', 'design technology'
 ]
 
 /** IA is an individual ORAL — there is no written artefact to mark. */
@@ -84,7 +85,15 @@ export function resolveIaRubric(subject: string): IaResolution {
       reason: 'Global Politics is marked differently at SL and HL — SL is out of 24, HL is out of 30. Pick "Global Politics SL" or "Global Politics HL" so we mark against the right one.'
     }
   }
-
+if (matches(subject, ['business management', 'business and management'])) {
+    return {
+      kind: 'rubric',
+      rubricId: 'ib-ia-business-management',
+      needsLevel: false,
+      confidence: 'high',
+      note: 'Marked out of 25 across seven criteria. The task, the criteria and the 1,800-word limit are identical at SL and HL.'
+    }
+  }
   if (matches(subject, ['psychology'])) {
     return { kind: 'rubric', rubricId: 'ib-ia-psychology', needsLevel: false, confidence: 'high' }
   }
