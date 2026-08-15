@@ -9,6 +9,7 @@
 // statements of the facts and thresholds.
 import { globalPoliticsMarkingSL, globalPoliticsMarkingHL } from './global-politics'
 import { businessManagementMarking } from './business-management'
+import { computerScienceMarking } from './computer-science'
 export interface ModelPitfall {
   id: string
   severity: 'critical' | 'high' | 'medium'
@@ -557,6 +558,7 @@ const MARKING_MODELS: MarkingModel[] = [
   globalPoliticsMarkingSL,
   globalPoliticsMarkingHL,
   businessManagementMarking,
+  computerScienceMarking,
 ]
 
 export function getMarkingModel(rubricId: string): MarkingModel | undefined {

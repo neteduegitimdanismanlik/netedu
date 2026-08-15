@@ -14,6 +14,7 @@
 // were not worth shipping.)
 import { globalPoliticsRulesSL, globalPoliticsRulesHL } from './global-politics'
 import { businessManagementRules } from './business-management'
+import { computerScienceRules } from './computer-science'
 export type TopicVerdict = 'strong' | 'workable' | 'risky' | 'unworkable';
 
 export type RuleSeverity = 'fatal' | 'major' | 'minor';
@@ -775,6 +776,7 @@ const TOPIC_RULE_SETS: TopicRuleSet[] = [
   globalPoliticsRulesSL,
   globalPoliticsRulesHL,
   businessManagementRules,
+  computerScienceRules,
 ];
 /** Rule sets that have a rubric. The UI builds its selector from this. */
 export function listTopicRuleSets(): TopicRuleSet[] {

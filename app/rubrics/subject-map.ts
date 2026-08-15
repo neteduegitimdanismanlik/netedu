@@ -19,13 +19,13 @@ const SCIENCES_CONFIRMED = [
 
 /** Guide states the IA framework is shared, but we have not read these guides directly. */
 const SCIENCES_ASSUMED = [
-  'sports exercise and health science', 'sehs',
-// 'ess' is NOT listed as a key: matches() uses substring matching, so it
+  // 'ess' is NOT listed as a key: matches() uses substring matching, so it
   // would swallow "busin-ess management" and any other subject containing it.
-  'environmental systems and societies',  'computer science', 'design technology'
+  'environmental systems and societies',
+  // Computer Science removed: its IA is five criteria worth 30 marks, not the
+  // four six-mark sciences criteria. It has its own rubric now.
+  'design technology'
 ]
-
-/** IA is an individual ORAL — there is no written artefact to mark. */
 const ORAL_SUBJECTS = [
   'language b', 'ab initio',
   'english b', 'spanish b', 'french b', 'german b', 'italian b', 'mandarin b', 'arabic b', 'turkish b',
@@ -92,6 +92,15 @@ if (matches(subject, ['business management', 'business and management'])) {
       needsLevel: false,
       confidence: 'high',
       note: 'Marked out of 25 across seven criteria. The task, the criteria and the 1,800-word limit are identical at SL and HL.'
+    }
+  }
+  if (matches(subject, ['computer science'])) {
+    return {
+      kind: 'rubric',
+      rubricId: 'ib-ia-computer-science',
+      needsLevel: false,
+      confidence: 'high',
+      note: 'Marked out of 30 across five criteria, identical at SL and HL. Paste your documentation only — the video and the appendices cannot be read here, so criterion D (Development, 12 of the 30 marks) is inferred from what your documentation evidences rather than observed.'
     }
   }
   if (matches(subject, ['psychology'])) {

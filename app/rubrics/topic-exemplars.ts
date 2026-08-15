@@ -1,3 +1,4 @@
+import { computerScienceExemplars } from './computer-science'
 import { businessManagementExemplars } from './business-management'
 /**
  * Worked topic exemplars per subject.
@@ -156,6 +157,7 @@ export const topicExemplars: SubjectExemplars[] = [
     ]
   },
   businessManagementExemplars,
+  computerScienceExemplars,
   {
     subject: 'Global Politics SL',
     rubricId: 'ib-ia-global-politics-sl',
