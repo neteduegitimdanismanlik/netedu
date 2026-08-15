@@ -133,7 +133,51 @@ export function resolveIaRubric(subject: string): IaResolution {
     fallbackRubricId: 'general-college-essay'
   }
 }
+/* ------------------------------------------------------------------ */
+/* Subject picker state                                                */
+/* ------------------------------------------------------------------ */
 
+export type SubjectState = 'ready' | 'unverified' | 'oral' | 'soon'
+
+export const SUBJECT_STATE_LABELS: Record<SubjectState, string | null> = {
+  ready: null,
+  unverified: 'not verified',
+  oral: 'oral assessment',
+  soon: 'coming soon',
+}
+
+/**
+ * What the picker should do with a subject. Derived from resolveIaRubric so
+ * there is one source of truth: a subject becomes selectable the moment its
+ * rubric lands, with no second list to keep in sync.
+ */
+export function subjectState(subject: string): SubjectState {
+  const r = resolveIaRubric(subject)
+  if (r.kind === 'redirect') return 'oral'
+  if (r.kind === 'unsupported') return 'soon'
+  return r.confidence === 'high' ? 'ready' : 'unverified'
+}
+
+export function isSubjectSelectable(subject: string): boolean {
+  const s = subjectState(subject)
+  return s === 'ready' || s === 'unverified'
+}
+
+/**
+ * A group is open if anything inside it can be picked. Groups where every
+ * subject is oral or unloaded stay collapsed and dimmed.
+ */
+export function groupState(subjects: string[]): SubjectState {
+  const states = subjects.map(subjectState)
+  if (states.some(s => s === 'ready')) return 'ready'
+  if (states.some(s => s === 'unverified')) return 'unverified'
+  if (states.every(s => s === 'oral')) return 'oral'
+  return 'soon'
+}
+
+export function groupIsOpen(subjects: string[]): boolean {
+  return subjects.some(isSubjectSelectable)
+}
 export function rubricNeedsLevel(rubricId: string): boolean {
   return rubricId === 'ib-ia-maths'
 }

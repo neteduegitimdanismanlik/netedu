@@ -5,7 +5,14 @@ import Navbar from '../components/Navbar'
 import AnnotatedText from '../components/AnnotatedText'
 import Link from 'next/link'
 import { getRubric } from '../rubrics/schema'
-import { resolveIaRubric, subjectGroups } from '../rubrics/subject-map'
+import {
+  resolveIaRubric,
+  subjectGroups,
+  subjectState,
+  isSubjectSelectable,
+  groupIsOpen,
+  SUBJECT_STATE_LABELS,
+} from '../rubrics/subject-map'
 
 type DocType = 'IA' | 'EE' | 'Essay'
 
@@ -169,12 +176,53 @@ export default function Checker() {
               <select value={subject} onChange={e => setSubject(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500">
                 <option value="">Select your subject...</option>
-                {subjectGroups.map(g => (
-                  <optgroup key={g.group} label={g.group}>
-                    {g.subjects.map(s => <option key={s} value={s}>{s}</option>)}
-                  </optgroup>
-                ))}
+                {subjectGroups.map(g => {
+                  /* Only the IA is subject-specific. For an EE or a university
+                     essay every subject is markable, so nothing is dimmed. */
+                  if (docType !== 'IA') {
+                    return (
+                      <optgroup key={g.group} label={g.group}>
+                        {g.subjects.map(s => <option key={s} value={s}>{s}</option>)}
+                      </optgroup>
+                    )
+                  }
+
+                  /* Groups where nothing can be picked collapse to a single
+                     line instead of listing a dozen dead entries. */
+                  if (!groupIsOpen(g.subjects)) {
+                    const allOral = g.subjects.every(s => subjectState(s) === 'oral')
+                    return (
+                      <optgroup key={g.group} label={g.group}>
+                        <option value="" disabled>
+                          {allOral
+                            ? 'Assessed by individual oral — see Oral Exam Prep'
+                            : 'Criteria not loaded yet — coming soon'}
+                        </option>
+                      </optgroup>
+                    )
+                  }
+
+                  return (
+                    <optgroup key={g.group} label={g.group}>
+                      {g.subjects.map(s => {
+                        const st = subjectState(s)
+                        const tag = SUBJECT_STATE_LABELS[st]
+                        return (
+                          <option key={s} value={s} disabled={!isSubjectSelectable(s)}>
+                            {tag ? `${s} — ${tag}` : s}
+                          </option>
+                        )
+                      })}
+                    </optgroup>
+                  )
+                })}
               </select>
+              {docType === 'IA' && (
+                <p className="text-xs text-gray-400 mt-1.5">
+                  Greyed-out subjects don't have their official criteria loaded yet. Writing an Extended Essay?
+                  Pick the type below first — every subject works there.
+                </p>
+              )}
             </div>
 
             <div>
