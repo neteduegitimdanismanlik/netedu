@@ -8,6 +8,7 @@
 // moderator commentary. IB sentences are never reproduced; these are our own
 // statements of the facts and thresholds.
 import { globalPoliticsMarkingSL, globalPoliticsMarkingHL } from './global-politics'
+import { businessManagementMarking } from './business-management'
 export interface ModelPitfall {
   id: string
   severity: 'critical' | 'high' | 'medium'
@@ -555,6 +556,7 @@ const MARKING_MODELS: MarkingModel[] = [
   IB_ECONOMICS_MARKING,
   globalPoliticsMarkingSL,
   globalPoliticsMarkingHL,
+  businessManagementMarking,
 ]
 
 export function getMarkingModel(rubricId: string): MarkingModel | undefined {

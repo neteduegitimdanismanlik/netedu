@@ -13,6 +13,7 @@
 // variety of marks" — they carry no quality signal, so copyright aside they
 // were not worth shipping.)
 import { globalPoliticsRulesSL, globalPoliticsRulesHL } from './global-politics'
+import { businessManagementRules } from './business-management'
 export type TopicVerdict = 'strong' | 'workable' | 'risky' | 'unworkable';
 
 export type RuleSeverity = 'fatal' | 'major' | 'minor';
@@ -773,6 +774,7 @@ const TOPIC_RULE_SETS: TopicRuleSet[] = [
   IB_ECONOMICS_RULESET,
   globalPoliticsRulesSL,
   globalPoliticsRulesHL,
+  businessManagementRules,
 ];
 /** Rule sets that have a rubric. The UI builds its selector from this. */
 export function listTopicRuleSets(): TopicRuleSet[] {

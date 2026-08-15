@@ -4,7 +4,7 @@
 // portfolio shape, per-instance word limits, calibration anchors, verb ladders.
 // Self-contained: defines its own types so schema.ts stays untouched.
 import { globalPoliticsRubricSL, globalPoliticsRubricHL } from './global-politics'
-
+import { businessManagementRubric } from './business-management'
 export interface ExtendedBand {
   range: string
   descriptor: string
@@ -48,6 +48,7 @@ export interface ExtendedRubric {
 export const extraRubrics: ExtendedRubric[] = [
   globalPoliticsRubricSL,
   globalPoliticsRubricHL,
+  businessManagementRubric,
   {
     id: 'ib-ia-psychology',
     framework: 'IB',
