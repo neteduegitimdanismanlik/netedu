@@ -103,6 +103,15 @@ if (matches(subject, ['business management', 'business and management'])) {
       note: 'Marked out of 30 across five criteria, identical at SL and HL. Paste your documentation only — the video and the appendices cannot be read here, so criterion D (Development, 12 of the 30 marks) is inferred from what your documentation evidences rather than observed.'
     }
   }
+  if (matches(subject, ['digital society'])) {
+    return {
+      kind: 'rubric',
+      rubricId: 'ib-ia-digital-society',
+      needsLevel: false,
+      confidence: 'high',
+      note: 'Paste your inquiry process document. Criteria A and B are marked from it — 9 of the 24 marks. Criteria C, D and E come from your recorded presentation, which cannot be read here, so no total out of 24 is given.'
+    }
+  }
   if (matches(subject, ['psychology'])) {
     return { kind: 'rubric', rubricId: 'ib-ia-psychology', needsLevel: false, confidence: 'high' }
   }

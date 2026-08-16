@@ -1,6 +1,7 @@
 import { computerScienceExemplars } from './computer-science'
 import { businessManagementExemplars } from './business-management'
 import { mathematicsExemplarsAA, mathematicsExemplarsAI } from './mathematics'
+import { digitalSocietyExemplars } from './digital-society'
 /**
  * Worked topic exemplars per subject.
  * Written in our own words from subject guide + TSM guidance — no IB text copied.
@@ -134,6 +135,7 @@ export const topicExemplars: SubjectExemplars[] = [
   computerScienceExemplars,
   mathematicsExemplarsAA,
   mathematicsExemplarsAI,
+  digitalSocietyExemplars,
   {
     subject: 'Global Politics SL',
     rubricId: 'ib-ia-global-politics-sl',

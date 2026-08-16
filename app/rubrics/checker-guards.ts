@@ -11,6 +11,7 @@ import { globalPoliticsMarkingSL, globalPoliticsMarkingHL } from './global-polit
 import { businessManagementMarking } from './business-management'
 import { computerScienceMarking } from './computer-science'
 import { mathematicsMarking } from './mathematics'
+import { digitalSocietyMarking } from './digital-society'
 export interface ModelPitfall {
   id: string
   severity: 'critical' | 'high' | 'medium'
@@ -561,6 +562,7 @@ const MARKING_MODELS: MarkingModel[] = [
   businessManagementMarking,
   computerScienceMarking,
 mathematicsMarking,  
+digitalSocietyMarking,
 ]
 
 export function getMarkingModel(rubricId: string): MarkingModel | undefined {
