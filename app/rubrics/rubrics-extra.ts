@@ -6,6 +6,7 @@
 import { globalPoliticsRubricSL, globalPoliticsRubricHL } from './global-politics'
 import { businessManagementRubric } from './business-management'
 import { computerScienceRubric } from './computer-science'
+import { mathematicsRubric } from './mathematics'
 export interface ExtendedBand {
   range: string
   descriptor: string
@@ -51,6 +52,7 @@ export const extraRubrics: ExtendedRubric[] = [
   globalPoliticsRubricHL,
   businessManagementRubric,
   computerScienceRubric,
+  mathematicsRubric,
   {
     id: 'ib-ia-psychology',
     framework: 'IB',

@@ -1,5 +1,6 @@
 import { computerScienceExemplars } from './computer-science'
 import { businessManagementExemplars } from './business-management'
+import { mathematicsExemplarsAA, mathematicsExemplarsAI } from './mathematics'
 /**
  * Worked topic exemplars per subject.
  * Written in our own words from subject guide + TSM guidance — no IB text copied.
@@ -103,33 +104,6 @@ export const topicExemplars: SubjectExemplars[] = [
     ]
   },
   {
-    subject: 'Mathematics AA',
-    rubricId: 'ib-ia-maths',
-    exemplars: [
-      {
-        title: 'Modelling the cooling of a coffee cup: does the law of cooling fit my own temperature data better than a linear model?',
-        why: 'The student collects their own data, fits two competing models, and has something genuine to reflect on when one fits better.',
-        data: 'Temperature logged every 30 seconds for 40 minutes, exponential regression, residuals compared against a linear fit.',
-        watchOut: 'Fitting a curve is not the exploration. Comparing models, justifying the choice and discussing where the model breaks down is.',
-        context: 'nature-resources'
-      },
-      {
-        title: 'Using calculus to find the dimensions that minimise the surface area of a 330 ml drinks can, and comparing with the real can',
-        why: 'Genuine optimisation with a real object to check against, and the gap between the theoretical and the actual answer is where the reflection lives.',
-        data: 'Measurements of an actual can, surface area function derived, minimised with differentiation, result compared with manufacture.',
-        watchOut: 'The textbook version of this is well known. The personal engagement has to come from the real can and from asking why industry does not use the optimal shape.',
-        context: 'business-finance'
-      },
-      {
-        title: 'How well does a normal distribution model the reaction times of students in my year group, and what does the fit reveal about the tails?',
-        why: 'Own data collection, a testable claim, and a natural route into goodness-of-fit rather than just quoting a mean.',
-        data: 'At least 40 reaction time measurements, histogram, normal model fitted, chi-squared goodness-of-fit test.',
-        watchOut: 'Reaction time data is usually skewed. Finding that the model fits badly is a good result if you analyse why, so do not force it to look normal.',
-        context: 'health-fitness'
-      },
-    ]
-  },
-  {
     subject: 'Psychology',
     rubricId: 'ib-ia-psychology',
     exemplars: [
@@ -158,6 +132,8 @@ export const topicExemplars: SubjectExemplars[] = [
   },
   businessManagementExemplars,
   computerScienceExemplars,
+  mathematicsExemplarsAA,
+  mathematicsExemplarsAI,
   {
     subject: 'Global Politics SL',
     rubricId: 'ib-ia-global-politics-sl',
