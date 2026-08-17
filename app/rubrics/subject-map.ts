@@ -112,6 +112,15 @@ if (matches(subject, ['business management', 'business and management'])) {
       note: 'Paste your inquiry process document. Criteria A and B are marked from it — 9 of the 24 marks. Criteria C, D and E come from your recorded presentation, which cannot be read here, so no total out of 24 is given.'
     }
   }
+  if (matches(subject, ['philosophy'])) {
+    return {
+      kind: 'rubric',
+      rubricId: 'ib-ia-philosophy',
+      needsLevel: false,
+      confidence: 'high',
+      note: 'Marked out of 25 across five criteria, identical at SL and HL. If your stimulus is an image, a film scene or audio, paste your written description of it alongside the essay — the stimulus itself cannot be read here, so criterion A is judged on the description.'
+    }
+  }
   if (matches(subject, ['psychology'])) {
     return { kind: 'rubric', rubricId: 'ib-ia-psychology', needsLevel: false, confidence: 'high' }
   }

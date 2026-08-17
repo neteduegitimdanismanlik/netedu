@@ -8,6 +8,8 @@ import { businessManagementRubric } from './business-management'
 import { computerScienceRubric } from './computer-science'
 import { mathematicsRubric } from './mathematics'
 import { digitalSocietyRubric } from './digital-society'
+import { philosophyRubric } from './philosophy'
+
 export interface ExtendedBand {
   range: string
   descriptor: string
@@ -54,7 +56,9 @@ export const extraRubrics: ExtendedRubric[] = [
   businessManagementRubric,
   computerScienceRubric,
   mathematicsRubric,
-digitalSocietyRubric,
+  digitalSocietyRubric,
+  philosophyRubric,
+
   {
     id: 'ib-ia-psychology',
     framework: 'IB',
