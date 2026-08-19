@@ -12,6 +12,10 @@ import { businessManagementMarking } from './business-management'
 import { computerScienceMarking } from './computer-science'
 import { mathematicsMarking } from './mathematics'
 import { digitalSocietyMarking } from './digital-society'
+import { philosophyMarking } from './philosophy'
+import { languageBOralMarkingModels } from './language-b-oral'
+import { languageAOralMarking } from './language-a-oral'
+
 export interface ModelPitfall {
   id: string
   severity: 'critical' | 'high' | 'medium'
@@ -563,6 +567,9 @@ const MARKING_MODELS: MarkingModel[] = [
   computerScienceMarking,
 mathematicsMarking,  
 digitalSocietyMarking,
+philosophyMarking,
+  ...languageBOralMarkingModels,
+  languageAOralMarking,
 ]
 
 export function getMarkingModel(rubricId: string): MarkingModel | undefined {

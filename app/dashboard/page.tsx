@@ -124,10 +124,12 @@ export default function Dashboard() {
             <h2 className="font-semibold text-gray-800 mb-4">Roadmap</h2>
             <p className="text-sm text-gray-500 mb-4">Get your personalized step-by-step plan to reach your target university.</p>
             <div className="flex flex-wrap gap-3">
-              <Link href="/onboarding" className="bg-indigo-900 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-800 inline-block">
-                {profile ? 'Update profile →' : 'Build my profile →'}
-              </Link>
-              <Link href="/roadmap" className="border border-indigo-900 text-indigo-900 px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-50 inline-block">
+              {!profile && (
+                <Link href="/onboarding" className="bg-indigo-900 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-800 inline-block">
+                  Build my profile →
+                </Link>
+              )}
+              <Link href="/roadmap" className="bg-indigo-900 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-800 inline-block">
                 View my roadmap →
               </Link>
             </div>

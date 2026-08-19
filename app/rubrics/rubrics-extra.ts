@@ -9,6 +9,8 @@ import { computerScienceRubric } from './computer-science'
 import { mathematicsRubric } from './mathematics'
 import { digitalSocietyRubric } from './digital-society'
 import { philosophyRubric } from './philosophy'
+import { languageBOralRubrics } from './language-b-oral'
+import { languageAOralRubric } from './language-a-oral'
 
 export interface ExtendedBand {
   range: string
@@ -58,6 +60,9 @@ export const extraRubrics: ExtendedRubric[] = [
   mathematicsRubric,
   digitalSocietyRubric,
   philosophyRubric,
+    ...languageBOralRubrics,
+  languageAOralRubric,
+  
 
   {
     id: 'ib-ia-psychology',

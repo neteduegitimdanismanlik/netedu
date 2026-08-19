@@ -2,6 +2,9 @@ import { computerScienceExemplars } from './computer-science'
 import { businessManagementExemplars } from './business-management'
 import { mathematicsExemplarsAA, mathematicsExemplarsAI } from './mathematics'
 import { digitalSocietyExemplars } from './digital-society'
+import { philosophyExemplars } from './philosophy'
+import { languageAOralExemplars } from './language-a-oral'
+import { languageBOralExemplars } from './language-b-oral'
 /**
  * Worked topic exemplars per subject.
  * Written in our own words from subject guide + TSM guidance — no IB text copied.
@@ -136,6 +139,9 @@ export const topicExemplars: SubjectExemplars[] = [
   mathematicsExemplarsAA,
   mathematicsExemplarsAI,
   digitalSocietyExemplars,
+  philosophyExemplars,
+    ...languageBOralExemplars,
+  ...languageAOralExemplars,
   {
     subject: 'Global Politics SL',
     rubricId: 'ib-ia-global-politics-sl',

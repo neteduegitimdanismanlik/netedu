@@ -11,6 +11,9 @@ import { businessManagementRules } from './business-management'
 import { computerScienceRules } from './computer-science'
 import { mathematicsRules } from './mathematics'
 import { digitalSocietyRules } from './digital-society'
+import { philosophyRules } from './philosophy'
+import { languageAOralRules } from './language-a-oral'
+import { languageBOralRuleSets } from './language-b-oral'
 export type TopicVerdict = 'strong' | 'workable' | 'risky' | 'unworkable';
 
 export type RuleSeverity = 'fatal' | 'major' | 'minor';
@@ -541,6 +544,9 @@ const TOPIC_RULE_SETS: TopicRuleSet[] = [
   computerScienceRules,
   mathematicsRules,
   digitalSocietyRules,
+  philosophyRules,
+    ...languageBOralRuleSets,
+  languageAOralRules,
 ];
 /** Rule sets that have a rubric. The UI builds its selector from this. */
 export function listTopicRuleSets(): TopicRuleSet[] {
