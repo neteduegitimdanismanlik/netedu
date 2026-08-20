@@ -30,39 +30,7 @@ export interface Rubric {
 // to a student as a predicted grade.
 
 export const rubrics: Rubric[] = [
-  {
-    id: 'ib-oral',
-    framework: 'IB',
-    documentType: 'Individual Oral',
-    label: 'IB — Individual Oral',
-    totalMax: 30,
-    gradeScale: [
-      { grade: '7', min: 26 }, { grade: '6', min: 22 }, { grade: '5', min: 17 },
-      { grade: '4', min: 13 }, { grade: '3', min: 9 }, { grade: '2', min: 5 }, { grade: '1', min: 0 }
-    ],
-    criteria: [
-      { id: 'A', name: 'Knowledge & Understanding', max: 10, description: 'Understanding of the extract, work and global issue', bands: [
-        { range: '9-10', descriptor: 'Excellent knowledge with insightful references to the extract and global issue' },
-        { range: '5-8', descriptor: 'Good understanding with relevant references' },
-        { range: '1-4', descriptor: 'Limited understanding with few or superficial references' },
-      ]},
-      { id: 'B', name: 'Analysis & Evaluation', max: 10, description: 'Analysis of authorial choices and their effect', bands: [
-        { range: '9-10', descriptor: 'Insightful analysis of how language choices construct meaning' },
-        { range: '5-8', descriptor: 'Adequate analysis, sometimes descriptive' },
-        { range: '1-4', descriptor: 'Mostly descriptive with little analysis' },
-      ]},
-      { id: 'C', name: 'Focus & Organization', max: 5, description: 'Structure, balance and coherence of the oral', bands: [
-        { range: '4-5', descriptor: 'Well-structured, balanced and consistently focused' },
-        { range: '2-3', descriptor: 'Generally organised with some imbalance' },
-        { range: '0-1', descriptor: 'Poorly structured or unbalanced' },
-      ]},
-      { id: 'D', name: 'Language', max: 5, description: 'Clarity, accuracy, register and vocabulary', bands: [
-        { range: '4-5', descriptor: 'Clear, accurate and varied language with appropriate register' },
-        { range: '2-3', descriptor: 'Generally clear with occasional lapses' },
-        { range: '0-1', descriptor: 'Frequently unclear or inaccurate' },
-      ]},
-    ]
-  },
+  
   {
     id: 'general-speaking',
     framework: 'General',
