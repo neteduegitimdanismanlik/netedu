@@ -241,8 +241,7 @@ export const subjectGroups: { group: string; subjects: string[] }[] = [
     group: 'Group 2 — Language Acquisition',
     subjects: [
       'English B', 'Spanish B', 'French B', 'German B', 'Italian B', 'Mandarin B', 'Arabic B',
-      'Spanish ab initio', 'French ab initio', 'German ab initio', 'Italian ab initio', 'Mandarin ab initio',
-      'Latin', 'Classical Greek',
+      'Spanish ab initio', 'French ab initio', 'German ab initio', 'Italian ab initio', 'Mandarin ab initio'
     ]
   },
   {

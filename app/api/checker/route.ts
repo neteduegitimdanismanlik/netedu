@@ -6,7 +6,7 @@ import { getSubjectNotes } from '@/app/rubrics/subject-notes'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
 // 4000-word EE is roughly 24k characters. The old 12k limit silently cut every
