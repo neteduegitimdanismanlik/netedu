@@ -5,14 +5,24 @@ import Link from 'next/link'
 
 const ADMIN_EMAIL = 'neteduegitimdanismanlik@gmail.com'
 
+/** accepted_universities / rejected_universities may be a text[] or a plain string. */
+function asList(v: any): string {
+  if (v === null || v === undefined || v === '') return '—'
+  if (Array.isArray(v)) return v.length ? v.join(', ') : '—'
+  return String(v)
+}
+
 export default function AdminDashboard() {
   const [user, setUser] = useState<any>(null)
   const [portfolioItems, setPortfolioItems] = useState<any[]>([])
   const [casProofs, setCasProofs] = useState<any[]>([])
+  const [alumniItems, setAlumniItems] = useState<any[]>([])
+  const [admissionItems, setAdmissionItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('portfolio')
   const [actionNote, setActionNote] = useState<any>({})
   const [processing, setProcessing] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -27,48 +37,86 @@ export default function AdminDashboard() {
 
   async function loadAll() {
     setLoading(true)
-    const { data: portfolio } = await supabase
+    setNotice(null)
+
+    const { data: portfolio, error: pErr } = await supabase
       .from('portfolio_items')
       .select('*')
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
+    if (pErr) setNotice('Portfolio could not be loaded: ' + pErr.message)
     setPortfolioItems(portfolio || [])
 
-    const { data: proofs } = await supabase
+    const { data: proofs, error: cErr } = await supabase
       .from('cas_proofs')
       .select('*, cas_events(title, cas_category, location, event_date)')
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
+    if (cErr) setNotice('CAS proofs could not be loaded: ' + cErr.message)
     setCasProofs(proofs || [])
+
+    const { data: alumni, error: aErr } = await supabase
+      .from('alumni_submissions')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (aErr) setNotice('Alumni submissions could not be loaded: ' + aErr.message)
+    setAlumniItems(alumni || [])
+
+    const { data: admissions, error: dErr } = await supabase
+      .from('admission_data')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (dErr) setNotice('Admission stories could not be loaded: ' + dErr.message)
+    setAdmissionItems(admissions || [])
+
     setLoading(false)
   }
 
+  const alumniPending = alumniItems.filter(a => !a.status || a.status === 'pending')
+
   async function setPortfolioStatus(id: string, status: string) {
     setProcessing(id)
-    await fetch('/api/portfolio', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ itemId: id, status })
-    })
+    setNotice(null)
+    try {
+      const res = await fetch('/api/portfolio', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId: id, status })
+      })
+      if (!res.ok) setNotice('Portfolio item could not be updated (HTTP ' + res.status + ').')
+    } catch (e: any) {
+      setNotice('Portfolio item could not be updated: ' + (e?.message || 'network error'))
+    }
     await loadAll()
     setProcessing(null)
   }
 
-  async function approveCasProof(id: string) {
+  async function setCasProofStatus(id: string, status: string) {
     setProcessing(id)
-    await supabase.from('cas_proofs').update({ status: 'approved' }).eq('id', id)
+    setNotice(null)
+    const { error } = await supabase.from('cas_proofs').update({ status }).eq('id', id)
+    if (error) setNotice('CAS proof could not be updated: ' + error.message)
     await loadAll()
     setProcessing(null)
   }
 
-  async function rejectCasProof(id: string) {
+  async function setAlumniStatus(id: string, status: string) {
     setProcessing(id)
-    await supabase.from('cas_proofs').update({ status: 'rejected' }).eq('id', id)
+    setNotice(null)
+    const { error } = await supabase.from('alumni_submissions').update({ status }).eq('id', id)
+    if (error) setNotice('Alumni submission could not be updated: ' + error.message)
     await loadAll()
     setProcessing(null)
   }
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><p className="text-gray-400">Loading...</p></div>
+
+  const tabBtn = (key: string, label: string) => (
+    <button onClick={() => setTab(key)}
+      className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${tab === key ? 'bg-indigo-900 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
+      {label}
+    </button>
+  )
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -85,10 +133,17 @@ export default function AdminDashboard() {
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-1">Admin Panel</h1>
-          <p className="text-sm text-gray-500">Review and approve pending submissions.</p>
+          <p className="text-sm text-gray-500">Review submissions and browse alumni data.</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        {notice && (
+          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm flex items-start justify-between gap-4">
+            <span>{notice}</span>
+            <button onClick={() => setNotice(null)} className="text-red-400 hover:text-red-600 text-xs">✕</button>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-2xl border border-yellow-200 p-6 text-center">
             <div className="text-3xl font-bold text-yellow-600 mb-1">{portfolioItems.length}</div>
             <div className="text-sm text-gray-500">Portfolio items pending</div>
@@ -97,17 +152,21 @@ export default function AdminDashboard() {
             <div className="text-3xl font-bold text-yellow-600 mb-1">{casProofs.length}</div>
             <div className="text-sm text-gray-500">CAS proofs pending</div>
           </div>
+          <div className="bg-white rounded-2xl border border-yellow-200 p-6 text-center">
+            <div className="text-3xl font-bold text-yellow-600 mb-1">{alumniPending.length}</div>
+            <div className="text-sm text-gray-500">Alumni IAs pending</div>
+          </div>
+          <div className="bg-white rounded-2xl border border-indigo-200 p-6 text-center">
+            <div className="text-3xl font-bold text-indigo-900 mb-1">{admissionItems.length}</div>
+            <div className="text-sm text-gray-500">Admission stories</div>
+          </div>
         </div>
 
-        <div className="flex gap-2 mb-6">
-          <button onClick={() => setTab('portfolio')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${tab === 'portfolio' ? 'bg-indigo-900 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
-            Portfolio ({portfolioItems.length})
-          </button>
-          <button onClick={() => setTab('cas')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all ${tab === 'cas' ? 'bg-indigo-900 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}>
-            CAS Proofs ({casProofs.length})
-          </button>
+        <div className="flex gap-2 mb-6 flex-wrap">
+          {tabBtn('portfolio', `Portfolio (${portfolioItems.length})`)}
+          {tabBtn('cas', `CAS Proofs (${casProofs.length})`)}
+          {tabBtn('alumni', `Alumni IAs (${alumniItems.length})`)}
+          {tabBtn('admission', `Admission Stories (${admissionItems.length})`)}
         </div>
 
         {tab === 'portfolio' && (
@@ -230,14 +289,192 @@ export default function AdminDashboard() {
                 )}
 
                 <div className="flex gap-3">
-                  <button onClick={() => rejectCasProof(proof.id)} disabled={processing === proof.id}
+                  <button onClick={() => setCasProofStatus(proof.id, 'rejected')} disabled={processing === proof.id}
                     className="flex-1 py-2.5 border border-red-200 text-red-600 rounded-xl text-sm hover:bg-red-50 disabled:opacity-50">
                     ❌ Reject
                   </button>
-                  <button onClick={() => approveCasProof(proof.id)} disabled={processing === proof.id}
+                  <button onClick={() => setCasProofStatus(proof.id, 'approved')} disabled={processing === proof.id}
                     className="flex-1 py-2.5 bg-green-500 text-white rounded-xl text-sm font-medium hover:bg-green-600 disabled:opacity-50">
                     ✅ Approve
                   </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {tab === 'alumni' && (
+          <div className="flex flex-col gap-4">
+            {alumniItems.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                <div className="text-4xl mb-3">🎓</div>
+                <h3 className="font-semibold text-gray-800">No alumni submissions yet</h3>
+                <p className="text-sm text-gray-500 mt-1">Work shared through /contribute will appear here.</p>
+              </div>
+            ) : alumniItems.map((item) => {
+              const isPending = !item.status || item.status === 'pending'
+              return (
+                <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-6">
+                  <div className="flex items-start justify-between mb-3 gap-4">
+                    <div>
+                      <h3 className="font-semibold text-gray-800 mb-1">{item.title || 'Untitled submission'}</h3>
+                      <div className="flex gap-2 flex-wrap">
+                        {item.subject && <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-1 rounded-full">{item.subject}</span>}
+                        {item.level && <span className="text-xs bg-purple-50 text-purple-700 border border-purple-200 px-2 py-1 rounded-full">{item.level}</span>}
+                        {item.work_type && <span className="text-xs bg-gray-50 text-gray-600 border border-gray-200 px-2 py-1 rounded-full">{item.work_type}</span>}
+                        {isPending
+                          ? <span className="text-xs bg-yellow-50 text-yellow-700 border border-yellow-200 px-2 py-1 rounded-full">⏳ Pending</span>
+                          : <span className={`text-xs px-2 py-1 rounded-full border ${item.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-600 border-red-200'}`}>{item.status}</span>}
+                        {item.consent === false && (
+                          <span className="text-xs bg-red-50 text-red-700 border border-red-200 px-2 py-1 rounded-full">⚠️ No consent — do not reuse</span>
+                        )}
+                      </div>
+                    </div>
+                    {item.score !== null && item.score !== undefined && (
+                      <div className="text-right shrink-0">
+                        <div className="text-2xl font-bold text-indigo-900">{item.score}</div>
+                        <div className="text-xs text-gray-400">IB score</div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-400">🎓 Graduation year</p>
+                      <p className="text-xs font-medium text-gray-700">{item.graduation_year || '—'}</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-2">
+                      <p className="text-xs text-gray-400">🙍 Submitted by</p>
+                      <p className="text-xs font-medium text-gray-700">{item.full_name || '—'}{item.email ? ` · ${item.email}` : ''}</p>
+                    </div>
+                  </div>
+
+                  {item.criterion_scores && typeof item.criterion_scores === 'object' && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {Object.entries(item.criterion_scores as Record<string, any>).map(([k, v]) => (
+                        <span key={k} className="text-xs bg-white border border-gray-200 rounded-lg px-2 py-1 text-gray-500">
+                          {k}: <span className="font-semibold text-gray-800">{String(v)}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {item.examiner_feedback && (
+                    <div className="bg-amber-50 rounded-xl p-3 mb-3 border border-amber-100">
+                      <p className="text-xs font-medium text-amber-800 mb-1">Examiner feedback — use this to calibrate the rubric</p>
+                      <p className="text-xs text-amber-700 whitespace-pre-wrap">{item.examiner_feedback}</p>
+                    </div>
+                  )}
+
+                  {item.advice && (
+                    <div className="bg-indigo-50 rounded-xl p-3 mb-3">
+                      <p className="text-xs font-medium text-indigo-700 mb-1">Advice to future students</p>
+                      <p className="text-xs text-indigo-600 whitespace-pre-wrap">{item.advice}</p>
+                    </div>
+                  )}
+
+                  {item.file_url && (
+                    <a href={item.file_url} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-indigo-700 hover:underline mb-4 block">
+                      📎 View submitted work
+                    </a>
+                  )}
+
+                  {isPending && (
+                    <div className="flex gap-3">
+                      <button onClick={() => setAlumniStatus(item.id, 'rejected')} disabled={processing === item.id}
+                        className="flex-1 py-2.5 border border-red-200 text-red-600 rounded-xl text-sm hover:bg-red-50 disabled:opacity-50">
+                        ❌ Reject
+                      </button>
+                      <button onClick={() => setAlumniStatus(item.id, 'approved')} disabled={processing === item.id}
+                        className="flex-1 py-2.5 bg-green-500 text-white rounded-xl text-sm font-medium hover:bg-green-600 disabled:opacity-50">
+                        ✅ Approve for the pool
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {tab === 'admission' && (
+          <div className="flex flex-col gap-4">
+            {admissionItems.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                <div className="text-4xl mb-3">🏛️</div>
+                <h3 className="font-semibold text-gray-800">No admission stories yet</h3>
+                <p className="text-sm text-gray-500 mt-1">Stories shared through /contribute will appear here.</p>
+              </div>
+            ) : admissionItems.map((item) => (
+              <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-6">
+                <div className="flex items-start justify-between mb-3 gap-4">
+                  <div>
+                    <h3 className="font-semibold text-gray-800 mb-1">{item.full_name || 'Anonymous'}</h3>
+                    <div className="flex gap-2 flex-wrap">
+                      {item.graduation_year && <span className="text-xs bg-gray-50 text-gray-600 border border-gray-200 px-2 py-1 rounded-full">Class of {item.graduation_year}</span>}
+                      {item.diploma_type && <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-1 rounded-full">{item.diploma_type}</span>}
+                      {item.scholarship && <span className="text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-1 rounded-full">💰 {item.scholarship}</span>}
+                      {item.consent === false && (
+                        <span className="text-xs bg-red-50 text-red-700 border border-red-200 px-2 py-1 rounded-full">⚠️ No consent — do not reuse</span>
+                      )}
+                    </div>
+                  </div>
+                  {item.enrolled_university && (
+                    <div className="text-right shrink-0 max-w-[45%]">
+                      <div className="text-xs text-gray-400 mb-0.5">Enrolled at</div>
+                      <div className="text-sm font-semibold text-indigo-900">{item.enrolled_university}</div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <p className="text-xs text-gray-400">GPA / IB</p>
+                    <p className="text-xs font-medium text-gray-700">{item.gpa_or_ib || '—'}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <p className="text-xs text-gray-400">SAT</p>
+                    <p className="text-xs font-medium text-gray-700">{item.sat || '—'}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <p className="text-xs text-gray-400">English test</p>
+                    <p className="text-xs font-medium text-gray-700">{item.english_test || '—'}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <p className="text-xs text-gray-400">High school</p>
+                    <p className="text-xs font-medium text-gray-700">{item.high_school || '—'}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                  <div className="bg-green-50 rounded-xl p-3 border border-green-100">
+                    <p className="text-xs font-medium text-green-800 mb-1">✅ Accepted</p>
+                    <p className="text-xs text-green-700">{asList(item.accepted_universities)}</p>
+                  </div>
+                  <div className="bg-red-50 rounded-xl p-3 border border-red-100">
+                    <p className="text-xs font-medium text-red-800 mb-1">❌ Rejected</p>
+                    <p className="text-xs text-red-700">{asList(item.rejected_universities)}</p>
+                  </div>
+                </div>
+
+                {item.activities && (
+                  <div className="bg-gray-50 rounded-xl p-3 mb-3">
+                    <p className="text-xs font-medium text-gray-500 mb-1">Activities</p>
+                    <p className="text-xs text-gray-600 whitespace-pre-wrap">{asList(item.activities)}</p>
+                  </div>
+                )}
+
+                {item.wish_i_knew && (
+                  <div className="bg-indigo-50 rounded-xl p-3 mb-3">
+                    <p className="text-xs font-medium text-indigo-700 mb-1">💡 Wish I knew</p>
+                    <p className="text-xs text-indigo-600 whitespace-pre-wrap">{item.wish_i_knew}</p>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between text-xs text-gray-400 pt-2 border-t border-gray-100">
+                  <span>{item.email || 'no email'}</span>
+                  <span>{item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}</span>
                 </div>
               </div>
             ))}
