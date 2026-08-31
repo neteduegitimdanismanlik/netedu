@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { toSignedUrl, openStoredFile } from '../../../lib/storage';
 import { rubrics } from '../../rubrics/schema';
 
 /* ------------------------------------------------------------------ */
@@ -257,7 +258,15 @@ export default function AdminAlumniPage() {
     setExtracting(true);
     setPanelError('');
     try {
-      const text = await extractPdfText(selected.file_url);
+      // The bucket is private: turn the stored path (or an older public URL)
+      // into a short-lived signed URL before fetching the PDF.
+      const signed = await toSignedUrl('alumni-files', selected.file_url);
+      if (!signed) {
+        setPanelError('Dosya bağlantısı üretilemedi — yetki yok ya da dosya bulunamadı.');
+        setExtracting(false);
+        return;
+      }
+      const text = await extractPdfText(signed);
       if (!text) {
         setPanelError('PDF açıldı ama metin bulunamadı. Taranmış görüntü olabilir — metni elle yapıştır.');
       } else {
@@ -522,14 +531,12 @@ export default function AdminAlumniPage() {
                   <h3 className="font-semibold text-slate-900">Metin</h3>
                   <div className="flex items-center gap-3 text-sm">
                     {selected.file_url && (
-                      <a
-                        href={selected.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => openStoredFile('alumni-files', selected.file_url)}
                         className="text-indigo-700 underline"
                       >
                         Dosyayı aç
-                      </a>
+                      </button>
                     )}
                     <button
                       onClick={handleExtract}

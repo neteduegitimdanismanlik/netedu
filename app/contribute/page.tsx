@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { storagePath } from '@/lib/storage'
 
 const subjects = ['Mathematics AA', 'Mathematics AI', 'Physics', 'Chemistry', 'Biology', 'Economics', 'Business Management', 'History', 'Geography', 'Psychology', 'English A', 'English B', 'Turkish A', 'Computer Science', 'Visual Arts', 'Other']
 const years = ['2020', '2021', '2022', '2023', '2024', '2025', '2026']
@@ -47,18 +48,28 @@ export default function Contribute() {
     if (!iaName || !iaEmail || !iaYear || !score || !title || !file || !iaConsent) return
     setSubmitting(true)
 
-    const fileExt = file.name.split('.').pop()
-    const fileName = `ia/${Date.now()}.${fileExt}`
-    await supabase.storage.from('alumni-files').upload(fileName, file)
-    const { data: urlData } = supabase.storage.from('alumni-files').getPublicUrl(fileName)
+    // Store the object path, not a public URL: the bucket is private and files
+    // are served through short-lived signed URLs generated at read time.
+    const objectPath = storagePath('ia', file.name)
+    const { error: uploadError } = await supabase.storage.from('alumni-files').upload(objectPath, file)
+    if (uploadError) {
+      setSubmitting(false)
+      alert('Dosya yüklenemedi: ' + uploadError.message)
+      return
+    }
 
-    await supabase.from('alumni_submissions').insert({
+    const { error: insertError } = await supabase.from('alumni_submissions').insert({
       full_name: iaName, email: iaEmail, graduation_year: iaYear,
       work_type: workType, subject, level, score,
       criterion_scores: criterionScores, title,
-      file_url: urlData.publicUrl,
+      file_url: objectPath,
       examiner_feedback: feedback, advice, consent: iaConsent
     })
+    if (insertError) {
+      setSubmitting(false)
+      alert('Gönderim kaydedilemedi: ' + insertError.message)
+      return
+    }
 
     setSuccess('Thank you! Your work has been submitted. 💙')
     setSubmitting(false)
@@ -69,7 +80,7 @@ export default function Contribute() {
     if (!adName || !adEmail || !adYear || !highSchool || !gpaOrIb || !accepted || !enrolled || !activities || !adConsent) return
     setSubmitting(true)
 
-    await supabase.from('admission_data').insert({
+    const { error: insertError } = await supabase.from('admission_data').insert({
       full_name: adName, email: adEmail, graduation_year: adYear,
       high_school: highSchool, diploma_type: diplomaType,
       gpa_or_ib: gpaOrIb, sat, english_test: englishTest,
@@ -78,6 +89,11 @@ export default function Contribute() {
       wish_i_knew: wishIKnew, alumni_corner_preference: alumniPref,
       consent: adConsent
     })
+    if (insertError) {
+      setSubmitting(false)
+      alert('Gönderim kaydedilemedi: ' + insertError.message)
+      return
+    }
 
     setSuccess('Thank you! Your admission story has been submitted. 💙')
     setSubmitting(false)

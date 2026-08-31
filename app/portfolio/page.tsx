@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { storagePath, openStoredFile } from '@/lib/storage'
 import Navbar from '../components/Navbar'
 
 export default function Portfolio() {
@@ -36,14 +37,18 @@ export default function Portfolio() {
   async function submit() {
     if (!title || !description || !file) return
     setSubmitting(true)
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${user.id}/${Date.now()}.${fileExt}`
-    await supabase.storage.from('portfolio-files').upload(fileName, file)
-    const { data: urlData } = supabase.storage.from('portfolio-files').getPublicUrl(fileName)
+    // Store the object path, not a public URL — the bucket is private.
+    const objectPath = storagePath(user.id, file.name)
+    const { error: uploadError } = await supabase.storage.from('portfolio-files').upload(objectPath, file)
+    if (uploadError) {
+      setSubmitting(false)
+      alert('Dosya yüklenemedi: ' + uploadError.message)
+      return
+    }
     const res = await fetch('/api/portfolio', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, type, description, userId: user.id, fileUrl: urlData.publicUrl })
+      body: JSON.stringify({ title, type, description, userId: user.id, fileUrl: objectPath })
     })
     const data = await res.json()
     if (data.success) {
@@ -212,7 +217,14 @@ export default function Portfolio() {
                   )}
                 </div>
               </div>
-              {item.file_url && <a href={item.file_url} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-700 hover:underline">View proof</a>}
+              {item.file_url && (
+                <button
+                  onClick={() => openStoredFile('portfolio-files', item.file_url)}
+                  className="text-xs text-indigo-700 hover:underline"
+                >
+                  View proof
+                </button>
+              )}
               {item.ai_feedback && (
                 <div className="bg-indigo-50 rounded-xl p-3 mt-3">
                   <p className="text-xs font-medium text-indigo-700 mb-1">AI Feedback</p>

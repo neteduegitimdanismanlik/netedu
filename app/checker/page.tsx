@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { storagePath } from '@/lib/storage'
 import Navbar from '../components/Navbar'
 import AnnotatedText from '../components/AnnotatedText'
 import Link from 'next/link'
@@ -80,11 +81,10 @@ export default function Checker() {
         setStatus('Reading PDF...')
         finalContent = await extractPdfText(file)
         if (user) {
-          const ext = file.name.split('.').pop()
-          const fileName = `${user.id}/${Date.now()}.${ext}`
-          await supabase.storage.from('checker-files').upload(fileName, file)
-          const { data } = supabase.storage.from('checker-files').getPublicUrl(fileName)
-          fileUrl = data.publicUrl
+          // Store the object path, not a public URL — the bucket is private.
+          const objectPath = storagePath(user.id, file.name)
+          const { error: uploadError } = await supabase.storage.from('checker-files').upload(objectPath, file)
+          if (!uploadError) fileUrl = objectPath
         }
       }
 

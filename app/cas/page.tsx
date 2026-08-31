@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { storagePath } from '@/lib/storage'
 import Navbar from '../components/Navbar'
 
 const categoryColors: any = {
@@ -93,13 +94,17 @@ export default function CAS() {
   async function submitProof(eventId: string) {
     if (!proofPhoto || !participantCount) return
     setSubmittingProof(true)
-    const fileExt = proofPhoto.name.split('.').pop()
-    const fileName = `${user.id}/${eventId}/${Date.now()}.${fileExt}`
-    await supabase.storage.from('cas-proofs').upload(fileName, proofPhoto)
-    const { data: urlData } = supabase.storage.from('cas-proofs').getPublicUrl(fileName)
+    // Store the object path, not a public URL — the bucket is private.
+    const objectPath = storagePath(`${user.id}/${eventId}`, proofPhoto.name)
+    const { error: uploadError } = await supabase.storage.from('cas-proofs').upload(objectPath, proofPhoto)
+    if (uploadError) {
+      setSubmittingProof(false)
+      alert('Fotoğraf yüklenemedi: ' + uploadError.message)
+      return
+    }
     await supabase.from('cas_proofs').insert({
       event_id: eventId, uploaded_by: user.id,
-      photo_url: urlData.publicUrl,
+      photo_url: objectPath,
       participant_count: parseInt(participantCount),
       notes: proofNotes, status: 'pending'
     })

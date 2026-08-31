@@ -32,3 +32,30 @@ export async function signRows<T extends Record<string, any>>(
     rows.map(async (r) => ({ ...r, [field]: await toSignedUrl(bucket, r[field], seconds) }))
   )
 }
+
+/**
+ * Opens a stored file in a new tab through a short-lived signed URL.
+ * The tab is opened synchronously so the popup blocker does not swallow it,
+ * then pointed at the signed URL once it has been issued.
+ */
+export async function openStoredFile(
+  bucket: string,
+  stored: string | null | undefined
+): Promise<void> {
+  const tab = window.open('', '_blank')
+  const url = await toSignedUrl(bucket, stored)
+  if (!url) {
+    tab?.close()
+    alert('Dosya açılamadı — bağlantı üretilemedi ya da bu dosyayı görme yetkin yok.')
+    return
+  }
+  if (tab) tab.location.href = url
+  else window.location.href = url
+}
+
+/** Builds an unguessable object path: <prefix>/<timestamp>-<random>.<ext> */
+export function storagePath(prefix: string, fileName: string): string {
+  const ext = fileName.split('.').pop() || 'bin'
+  const rand = (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)).replace(/-/g, '')
+  return `${prefix}/${Date.now()}-${rand}.${ext}`
+}
