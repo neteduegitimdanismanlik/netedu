@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { storagePath } from '@/lib/storage'
+import { authHeaders } from '@/lib/session'
 import Navbar from '../components/Navbar'
 import AnnotatedText from '../components/AnnotatedText'
 import Link from 'next/link'
@@ -38,7 +39,7 @@ export default function Checker() {
     supabase.auth.getUser().then(async ({ data }) => {
       if (data.user) {
         setUser(data.user)
-        const res = await fetch(`/api/checker?userId=${data.user.id}`)
+        const res = await fetch('/api/checker', { headers: await authHeaders() })
         const d = await res.json()
         setHistory(d.reports || [])
       }
@@ -91,13 +92,12 @@ export default function Checker() {
       setStatus('Marking against the official criteria (3 passes)...')
       const res = await fetch('/api/checker', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({
           rubricId: resolution.rubricId,
           subject,
           title,
           content: finalContent,
-          userId: user?.id,
           fileUrl,
           level: needsLevel ? level : undefined
         })
@@ -106,7 +106,7 @@ export default function Checker() {
       setAnalysedContent(finalContent)
       setResult(data)
       if (user) {
-        const h = await fetch(`/api/checker?userId=${user.id}`)
+        const h = await fetch('/api/checker', { headers: await authHeaders() })
         const hd = await h.json()
         setHistory(hd.reports || [])
       }
@@ -389,7 +389,13 @@ export default function Checker() {
                 annotations={result.criteria_scores || []}
               />
             )}
-{result.portfolioNote && (
+{result.unassessedNote && (
+              <div className="bg-amber-50 border border-amber-300 rounded-xl p-4">
+                <p className="text-xs font-semibold text-amber-900 mb-1">⚠️ Bu bileşen kısmen değerlendirildi</p>
+                <p className="text-xs text-amber-800 leading-relaxed">{result.unassessedNote}</p>
+              </div>
+            )}
+            {result.portfolioNote && (
               <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
                 <p className="text-xs text-indigo-800 leading-relaxed">{result.portfolioNote}</p>
               </div>
@@ -405,7 +411,9 @@ export default function Checker() {
             <div className="bg-white rounded-2xl border border-indigo-100 p-6">
               <div className="flex items-center gap-6">
                 <div className="w-24 h-24 bg-indigo-900 rounded-2xl flex flex-col items-center justify-center flex-shrink-0">
-                  <span className="text-white text-3xl font-bold">{result.grade}</span>
+                  {result.grade
+                    ? <span className="text-white text-3xl font-bold">{result.grade}</span>
+                    : <span className="text-indigo-200 text-xs px-2 text-center leading-tight">not verilmedi</span>}
                   <span className="text-indigo-300 text-xs">{result.total_score}/{result.total_max}</span>
                 </div>
                 <div className="flex-1">

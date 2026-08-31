@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { callerIsAdmin, forbidden } from '@/lib/api-auth'
 import { Resend } from 'resend'
 
 const supabase = createClient(
@@ -11,6 +12,8 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(req: Request) {
   try {
+    if (!(await callerIsAdmin(req))) return forbidden()
+
     const { itemId, status, adminNote } = await req.json()
 
     const { data: item, error } = await supabase

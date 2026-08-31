@@ -1,5 +1,5 @@
 import { extraRubrics } from './rubrics-extra'
-// Rubric = data, not code.import { extraRubrics } from './rubrics-extra'
+// Rubric = data, not code.
 // To add a new framework (A-Level, AP, college essay), just add an entry here.
 
 export interface Criterion {
@@ -8,6 +8,13 @@ export interface Criterion {
   max: number
   description: string
   bands: { range: string; descriptor: string }[]
+  /**
+   * False when the criterion's evidence is a video, audio file or artefact the
+   * checker never sees. Such criteria are excluded from the prompt AND from the
+   * total, and reported separately as unassessed — scoring them from text alone
+   * would silently mark a student down for evidence they did submit.
+   */
+  textReadable?: boolean
 }
 
 export interface Rubric {

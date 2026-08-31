@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { signRows } from '@/lib/storage'
+import { authHeaders } from '@/lib/session'
 import Link from 'next/link'
 
 const ADMIN_EMAIL = 'neteduegitimdanismanlik@gmail.com'
@@ -83,7 +84,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch('/api/portfolio', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ itemId: id, status })
       })
       if (!res.ok) setNotice('Portfolio item could not be updated (HTTP ' + res.status + ').')

@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { getRubric, calculateGrade } from '@/app/rubrics/schema'
 import { getMarkingModel, getPitfalls } from '@/app/rubrics/checker-guards'
 import { getSubjectNotes } from '@/app/rubrics/subject-notes'
+import { callerId, unauthorized } from '@/lib/api-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -153,7 +154,8 @@ async function scoreOnce(
   calibration: string,
   guards: string
 ) {
-  const criteriaText = rubric.criteria.map((c: any) =>
+  // Criteria whose evidence is video/audio are not shown to the model at all.
+  const criteriaText = rubric.criteria.filter((c: any) => c.textReadable !== false).map((c: any) =>
     `Criterion ${c.id}: ${c.name} (max ${c.max})\n${c.description}\nBands:\n${c.bands.map((b: any) => `  ${b.range}: ${b.descriptor}`).join('\n')}`
   ).join('\n\n')
 
@@ -179,9 +181,11 @@ Mark strictly against the band descriptors above. Award each criterion a whole-n
 
 For "quote": copy an exact sentence WORD-FOR-WORD from the STUDENT WORK above — it must appear verbatim in that text so it can be located. Never paraphrase it, and never take it from the calibration reference.
 
+You are marking text only. You may not see stimulus images, video, audio or appendices that the task normally includes. Never ask a question, never request more material, and never refuse. When evidence for a criterion is missing from the text, award what the text alone supports, keep the score inside the band the text justifies, and say plainly in that criterion's comment which evidence was unavailable.
+
 Return ONLY raw JSON, no markdown, no backticks:
 {
-  "criteria": [${rubric.criteria.map((c: any) => `{"id":"${c.id}","score":<0-${c.max}>,"comment":"<2 sentences citing specific evidence>","quote":"<exact sentence copied word-for-word from the student work, max 20 words>","quoteNote":"<one short sentence explaining why this passage matters>"}`).join(',')}],
+  "criteria": [${rubric.criteria.filter((c: any) => c.textReadable !== false).map((c: any) => `{"id":"${c.id}","score":<0-${c.max}>,"comment":"<2 sentences citing specific evidence>","quote":"<exact sentence copied word-for-word from the student work, max 20 words>","quoteNote":"<one short sentence explaining why this passage matters>"}`).join(',')}],
   "summary": "<3 sentence overall assessment>",
   "strengths": ["<specific strength>", "<specific strength>", "<specific strength>"],
   "weaknesses": ["<specific weakness>", "<specific weakness>", "<specific weakness>"],
@@ -217,7 +221,21 @@ Return ONLY raw JSON, no markdown, no backticks:
 
   if (!text) throw new Error('Empty response from model')
 
-  const parsed = JSON.parse(text)
+  // The model occasionally prefaces the JSON with prose, or answers in prose
+  // entirely ("I need to see the stimulus..."). Pull out the JSON object rather
+  // than letting JSON.parse fail on the first character.
+  const start = text.indexOf('{')
+  const end = text.lastIndexOf('}')
+  if (start === -1 || end <= start) {
+    throw new Error(`Model did not return JSON. It replied: ${text.slice(0, 160)}`)
+  }
+
+  let parsed: any
+  try {
+    parsed = JSON.parse(text.slice(start, end + 1))
+  } catch {
+    throw new Error(`Model returned malformed JSON. It replied: ${text.slice(0, 160)}`)
+  }
   if (!Array.isArray(parsed.criteria)) throw new Error('Response missing criteria array')
   return parsed
 }
@@ -247,7 +265,11 @@ function pickQuote(candidates: { quote?: string; quoteNote?: string }[], content
 
 export async function POST(req: Request) {
   try {
-    const { rubricId, subject, title, content, userId, fileUrl, level } = await req.json()
+    const { rubricId, subject, title, content, fileUrl, level } = await req.json()
+
+    // Never trust a userId sent by the client: derive it from the session token.
+    // Null means the caller is signed out — the report is still returned, just not saved.
+    const userId = await callerId(req)
 
     const rubric = getRubric(rubricId)
     if (!rubric) return NextResponse.json({ error: 'Rubric not found' }, { status: 400 })
@@ -283,7 +305,12 @@ export async function POST(req: Request) {
       )
     }
 
-    const criteriaScores = rubric.criteria.map((c: any) => {
+    const assessable = rubric.criteria.filter((c: any) => c.textReadable !== false)
+    const unassessed = rubric.criteria
+      .filter((c: any) => c.textReadable === false)
+      .map((c: any) => ({ id: c.id, name: c.name, max: c.max }))
+
+    const criteriaScores = assessable.map((c: any) => {
       const entries = runs
         .map((r) => r.criteria?.find((x: any) => x.id === c.id))
         .filter(Boolean) as any[]
@@ -331,8 +358,12 @@ export async function POST(req: Request) {
       }
     })
 
-   const total = criteriaScores.reduce((sum: number, c: any) => sum + c.score, 0)
-    const grade = calculateGrade(rubric, total)
+    const total = criteriaScores.reduce((sum: number, c: any) => sum + c.score, 0)
+    const assessedMax = assessable.reduce((sum: number, c: any) => sum + c.max, 0)
+
+    // The grade scale is calibrated against the full component. When part of the
+    // component cannot be read, a grade would be meaningless — withhold it.
+    const grade = unassessed.length === 0 ? calculateGrade(rubric, total) : null
     const best = runs[0]
 
     const report = {
@@ -345,7 +376,7 @@ export async function POST(req: Request) {
       word_count: content.trim().split(/\s+/).length,
       file_url: fileUrl || null,
       total_score: total,
-      total_max: rubric.totalMax,
+      total_max: assessedMax,
       grade,
       criteria_scores: criteriaScores,
       summary: best.summary,
@@ -372,11 +403,22 @@ export async function POST(req: Request) {
           ? `Ayrıca ${r.portfolioCriteria.map((c: any) => `${c.id} (${c.max} puan)`).join(', ')} kriteri üç parçaya birlikte uygulanır ve tek parçadan değerlendirilemez.`
           : '')
       : null
+    // Told plainly, so the student never reads a partial mark as a full one.
+    const unassessedNote = unassessed.length
+      ? `Bu bileşenin ${unassessed.reduce((n: number, c: any) => n + c.max, 0)} puanı ` +
+        `(${unassessed.map((c: any) => `${c.id} — ${c.name}`).join(', ')}) bu araçla değerlendirilemez, ` +
+        `çünkü kanıtı gönderdiğin video/ses kaydında. Yukarıdaki puan yalnızca metinden ` +
+        `okunabilen ${assessedMax} puan üzerindendir; ${rubric.totalMax} üzerinden bir toplam ya da not verilmez.`
+      : null
+
     return NextResponse.json({
       ...report,
       id: saved?.id || null,
       rubricLabel: rubric.label,
       portfolioNote,
+      unassessed,
+      unassessedNote,
+      componentMax: rubric.totalMax,
       runsCompleted: runs.length,
       calibrated: calibration.length > 0,
       guarded: guards.length > 0,
@@ -392,9 +434,10 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url)
-    const userId = searchParams.get('userId')
-    if (!userId) return NextResponse.json({ reports: [] })
+    // Reports contain the student's full submitted text, so the caller is
+    // identified from their session token — never from a query parameter.
+    const userId = await callerId(req)
+    if (!userId) return unauthorized()
 
     const { data } = await supabase
       .from('checker_reports')

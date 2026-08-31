@@ -117,6 +117,8 @@ export const digitalSocietyRubric: ExtendedRubric = {
     {
       id: 'C',
       name: 'Analysis and evaluation',
+      // Evidence lives in the recorded presentation, which the checker cannot watch.
+      textReadable: false,
       max: 6,
       verbLadder: 'sustain',
       description:
@@ -140,6 +142,8 @@ export const digitalSocietyRubric: ExtendedRubric = {
     {
       id: 'D',
       name: 'Conclusion',
+      // Evidence lives in the recorded presentation, which the checker cannot watch.
+      textReadable: false,
       max: 6,
       verbLadder: 'sustain',
       description:
@@ -162,6 +166,8 @@ export const digitalSocietyRubric: ExtendedRubric = {
     {
       id: 'E',
       name: 'Communication',
+      // Evidence lives in the recorded presentation, which the checker cannot watch.
+      textReadable: false,
       max: 3,
       verbLadder: 'quality',
       description:

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { callerIsAdmin, forbidden } from '@/lib/api-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -11,6 +12,10 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function GET(req: Request) {
   try {
+    // Sends email to every linked parent — admin only, so it cannot be
+    // triggered by anyone hitting the URL.
+    if (!(await callerIsAdmin(req))) return forbidden()
+
     const { data: links } = await supabase
       .from('parent_links')
       .select('*')

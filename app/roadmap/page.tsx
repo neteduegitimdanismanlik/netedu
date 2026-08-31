@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { authHeaders } from '@/lib/session'
 import Navbar from '../components/Navbar'
 import Link from 'next/link'
 
@@ -52,8 +53,8 @@ export default function Roadmap() {
   async function fetchYear(yearIndex: number, totalYears: number) {
     const res = await fetch('/api/full-roadmap', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user.id, yearIndex, totalYears })
+      headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+      body: JSON.stringify({ yearIndex, totalYears })
     })
     const data = await res.json()
     if (data.error) throw new Error(data.error)
@@ -65,8 +66,8 @@ export default function Roadmap() {
     setRoadmap(next)
     const res = await fetch('/api/full-roadmap', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user.id, roadmap: next })
+      headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+      body: JSON.stringify({ roadmap: next })
     })
     const d = await res.json()
     if (d.error) setError(`Could not save: ${d.error}`)
@@ -110,8 +111,8 @@ export default function Roadmap() {
     setProgress(next)
     await fetch('/api/full-roadmap', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user.id, progress: next })
+      headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+      body: JSON.stringify({ progress: next })
     })
   }
 

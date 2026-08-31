@@ -12,6 +12,7 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { callerId } from '@/lib/api-auth';
 import { getRubric } from '../../rubrics/schema';
 import {
   getTopicRules,
@@ -387,7 +388,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: `Invalid level: ${level}` }, { status: 400 });
     }
 
-    const profile = body.userId ? await fetchProfile(body.userId) : null;
+    // Profile lookup uses the verified session id, never a client-supplied one,
+    // so nobody can pull another student's profile into their own prompt.
+    const verifiedUserId = await callerId(req);
+    const profile = verifiedUserId ? await fetchProfile(verifiedUserId) : null;
 
     let prompt: string;
     if (mode === 'test') {

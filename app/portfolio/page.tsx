@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { storagePath, openStoredFile } from '@/lib/storage'
+import { authHeaders } from '@/lib/session'
 import Navbar from '../components/Navbar'
 
 export default function Portfolio() {
@@ -27,7 +28,7 @@ export default function Portfolio() {
 
   async function load(userId: string) {
     setLoading(true)
-    const res = await fetch(`/api/portfolio?userId=${userId}`)
+    const res = await fetch('/api/portfolio', { headers: await authHeaders() })
     const data = await res.json()
     setItems(data.items || [])
     setScore(data.score)
@@ -47,8 +48,8 @@ export default function Portfolio() {
     }
     const res = await fetch('/api/portfolio', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, type, description, userId: user.id, fileUrl: objectPath })
+      headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+      body: JSON.stringify({ title, type, description, fileUrl: objectPath })
     })
     const data = await res.json()
     if (data.success) {
@@ -62,7 +63,7 @@ export default function Portfolio() {
   async function deleteItem(itemId: string) {
     if (!confirm('Delete this item?')) return
     setDeleting(itemId)
-    await fetch(`/api/portfolio?itemId=${itemId}`, { method: 'DELETE' })
+    await fetch(`/api/portfolio?itemId=${itemId}`, { method: 'DELETE', headers: await authHeaders() })
     await load(user.id)
     setDeleting(null)
   }

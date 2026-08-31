@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import { authHeaders } from '@/lib/session'
 
 function ReviewContent() {
   const searchParams = useSearchParams()
@@ -17,7 +18,7 @@ function ReviewContent() {
     try {
       const res = await fetch('/api/approve', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ itemId, status: action, adminNote })
       })
       const data = await res.json()

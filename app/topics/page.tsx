@@ -9,6 +9,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Navbar from '../components/Navbar';
 import { supabase } from '../../lib/supabase';
+import { authHeaders } from '../../lib/session';
 import { resolveIaRubric, subjectGroups } from '../rubrics/subject-map';
 import {
   listTopicRuleSets,
@@ -178,13 +179,12 @@ export default function TopicsPage() {
     try {
       const res = await fetch('/api/topics', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({
           mode,
           rubricId,
           subject: subject || undefined,
           level: level || undefined,
-          userId: userId || undefined,
           idea: mode === 'test' ? idea : undefined,
           contextIds: mode === 'suggest' && contextIds.length ? contextIds : undefined,
         }),

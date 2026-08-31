@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { callerId, unauthorized } from '@/lib/api-auth'
 
 export const maxDuration = 60
 
@@ -10,7 +11,9 @@ const supabase = createClient(
 
 export async function POST(req: Request) {
   try {
-    const { userId, yearIndex, totalYears } = await req.json()
+    const { yearIndex, totalYears } = await req.json()
+    const userId = await callerId(req)
+    if (!userId) return unauthorized()
 
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single()
     if (!profile) return NextResponse.json({ error: 'Complete your profile first' }, { status: 400 })
@@ -76,7 +79,9 @@ Return ONLY raw JSON, no markdown:
 
 export async function PUT(req: Request) {
   try {
-    const { userId, roadmap } = await req.json()
+    const { roadmap } = await req.json()
+    const userId = await callerId(req)
+    if (!userId) return unauthorized()
     const { error } = await supabase.from('profiles').update({
       full_roadmap: roadmap,
       updated_at: new Date().toISOString()
@@ -90,7 +95,9 @@ export async function PUT(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
-    const { userId, progress } = await req.json()
+    const { progress } = await req.json()
+    const userId = await callerId(req)
+    if (!userId) return unauthorized()
     const { error } = await supabase.from('profiles').update({ roadmap_progress: progress }).eq('id', userId)
     if (error) throw error
     return NextResponse.json({ success: true })

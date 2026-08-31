@@ -26,6 +26,13 @@ export interface ExtendedCriterion {
   strands?: { id: string; label: string; bands: ExtendedBand[] }[]
   calibration?: string[]
   verbLadder?: string
+  /**
+   * False when the criterion's evidence is a video, audio file or artefact the
+   * checker never sees. Such criteria are excluded from the prompt AND from the
+   * total, and reported separately as unassessed — scoring them from text alone
+   * would silently mark a student down for evidence they did submit.
+   */
+  textReadable?: boolean
 }
 
 export interface ExtendedRubric {

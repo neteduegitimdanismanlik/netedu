@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { recomputeIdentityScore } from '@/lib/identity'
+import { callerId, callerIsAdmin, unauthorized, forbidden } from '@/lib/api-auth'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,7 +14,11 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { title, type, description, userId, fileUrl } = body
+    const { title, type, description, fileUrl } = body
+
+    // The owner is whoever holds the session, not whoever claims an id.
+    const userId = await callerId(req)
+    if (!userId) return unauthorized()
 
     const prompt = `You are an academic portfolio evaluator for university admissions. Score this student submission out of 100.
 Item: "${title}"
@@ -71,8 +76,9 @@ Return JSON only, no markdown:
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url)
-    const userId = searchParams.get('userId')
+    const userId = await callerId(req)
+    if (!userId) return unauthorized()
+
     const { data: items } = await supabase.from('portfolio_items').select('*').eq('user_id', userId).order('created_at', { ascending: false })
     const { data: score } = await supabase.from('identity_scores').select('*').eq('user_id', userId).single()
     return NextResponse.json({ items: items || [], score })
@@ -84,6 +90,9 @@ export async function GET(req: Request) {
 // Approve / reject — recomputes the score afterwards
 export async function PATCH(req: Request) {
   try {
+    // Approving or rejecting is an admin action.
+    if (!(await callerIsAdmin(req))) return forbidden()
+
     const { itemId, status } = await req.json()
     const { data: item, error } = await supabase
       .from('portfolio_items')
@@ -101,10 +110,18 @@ export async function PATCH(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    const callerUid = await callerId(req)
+    if (!callerUid) return unauthorized()
+
     const { searchParams } = new URL(req.url)
     const itemId = searchParams.get('itemId')
 
     const { data: item } = await supabase.from('portfolio_items').select('user_id').eq('id', itemId).single()
+
+    // Only the owner (or an admin) may delete an item.
+    if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (item.user_id !== callerUid && !(await callerIsAdmin(req))) return forbidden()
+
     const { error } = await supabase.from('portfolio_items').delete().eq('id', itemId)
     if (error) throw error
 
