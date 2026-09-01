@@ -26,7 +26,7 @@ export default function Home() {
           <span className="text-indigo-900">dream university.</span>
         </h1>
         <p className="text-xl text-gray-500 mb-10 max-w-2xl leading-relaxed">
-          NetEdu combines expert guidance and smart technology to build your personalized roadmap — so you know exactly what to do, every single day.
+          One platform for the whole journey. Expert guidance and smart technology build your personalized roadmap — so you know exactly what to do, every single day.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
           <a href="/auth" className="bg-gray-900 text-white px-8 py-4 rounded-full font-semibold hover:bg-gray-700 text-sm shadow-lg">
@@ -42,15 +42,15 @@ export default function Home() {
       <section className="px-6 py-12 border-y border-gray-100">
         <div className="max-w-4xl mx-auto grid grid-cols-3 gap-8 text-center">
           <div>
-            <div className="text-3xl font-bold text-gray-900 mb-1">3 years</div>
-            <div className="text-sm text-gray-500">personalized roadmap</div>
+            <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Week by week</div>
+            <div className="text-sm text-gray-500">roadmap from today to your application</div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-gray-900 mb-1">Smart</div>
-            <div className="text-sm text-gray-500">university matching</div>
+            <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">Official criteria</div>
+            <div className="text-sm text-gray-500">IB subjects marked against their own rubric</div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-gray-900 mb-1">100%</div>
+            <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">100%</div>
             <div className="text-sm text-gray-500">personalized to you</div>
           </div>
         </div>
@@ -110,12 +110,13 @@ export default function Home() {
             <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-indigo-200 transition-colors">
               <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center mb-4"><span className="text-xl">🌍</span></div>
               <h3 className="font-semibold text-gray-800 mb-2">CAS Activities</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">Discover volunteer and extracurricular opportunities.</p>
+              <p className="text-sm text-gray-500 leading-relaxed">Discover volunteer and extracurricular opportunities — and team up with other students to run projects together.</p>
             </div>
             <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-indigo-200 transition-colors">
               <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center mb-4"><span className="text-xl">🎯</span></div>
               <h3 className="font-semibold text-gray-800 mb-2">Coach Corner</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">Essay checker, interview practice, EE prep and oral exam training.</p>
+              <p className="text-sm text-gray-500 leading-relaxed">Your coursework marked against your subject&apos;s own IB criteria — not a generic essay checker.</p>
+              <p className="text-xs text-gray-400 mt-2">IA Checker · Topic Finder · Oral exam prep · Interview practice</p>
             </div>
           </div>
         </div>

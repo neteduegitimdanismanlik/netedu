@@ -20,6 +20,7 @@ import {
   type TopicRuleSet,
 } from '../../rubrics/topic-rules';
 import { getExemplars } from '../../rubrics/topic-exemplars';
+import { getMarkingModel } from '../../rubrics/checker-guards';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -135,8 +136,13 @@ function describeContexts(set: TopicRuleSet, only?: string[]): string {
 function describeRubric(rubricId: string, level?: string): string {
   const rubric = getRubric(rubricId);
   if (!rubric) return '';
+  // The top band matters more than the criterion name: a topic has to be
+  // capable of reaching it, and that is decided when the topic is chosen.
   const criteria = rubric.criteria
-  .map((c: any) => `- ${c.id} ${c.name} (max ${c.max})`)
+    .map((c: any) => {
+      const top = c.bands?.length ? c.bands[c.bands.length - 1] : null;
+      return `- ${c.id} ${c.name} (max ${c.max})${top ? `\n    top band: ${top.descriptor}` : ''}`;
+    })
     .join('\n');
   const guidance = rubric.guidance ? `\nMarking guidance:\n${rubric.guidance}` : '';
   const lvl = level ? `\nCourse level: ${level}` : '';
@@ -170,6 +176,38 @@ come from their own profile and interests.
 ${body}`;
 }
 
+/**
+ * Caps and thresholds from the marking model. A topic that walks into a hard
+ * ceiling is limited before a word is written, so the student should hear it
+ * now rather than after fifteen hours of work.
+ */
+function describeStructuralLimits(rubricId: string, subject?: string): string {
+  const model = getMarkingModel(rubricId);
+  if (!model) return '';
+
+  const parts: string[] = [];
+  const ceilings = [...(model.hardCeilings ?? []), ...(model.strandCeilings ?? [])];
+
+  if (ceilings.length) {
+    parts.push(`Hard caps — however well the work is written, these conditions limit the mark.
+A topic that leads into one of them is the wrong topic:
+${ceilings
+  .map((c) => `- Criterion ${c.criterionId} is capped at ${c.max} when: ${c.when} — ${c.why}`)
+  .join('\n')}`);
+  }
+
+  const applies = (subjects?: string[]) =>
+    !subjects?.length || (subject ? subjects.includes(subject) : false);
+
+  const lines = model.sixVersusFour.filter((s) => applies(s.subjects));
+  if (lines.length) {
+    parts.push(`What moves a criterion from a middling mark to a top one:
+${lines.map((s) => `- ${s.criterionId}: ${s.movingLine}`).join('\n')}`);
+  }
+
+  return parts.length ? `\n\n${parts.join('\n\n')}` : '';
+}
+
 function sharedPreamble(
   set: TopicRuleSet,
   rubricId: string,
@@ -183,7 +221,7 @@ Your job is to surface, now, the problem the student would otherwise discover fi
 ${subjectLine}
 ${describeRubric(rubricId, level)}
 
-Scope of this tool: ${set.scopeNote}${levelNote}
+Scope of this tool: ${set.scopeNote}${levelNote}${describeStructuralLimits(rubricId, subject)}
 
 Topic rules (apply these by id):
 ${describeRules(set)}
@@ -196,6 +234,10 @@ ${set.dataGuidance.map((t) => `- ${t}`).join('\n')}${describeExemplars(subject ?
 
 Write all student-facing strings in ${OUTPUT_LANGUAGE}. Keep rule ids and context ids exactly as given.
 Never invent a rule id that is not in the list above.
+
+Do not propose a topic that runs into a hard cap. If a topic is otherwise good but its shape
+limits one criterion, say exactly that in "watchOut" — naming the criterion and the cap — rather
+than leaving the student to discover it at marking.
 
 Be brief. Every field is one sentence unless stated otherwise. No hedging, no restating the question,
 no filler openers. A student reads this on a phone between lessons.
