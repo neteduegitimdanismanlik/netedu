@@ -1,261 +1,149 @@
 'use client'
-import { useState } from 'react'
 import Link from 'next/link'
 import Navbar from '../components/Navbar'
+import { subjectGroups, subjectState } from '../rubrics/subject-map'
 
-const plans = [
-  {
-    name: 'Free',
-    price: 0,
-    tagline: 'Start your journey',
-    features: [
-      '3 university matches',
-      '1-month roadmap preview',
-      'View CAS events',
-      'Basic profile',
-    ],
-    cta: 'Current plan',
-    highlight: false,
-  },
-  {
-    name: 'Basic',
-    price: 15,
-    tagline: 'For focused students',
-    features: [
-      '20+ university matches',
-      '6-month detailed roadmap',
-      'Full Alumni Corner access',
-      'Apply to CAS events',
-      'Email support',
-    ],
-    cta: 'Upgrade to Basic',
-    highlight: false,
-  },
-  {
-    name: 'Mid',
-    price: 29,
-    tagline: 'Most popular',
-    features: [
-      'Everything in Basic',
-      'Portfolio + Academic Identity Score',
-      'Create CAS events',
-      'Essay & IA Checker',
-      'EE Preparation sessions',
-      'Alumni Q&A access',
-    ],
-    cta: 'Upgrade to Mid',
-    highlight: true,
-  },
-  {
-    name: 'Max',
-    price: 49,
-    tagline: 'The complete package',
-    features: [
-      'Everything in Mid',
-      'Full 3-year roadmap',
-      'University Interview Coach',
-      'Oral Exam Prep',
-      'Parent Panel + weekly reports',
-      'Priority support',
-    ],
-    cta: 'Upgrade to Max',
-    highlight: false,
-  },
+const CONTACT = 'neteduegitimdanismanlik@gmail.com'
+
+/**
+ * The subject list is derived from the rubric registry, never hand-written —
+ * a subject added to the checker shows up here on the next deploy, and a
+ * subject that is not really loaded can never be advertised by accident.
+ */
+const allSubjects = subjectGroups.flatMap((g) => g.subjects)
+const coveredSubjects = [
+  ...allSubjects.filter((s) => {
+    const state = subjectState(s)
+    return state === 'ready' || state === 'unverified'
+  }),
+  'Extended Essay',
+  'University essays',
+  'Oral exam prep',
+]
+
+const proMailto = `mailto:${CONTACT}?subject=${encodeURIComponent(
+  'NetEdu Pro — access request'
+)}&body=${encodeURIComponent(
+  'Hi,\n\nI would like to upgrade to NetEdu Pro (49 EUR / month).\n\nStudent name:\nSchool:\nEmail used on NetEdu:\n\nThank you.'
+)}`
+
+const freeFeatures = [
+  'Roadmap — first 3 months',
+  '3 matched universities',
+  'Browse and create CAS projects',
+  'Portfolio and Academic Identity Score',
+]
+
+const proFeatures = [
+  'Your full roadmap',
+  'All matched universities',
+  'IA Checker',
+  'Topic Finder',
+  'Oral exam and interview prep',
+  'CAS project chat — work with other students',
+  'Parent panel and weekly reports',
 ]
 
 export default function Pricing() {
-  const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
-  const [showParentModal, setShowParentModal] = useState(false)
-  const [selectedPlan, setSelectedPlan] = useState('')
-  const [parentName, setParentName] = useState('')
-  const [parentEmail, setParentEmail] = useState('')
-  const [studentName, setStudentName] = useState('')
-  const [sending, setSending] = useState(false)
-  const [success, setSuccess] = useState('')
-
-  function openParentModal(planName: string) {
-    setSelectedPlan(planName)
-    setShowParentModal(true)
-    setSuccess('')
-  }
-
-  async function sendParentRequest() {
-    if (!parentName || !parentEmail || !studentName) return
-    setSending(true)
-    const plan = plans.find(p => p.name === selectedPlan)
-    const price = billing === 'yearly' ? Math.round((plan?.price || 0) * 0.8) : plan?.price
-
-    await fetch('/api/parent-payment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        parentName, parentEmail, studentName,
-        planName: selectedPlan,
-        price,
-        billing
-      })
-    })
-
-    setSuccess(`Request sent to ${parentEmail}! They will receive payment instructions.`)
-    setParentName('')
-    setParentEmail('')
-    setStudentName('')
-    setSending(false)
-    setTimeout(() => setShowParentModal(false), 3000)
-  }
-
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar showBack backHref="/dashboard" backLabel="Dashboard" />
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <div className="max-w-5xl mx-auto px-4 py-12">
 
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 mb-3">Choose your plan</h1>
-          <p className="text-sm text-gray-500 max-w-xl mx-auto">
-            Start free, upgrade when you're ready. All plans help you get closer to your dream university.
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">One plan. Everything in it.</h1>
+          <p className="text-sm text-gray-500 max-w-xl mx-auto leading-relaxed">
+            Start free and explore the whole platform. Upgrade when you want your coursework
+            marked and your topics tested before you commit to them.
           </p>
-
-          <div className="inline-flex items-center gap-1 bg-white border border-gray-200 rounded-full p-1 mt-6">
-            <button onClick={() => setBilling('monthly')}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${billing === 'monthly' ? 'bg-indigo-900 text-white' : 'text-gray-500'}`}>
-              Monthly
-            </button>
-            <button onClick={() => setBilling('yearly')}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${billing === 'yearly' ? 'bg-indigo-900 text-white' : 'text-gray-500'}`}>
-              Yearly <span className="text-xs opacity-75">(save 20%)</span>
-            </button>
-          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {plans.map((plan, i) => {
-            const price = billing === 'yearly' ? Math.round(plan.price * 0.8) : plan.price
-            return (
-              <div key={i} className={`bg-white rounded-2xl p-6 flex flex-col relative ${
-                plan.highlight ? 'border-2 border-indigo-900 shadow-lg' : 'border border-gray-100'
-              }`}>
-                {plan.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-900 text-white text-xs font-semibold px-4 py-1 rounded-full">
-                    Most popular
-                  </div>
-                )}
-                <div className="mb-4">
-                  <h3 className="font-bold text-gray-900 text-lg">{plan.name}</h3>
-                  <p className="text-xs text-gray-400">{plan.tagline}</p>
-                </div>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-gray-900">${price}</span>
-                  <span className="text-sm text-gray-400">/month</span>
-                  {billing === 'yearly' && plan.price > 0 && (
-                    <p className="text-xs text-green-600 mt-1">Billed yearly (${price * 12}/year)</p>
-                  )}
-                </div>
-                <ul className="flex flex-col gap-3 mb-6 flex-1">
-                  {plan.features.map((f, j) => (
-                    <li key={j} className="flex gap-2 text-sm text-gray-600">
-                      <span className="text-green-500 flex-shrink-0">✓</span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                {plan.price === 0 ? (
-                  <button className="w-full py-3 rounded-xl text-sm font-medium bg-gray-100 text-gray-400 cursor-default">
-                    {plan.cta}
-                  </button>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    <button
-                      className={`w-full py-3 rounded-xl text-sm font-medium transition-all ${
-                        plan.highlight ? 'bg-indigo-900 text-white hover:bg-indigo-800' : 'border border-indigo-900 text-indigo-900 hover:bg-indigo-50'
-                      }`}
-                      onClick={() => alert('Payments coming soon! For early access, contact us at neteduegitimdanismanlik@gmail.com')}>
-                      {plan.cta}
-                    </button>
-                    <button onClick={() => openParentModal(plan.name)}
-                      className="w-full py-2 rounded-xl text-xs text-gray-500 hover:text-indigo-700 transition-colors">
-                      👨‍👩‍👧 Ask your parent to pay
-                    </button>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
-        {/* Parent Payment Modal */}
-        {showParentModal && (
-          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-              <div className="text-center mb-6">
-                <div className="text-4xl mb-2">👨‍👩‍👧</div>
-                <h3 className="font-bold text-gray-900 text-lg">Ask your parent to pay</h3>
-                <p className="text-xs text-gray-500 mt-1">
-                  We'll email them about the <strong>{selectedPlan}</strong> plan with payment instructions. No sign-in needed for them.
-                </p>
-              </div>
-
-              {success ? (
-                <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-                  <p className="text-sm text-green-700">✅ {success}</p>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Your name</label>
-                    <input value={studentName} onChange={e => setStudentName(e.target.value)}
-                      placeholder="Your full name"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Parent's first name</label>
-                    <input value={parentName} onChange={e => setParentName(e.target.value)}
-                      placeholder="e.g. Ayşe"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Parent's email</label>
-                    <input type="email" value={parentEmail} onChange={e => setParentEmail(e.target.value)}
-                      placeholder="parent@email.com"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
-                  </div>
-                  <div className="flex gap-3">
-                    <button onClick={() => setShowParentModal(false)}
-                      className="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50">
-                      Cancel
-                    </button>
-                    <button onClick={sendParentRequest} disabled={sending || !parentName || !parentEmail || !studentName}
-                      className="flex-1 bg-indigo-900 text-white py-3 rounded-xl text-sm font-medium hover:bg-indigo-800 disabled:opacity-50">
-                      {sending ? 'Sending...' : 'Send email →'}
-                    </button>
-                  </div>
-                </div>
-              )}
+          {/* Free */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-7 flex flex-col">
+            <div className="mb-4">
+              <h2 className="font-bold text-gray-900 text-lg">Free</h2>
+              <p className="text-xs text-gray-400">Everything you need to get started</p>
             </div>
+            <div className="mb-6">
+              <span className="text-4xl font-bold text-gray-900">€0</span>
+              <span className="text-sm text-gray-400"> /month</span>
+            </div>
+            <ul className="flex flex-col gap-3 mb-7 flex-1">
+              {freeFeatures.map((f, i) => (
+                <li key={i} className="flex gap-2 text-sm text-gray-600 leading-relaxed">
+                  <span className="text-green-500 flex-shrink-0">✓</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/auth"
+              className="w-full py-3 rounded-xl text-sm font-medium border border-gray-200 text-gray-700 hover:bg-gray-50 text-center block"
+            >
+              Start free
+            </Link>
           </div>
-        )}
 
-        {/* FAQ */}
-        <div className="mt-16 max-w-2xl mx-auto">
-          <h2 className="text-xl font-bold text-gray-900 text-center mb-8">Frequently asked questions</h2>
-          <div className="flex flex-col gap-4">
-            {[
-              { q: 'Can I cancel anytime?', a: 'Yes! You can cancel your subscription at any time. You will keep access until the end of your billing period.' },
-              { q: 'Is there a student discount?', a: 'Our prices are already designed for students. Yearly billing saves you an extra 20%.' },
-              { q: 'What payment methods do you accept?', a: 'Credit/debit cards. Payment system launching soon — contact us for early access.' },
-              { q: 'Can I switch plans later?', a: 'Absolutely. Upgrade or downgrade anytime, and we will prorate the difference.' },
-            ].map((faq, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5">
-                <h3 className="font-semibold text-gray-800 text-sm mb-1">{faq.q}</h3>
-                <p className="text-sm text-gray-500">{faq.a}</p>
-              </div>
+          {/* Pro */}
+          <div className="bg-white rounded-2xl border-2 border-indigo-900 shadow-lg p-7 flex flex-col relative">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-900 text-white text-xs font-semibold px-4 py-1 rounded-full">
+              Full access
+            </div>
+            <div className="mb-4">
+              <h2 className="font-bold text-gray-900 text-lg">Pro</h2>
+              <p className="text-xs text-gray-400">For the year that decides where you go</p>
+            </div>
+            <div className="mb-6">
+              <span className="text-4xl font-bold text-gray-900">€49</span>
+              <span className="text-sm text-gray-400"> /month</span>
+            </div>
+            <p className="text-xs font-medium text-gray-500 mb-3">Everything in Free, plus:</p>
+            <ul className="flex flex-col gap-3 mb-7 flex-1">
+              {proFeatures.map((f, i) => (
+                <li key={i} className="flex gap-2 text-sm text-gray-600 leading-relaxed">
+                  <span className="text-indigo-700 flex-shrink-0">✓</span>
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <a
+              href={proMailto}
+              className="w-full py-3 rounded-xl text-sm font-medium bg-indigo-900 text-white hover:bg-indigo-800 text-center block"
+            >
+              Request Pro access →
+            </a>
+          </div>
+        </div>
+
+        {/* Subject coverage — visible to everyone, free or not */}
+        <div className="mt-14 bg-white rounded-2xl border border-gray-100 p-7">
+          <h2 className="font-bold text-gray-900 text-lg mb-1">What the Checker marks</h2>
+          <p className="text-sm text-gray-500 mb-5 leading-relaxed">
+            Each one against its own official IB criteria — not a generic essay checker.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {coveredSubjects.map((s) => (
+              <span
+                key={s}
+                className="text-xs bg-gray-50 text-gray-700 border border-gray-200 px-3 py-1.5 rounded-full"
+              >
+                {s}
+              </span>
             ))}
           </div>
         </div>
 
         <div className="mt-12 bg-indigo-900 rounded-2xl p-8 text-center">
-          <h2 className="text-xl font-bold text-white mb-2">Not sure which plan?</h2>
-          <p className="text-sm text-indigo-200 mb-6">Start free and explore. Upgrade when you need more.</p>
-          <Link href="/dashboard" className="inline-block bg-white text-indigo-900 font-semibold px-8 py-3 rounded-xl text-sm hover:bg-indigo-50">
+          <h2 className="text-xl font-bold text-white mb-2">Not sure yet?</h2>
+          <p className="text-sm text-indigo-200 mb-6">
+            Start free. Nothing to enter but your profile, and you can see how it works before you decide.
+          </p>
+          <Link
+            href="/dashboard"
+            className="inline-block bg-white text-indigo-900 font-semibold px-8 py-3 rounded-xl text-sm hover:bg-indigo-50"
+          >
             Continue with Free →
           </Link>
         </div>
