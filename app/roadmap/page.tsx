@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { authHeaders } from '@/lib/session'
 import Navbar from '../components/Navbar'
 import Link from 'next/link'
+import { FREE_ROADMAP_PERIODS } from '@/lib/plan-limits'
 
 const catColors: any = {
   'Academic': 'bg-blue-50 text-blue-700 border-blue-200',
@@ -150,6 +151,7 @@ export default function Roadmap() {
   )
 
   const totalYears = roadmap.totalYears || roadmap.years.length
+  const isPro = profile?.plan === 'pro'
   const year = roadmap.years?.[activeYear]
   const allTasks = roadmap.years?.flatMap((y: any, yi: number) =>
     y?.periods?.flatMap((p: any, pi: number) => p.tasks?.map((_: any, ti: number) => `${yi}-${pi}-${ti}`)) || []
@@ -188,6 +190,15 @@ export default function Roadmap() {
           </div>
         </div>
 
+        {!isPro && (
+          <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 mb-6 flex items-center justify-between gap-4 flex-wrap">
+            <p className="text-xs text-indigo-800 leading-relaxed">
+              You are on Free — the first {FREE_ROADMAP_PERIODS} periods of this year are open. Pro opens the rest and every later year.
+            </p>
+            <Link href="/pricing" className="text-xs bg-indigo-900 text-white px-4 py-2 rounded-xl whitespace-nowrap">See Pro →</Link>
+          </div>
+        )}
+
         <div className="relative mb-8">
           <div className="absolute top-7 left-0 right-0 h-2 bg-gray-200 rounded-full z-0"></div>
           <div className="relative z-10 flex justify-around">
@@ -195,6 +206,16 @@ export default function Roadmap() {
               const c = yearColors[i % yearColors.length]
               const built = !!roadmap.years?.[i]
               const active = activeYear === i && built
+              // Free builds the current year only; later years belong to Pro.
+              const proOnly = i > 0 && !isPro
+              if (proOnly) return (
+                <Link key={i} href="/pricing" className="flex flex-col items-center gap-2">
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center bg-white border-2 border-dashed border-gray-300 text-gray-400 text-lg shadow-sm">
+                    🔒
+                  </div>
+                  <span className="text-xs font-semibold text-center text-gray-400">Year {i + 1} · Pro</span>
+                </Link>
+              )
               return (
                 <button key={i}
                   onClick={() => built ? (setActiveYear(i), setActivePeriod(null)) : unlockYear(i)}
@@ -224,6 +245,15 @@ export default function Roadmap() {
             const c = yearColors[activeYear % 4]
             const open = activePeriod === p.period
             const doneCount = p.tasks?.filter((_: any, ti: number) => progress.includes(`${activeYear}-${pi}-${ti}`)).length || 0
+            const locked = !isPro && pi >= FREE_ROADMAP_PERIODS
+            if (locked) return (
+              <Link key={pi} href="/pricing"
+                className="p-4 rounded-2xl border-2 border-dashed border-gray-200 bg-white text-left hover:border-indigo-200">
+                <div className="text-xs font-bold mb-1 text-gray-400">{p.period}</div>
+                <div className="text-xs text-gray-400">Pro</div>
+                <div className="mt-2 text-lg opacity-40">🔒</div>
+              </Link>
+            )
             return (
               <button key={pi} onClick={() => setActivePeriod(open ? null : p.period)}
                 className={`p-4 rounded-2xl border-2 text-left transition-all ${open ? `${c.border} ${c.light}` : 'border-gray-100 bg-white hover:border-gray-200'}`}>

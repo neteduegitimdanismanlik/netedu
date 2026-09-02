@@ -1,7 +1,13 @@
-﻿import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
+import { requireUser } from '@/lib/plan'
 
 export async function POST(req: Request) {
   try {
+    // Signed-in only. This route calls Anthropic on every request; without a
+    // gate anyone could POST to it repeatedly and spend the API budget.
+    const gate = await requireUser(req)
+    if (gate instanceof NextResponse) return gate
+
     const body = await req.json()
     const apiKey = process.env.ANTHROPIC_API_KEY
 

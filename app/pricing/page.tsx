@@ -28,7 +28,7 @@ const proMailto = `mailto:${CONTACT}?subject=${encodeURIComponent(
 )}`
 
 const freeFeatures = [
-  'Roadmap — first 3 months',
+  'Roadmap — your first term',
   '3 matched universities',
   'Browse and create CAS projects',
   'Portfolio and Academic Identity Score',

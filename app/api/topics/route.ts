@@ -12,7 +12,7 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { callerId } from '@/lib/api-auth';
+import { requirePro } from '@/lib/plan';
 import { getRubric } from '../../rubrics/schema';
 import {
   getTopicRules,
@@ -430,10 +430,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: `Invalid level: ${level}` }, { status: 400 });
     }
 
+    // Topic Finder is Pro. Like the checker, every call spends money at
+    // Anthropic, so the gate lives here and not in the page.
+    const gate = await requirePro(req, 'Topic Finder');
+    if (gate instanceof NextResponse) return gate;
+
     // Profile lookup uses the verified session id, never a client-supplied one,
     // so nobody can pull another student's profile into their own prompt.
-    const verifiedUserId = await callerId(req);
-    const profile = verifiedUserId ? await fetchProfile(verifiedUserId) : null;
+    const verifiedUserId = gate.userId;
+    const profile = await fetchProfile(verifiedUserId);
 
     let prompt: string;
     if (mode === 'test') {

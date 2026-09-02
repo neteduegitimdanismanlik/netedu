@@ -4,6 +4,7 @@ import { getRubric, calculateGrade } from '@/app/rubrics/schema'
 import { getMarkingModel, getPitfalls } from '@/app/rubrics/checker-guards'
 import { getSubjectNotes } from '@/app/rubrics/subject-notes'
 import { callerId, unauthorized } from '@/lib/api-auth'
+import { requirePro, countToday, limitReached, DAILY_CHECKS } from '@/lib/plan'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -268,8 +269,21 @@ export async function POST(req: Request) {
     const { rubricId, subject, title, content, fileUrl, level } = await req.json()
 
     // Never trust a userId sent by the client: derive it from the session token.
-    // Null means the caller is signed out — the report is still returned, just not saved.
-    const userId = await callerId(req)
+    // Marking costs money on every call, so this endpoint is signed-in and Pro
+    // only — enforced here rather than in the browser, where it would be
+    // decoration anyone could step around by calling the API directly.
+    const gate = await requirePro(req, 'The IA Checker')
+    if (gate instanceof NextResponse) return gate
+    const userId = gate.userId
+
+    // Three runs a day. Deliberately not advertised anywhere — the student
+    // only ever meets it here, once they have used the third one.
+    const usedToday = await countToday('checker_reports', 'user_id', userId)
+    if (usedToday >= DAILY_CHECKS) {
+      return limitReached(
+        `You have used today's ${DAILY_CHECKS} checks. Your limit resets tomorrow.`
+      )
+    }
 
     const rubric = getRubric(rubricId)
     if (!rubric) return NextResponse.json({ error: 'Rubric not found' }, { status: 400 })

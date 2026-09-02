@@ -1,5 +1,7 @@
 ﻿'use client'
 import { useState } from 'react'
+import Link from 'next/link'
+import { authHeaders } from '@/lib/session'
 import Navbar from '../components/Navbar'
 import SearchSelect from '../components/SearchSelect'
 import { departmentList } from '../components/data'
@@ -10,18 +12,29 @@ export default function Match() {
   const [country, setCountry] = useState('')
   const [diploma, setDiploma] = useState('')
   const [universities, setUniversities] = useState<any[]>([])
+  const [locked, setLocked] = useState(0)
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function getMatches() {
     setLoading(true)
+    setError('')
     const res = await fetch('/api/match', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
       body: JSON.stringify({ gpa, department, country, diploma })
     })
     const data = await res.json()
-    setUniversities(data.universities || [])
     setLoading(false)
+
+    if (!res.ok) {
+      setError(res.status === 401
+        ? 'Sign in to see your matches.'
+        : (data.error || 'Could not load your matches.'))
+      return
+    }
+    setUniversities(data.universities || [])
+    setLocked(data.locked || 0)
   }
 
   const colors: any = {
@@ -85,6 +98,12 @@ export default function Match() {
           </div>
         </div>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
+
         {universities.length > 0 && (
           <div className="flex flex-col gap-3">
             {['Reach', 'Match', 'Safety'].map(cat => (
@@ -104,6 +123,19 @@ export default function Match() {
                 ))}
               </div>
             ))}
+
+            {locked > 0 && (
+              <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-6 text-center mt-2">
+                <div className="text-2xl mb-2">🔒</div>
+                <p className="text-sm font-medium text-gray-700 mb-1">{locked} more matches</p>
+                <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+                  Free shows one Reach, one Match and one Safety. Pro shows the full list.
+                </p>
+                <Link href="/pricing" className="inline-block bg-indigo-900 text-white text-sm px-6 py-2.5 rounded-xl">
+                  See Pro →
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { storagePath } from '@/lib/storage'
 import { authHeaders } from '@/lib/session'
+import Link from 'next/link'
 import Navbar from '../components/Navbar'
 import AnnotatedText from '../components/AnnotatedText'
 import Link from 'next/link'
@@ -34,6 +35,7 @@ export default function Checker() {
   const [showHistory, setShowHistory] = useState(false)
   const [viewMode, setViewMode] = useState<'report' | 'annotated'>('report')
   const [analysedContent, setAnalysedContent] = useState('')
+  const [plan, setPlan] = useState<'free' | 'pro' | null>(null)
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -42,6 +44,13 @@ export default function Checker() {
         const res = await fetch('/api/checker', { headers: await authHeaders() })
         const d = await res.json()
         setHistory(d.reports || [])
+        // Ask what this student is allowed to do, so we can show the lock
+        // before they spend twenty minutes pasting an essay in.
+        const pr = await fetch('/api/plan', { headers: await authHeaders() })
+        const pd = await pr.json()
+        setPlan(pd.plan === 'pro' ? 'pro' : 'free')
+      } else {
+        setPlan('free')
       }
     })
   }, [])
@@ -355,10 +364,23 @@ export default function Checker() {
                   )}
                 </div>
 
-                <button onClick={analyze} disabled={loading || !canSubmit}
-                  className="w-full bg-indigo-900 text-white py-3.5 rounded-xl font-medium text-sm disabled:opacity-50 hover:bg-indigo-800">
-                  {loading ? (status || 'Marking...') : 'Mark my work →'}
-                </button>
+                {plan === 'free' ? (
+                  <div className="border-2 border-dashed border-indigo-200 bg-indigo-50 rounded-xl p-5 text-center">
+                    <div className="text-2xl mb-2">🔒</div>
+                    <p className="text-sm font-medium text-gray-800 mb-1">Marking is part of Pro</p>
+                    <p className="text-xs text-gray-600 mb-4 leading-relaxed">
+                      Your work is marked against your subject&apos;s own IB criteria, criterion by criterion.
+                    </p>
+                    <Link href="/pricing" className="inline-block bg-indigo-900 text-white text-sm px-6 py-2.5 rounded-xl">
+                      See Pro →
+                    </Link>
+                  </div>
+                ) : (
+                  <button onClick={analyze} disabled={loading || !canSubmit || plan === null}
+                    className="w-full bg-indigo-900 text-white py-3.5 rounded-xl font-medium text-sm disabled:opacity-50 hover:bg-indigo-800">
+                    {loading ? (status || 'Marking...') : 'Mark my work →'}
+                  </button>
+                )}
               </>
             )}
           </div>

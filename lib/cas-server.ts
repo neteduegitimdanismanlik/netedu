@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
 import { initialsFrom } from './cas-privacy'
+import { admin, planOf, countToday } from './plan'
 
 /**
  * Server-side helpers shared by the /api/cas routes.
@@ -9,13 +9,14 @@ import { initialsFrom } from './cas-privacy'
  * before touching a row. Nothing here trusts anything sent by the client
  * except the ids it then re-checks.
  */
-export const casAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const casAdmin = admin
+
+// Plan and daily-count helpers live in lib/plan.ts so there is one definition
+// of what Free means across the whole app.
+export { planOf, countToday }
 
 /** How many projects a student may ask to join in one day. */
-export const DAILY_JOIN_LIMIT = 2
+export { DAILY_JOIN_LIMIT } from './plan-limits'
 
 export type Membership =
   | { role: 'organizer' }
@@ -42,16 +43,6 @@ export async function membership(eventId: string, userId: string): Promise<Membe
   return application?.status === 'accepted' ? { role: 'member' } : { role: 'none' }
 }
 
-/** 'free' | 'pro'. Treated as free whenever the row or column is missing. */
-export async function planOf(userId: string): Promise<'free' | 'pro'> {
-  const { data } = await casAdmin
-    .from('profiles')
-    .select('plan')
-    .eq('id', userId)
-    .maybeSingle()
-  return data?.plan === 'pro' ? 'pro' : 'free'
-}
-
 /**
  * Maps user ids to initials. Real names are resolved here and never leave
  * the server — the client only ever receives two letters.
@@ -73,16 +64,3 @@ export async function initialsMap(userIds: string[]): Promise<Record<string, str
   return out
 }
 
-/** Rows created by this user since local midnight UTC. */
-export async function countToday(table: string, column: string, userId: string): Promise<number> {
-  const since = new Date()
-  since.setUTCHours(0, 0, 0, 0)
-
-  const { count } = await casAdmin
-    .from(table)
-    .select('id', { count: 'exact', head: true })
-    .eq(column, userId)
-    .gte('created_at', since.toISOString())
-
-  return count ?? 0
-}
