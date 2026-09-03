@@ -4,7 +4,7 @@ import { getRubric, calculateGrade } from '@/app/rubrics/schema'
 import { getMarkingModel, getPitfalls } from '@/app/rubrics/checker-guards'
 import { getSubjectNotes } from '@/app/rubrics/subject-notes'
 import { callerId, unauthorized } from '@/lib/api-auth'
-import { requirePro, countToday, limitReached, DAILY_CHECKS } from '@/lib/plan'
+import { requirePro, countToday, limitReached, limitsWaived, DAILY_CHECKS } from '@/lib/plan'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -279,7 +279,7 @@ export async function POST(req: Request) {
     // Three runs a day. Deliberately not advertised anywhere — the student
     // only ever meets it here, once they have used the third one.
     const usedToday = await countToday('checker_reports', 'user_id', userId)
-    if (usedToday >= DAILY_CHECKS) {
+    if (usedToday >= DAILY_CHECKS && !(await limitsWaived(userId))) {
       return limitReached(
         `You have used today's ${DAILY_CHECKS} checks. Your limit resets tomorrow.`
       )

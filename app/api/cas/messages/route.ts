@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { callerId, unauthorized, forbidden } from '@/lib/api-auth'
 import { casAdmin, initialsMap, membership, planOf } from '@/lib/cas-server'
+import { limitsWaived } from '@/lib/plan'
 import { detectContactDetails, contactWarning } from '@/lib/cas-privacy'
 
 /**
@@ -84,7 +85,7 @@ export async function POST(req: Request) {
     .eq('sender_id', uid)
     .gte('created_at', since)
 
-  if ((count ?? 0) >= DAILY_MESSAGE_LIMIT) {
+  if ((count ?? 0) >= DAILY_MESSAGE_LIMIT && !(await limitsWaived(uid))) {
     return NextResponse.json(
       { error: 'You have sent a lot of messages today. Try again tomorrow.' },
       { status: 429 }

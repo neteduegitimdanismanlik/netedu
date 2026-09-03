@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { callerId, unauthorized, forbidden } from '@/lib/api-auth'
 import { casAdmin, initialsMap, membership, DAILY_JOIN_LIMIT, countToday } from '@/lib/cas-server'
+import { limitsWaived } from '@/lib/plan'
 
 /**
  * GET  /api/cas/applications            -> the caller's own applications
@@ -92,7 +93,7 @@ export async function POST(req: Request) {
 
   // Rate limit. Not advertised anywhere — the student only meets it here.
   const usedToday = await countToday('cas_applications', 'user_id', uid)
-  if (usedToday >= DAILY_JOIN_LIMIT) {
+  if (usedToday >= DAILY_JOIN_LIMIT && !(await limitsWaived(uid))) {
     return NextResponse.json(
       {
         error: `You have reached today's limit of ${DAILY_JOIN_LIMIT} project requests. It resets tomorrow.`,

@@ -28,14 +28,39 @@ export {
 
 export type Plan = 'free' | 'pro'
 
-/** Anything that is not explicitly 'pro' is free. Missing row, missing column, unknown value. */
+/**
+ * Three values live in the database — 'free', 'pro' and 'unlimited' — but only
+ * two ever reach the rest of the app.
+ *
+ * 'unlimited' is a test and staff tier. It reports as 'pro', so every feature
+ * gate that asks `plan === 'pro'` keeps working untouched, and separately it
+ * switches off the DAILY COUNTERS through limitsWaived(). That is the whole
+ * difference: an unlimited account is a Pro account that never runs out.
+ *
+ * It deliberately does NOT grant admin-panel access — that is public.admins,
+ * a separate thing. A test account should be able to use the product hard
+ * without also being able to read other students' work.
+ */
 export async function planOf(userId: string): Promise<Plan> {
+  const raw = await rawPlan(userId)
+  return raw === 'pro' || raw === 'unlimited' ? 'pro' : 'free'
+}
+
+async function rawPlan(userId: string): Promise<string> {
   const { data } = await admin
     .from('profiles')
     .select('plan')
     .eq('id', userId)
     .maybeSingle()
-  return data?.plan === 'pro' ? 'pro' : 'free'
+  return typeof data?.plan === 'string' ? data.plan : 'free'
+}
+
+/**
+ * True when this account should skip every daily counter — checker runs, CAS
+ * join requests, message floods. Used for the accounts that test the product.
+ */
+export async function limitsWaived(userId: string): Promise<boolean> {
+  return (await rawPlan(userId)) === 'unlimited'
 }
 
 /** Rows this user created since midnight UTC. */

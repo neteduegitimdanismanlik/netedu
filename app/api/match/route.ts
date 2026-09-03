@@ -1,15 +1,24 @@
 import { NextResponse } from 'next/server'
 import { requireUser, planOf, FREE_UNIVERSITY_MATCHES } from '@/lib/plan'
+import { matchStudent, shortlist, covered, areaForDepartment, COVERAGE_NOTE } from '@/app/universities/match'
+import { SUBJECT_AREAS, COVERED_COUNTRIES } from '@/app/universities'
+import type { Country, StudentProfile, SubjectArea } from '@/app/universities'
 
 /**
- * University matching.
+ * University matching — now computed, not generated.
  *
- * This route calls Anthropic on every request, so it is signed-in only —
- * before, anyone on the internet could POST to it and spend the API budget.
+ * This route used to call Anthropic and ask a model to name six universities
+ * with an acceptance percentage each. It no longer calls a model at all. The
+ * answer comes from app/universities, where every figure was read off an
+ * official page and carries the URL it came from.
  *
- * Free students see three of the six matches. The other three are dropped
- * server-side rather than hidden with CSS, so the withheld names never reach
- * the browser at all.
+ * That change does three things at once: the numbers become true, a missing
+ * HL subject becomes "not eligible" instead of "reach", and the endpoint costs
+ * nothing to run — no tokens, no credit balance, no rate limit.
+ *
+ * What it will not do is answer for a country we have not researched. Saying
+ * "we do not hold data for Germany yet" is the correct answer; inventing one
+ * is what we removed.
  */
 export async function POST(req: Request) {
   try {
@@ -17,69 +26,91 @@ export async function POST(req: Request) {
     if (gate instanceof NextResponse) return gate
 
     const plan = await planOf(gate.userId)
-    const body = await req.json()
+    const body = await req.json().catch(() => ({}))
 
-    const prompt = `You are a university admissions expert. Suggest 6 universities for this student:
-- GPA: ${body.gpa}/100
-- Diploma type: ${body.diploma || 'not specified'}
-- Target department: ${body.department}
-- Preferred country: ${body.country || 'any country'}
+    // Which subject. Accept an explicit area, or map a free-text department.
+    const area: SubjectArea | undefined = SUBJECT_AREAS.includes(body.area)
+      ? body.area
+      : areaForDepartment(body.department || body.area || '')
 
-Consider the diploma type carefully:
-- IB Diploma students: convert GPA to estimated IB points, favor universities that value IB (UK, Netherlands, Canada)
-- A-Level students: favor UK universities
-- SAT/ACT students: favor US universities
-- Turkish National (YKS): include Turkish universities and international ones accepting Turkish diplomas
+    if (!area) {
+      return NextResponse.json(
+        {
+          error: 'Tell us which subject area you are applying to.',
+          areas: SUBJECT_AREAS,
+        },
+        { status: 400 }
+      )
+    }
 
-${body.country ? `IMPORTANT: Only suggest universities in ${body.country}.` : ''}
-
-Give 2 Reach, 2 Match, 2 Safety universities with realistic acceptance estimates for THIS student profile.
-IMPORTANT: Respond with ONLY a JSON object, no markdown, no backticks.
-Format: {"universities":[{"name":"MIT","country":"USA","acceptance":4,"category":"Reach"}]}`
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY!,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
+    const country: Country | undefined = body.country || undefined
+    if (!covered(country)) {
+      return NextResponse.json({
+        universities: [],
+        area,
+        notCovered: country,
+        coverageNote: COVERAGE_NOTE,
+        coveredCountries: COVERED_COUNTRIES,
+        plan,
       })
-    })
-
-    const data = await res.json()
-    let text = data.content?.[0]?.text || '{}'
-    text = text.replace(/```json/g, '').replace(/```/g, '').trim()
-    const parsed = JSON.parse(text)
-
-    const all: any[] = Array.isArray(parsed.universities) ? parsed.universities : []
-
-    if (plan === 'pro') {
-      return NextResponse.json({ universities: all, plan, locked: 0 })
     }
 
-    // One from each band, so a free student still sees the shape of the answer
-    // rather than three long shots.
-    const shown: any[] = []
-    for (const category of ['Reach', 'Match', 'Safety']) {
-      const pick = all.find((u) => u.category === category && !shown.includes(u))
-      if (pick) shown.push(pick)
+    const profile: StudentProfile = {
+      ibPredicted: numberOrUndefined(body.ibPredicted),
+      hlSubjects: Array.isArray(body.hlSubjects)
+        ? body.hlSubjects.filter((s: unknown) => typeof s === 'string' && s.trim())
+        : undefined,
+      mebAverage: numberOrUndefined(body.mebAverage ?? body.gpa),
+      aLevels: typeof body.aLevels === 'string' ? body.aLevels : undefined,
+      sat: numberOrUndefined(body.sat),
+      act: numberOrUndefined(body.act),
+      ielts: numberOrUndefined(body.ielts),
+      toefl: numberOrUndefined(body.toefl),
+      needsYok: Boolean(body.needsYok),
+      budgetPerYear: numberOrUndefined(body.budgetPerYear),
+      budgetCurrency: typeof body.budgetCurrency === 'string' ? body.budgetCurrency : undefined,
     }
-    for (const u of all) {
-      if (shown.length >= FREE_UNIVERSITY_MATCHES) break
-      if (!shown.includes(u)) shown.push(u)
-    }
+
+    const all = matchStudent(profile, area, country)
+    const eligible = all.filter((r) => r.verdict !== 'not-eligible')
+    const blocked = all.filter((r) => r.verdict === 'not-eligible')
+
+    // Free sees a shortlist. The withheld rows are dropped server-side, not
+    // hidden with CSS, so the names never reach the browser.
+    const shown = plan === 'pro' ? eligible : shortlist(eligible, FREE_UNIVERSITY_MATCHES)
 
     return NextResponse.json({
-      universities: shown.slice(0, FREE_UNIVERSITY_MATCHES),
+      area,
+      country: country || null,
       plan,
-      locked: Math.max(0, all.length - FREE_UNIVERSITY_MATCHES),
+      universities: shown,
+      locked: plan === 'pro' ? 0 : Math.max(0, eligible.length - shown.length),
+      /**
+       * Courses the student is ineligible for, always returned in full even on
+       * Free. Knowing that Imperial Computing is closed to you without HL
+       * Mathematics is exactly the information worth having early, and it is
+       * not a premium feature.
+       */
+      notEligible: blocked.map((r) => ({
+        name: r.name,
+        course: r.course,
+        reason: r.reasons[0],
+      })),
+      checkedRange: coverageDates(all),
     })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
   }
+}
+
+function numberOrUndefined(v: unknown): number | undefined {
+  const n = typeof v === 'string' ? parseFloat(v) : typeof v === 'number' ? v : NaN
+  return Number.isFinite(n) ? n : undefined
+}
+
+/** Oldest and newest check dates in the answer, so the UI can show its age. */
+function coverageDates(rows: { checkedOn: string }[]): { oldest: string; newest: string } | null {
+  if (rows.length === 0) return null
+  const dates = rows.map((r) => r.checkedOn).sort()
+  return { oldest: dates[0], newest: dates[dates.length - 1] }
 }
