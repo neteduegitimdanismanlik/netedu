@@ -180,6 +180,8 @@ ${content.slice(0, MAX_CONTENT_CHARS)}
 
 Mark strictly against the band descriptors above. Award each criterion a whole-number score within its maximum. Judge the whole piece, including its closing sections.
 
+Write "comment", "summary", "strengths", "weaknesses" and "improvements" in plain, encouraging English a 16-18 year-old IB student can read without a dictionary. Say plainly what was there, what was missing, and what to change next time. Avoid assessment jargon — do not write phrases like "criterion-referenced", "holistic best-fit judgement", "descriptor" or "band" in these fields; describe the work itself instead.
+
 For "quote": copy an exact sentence WORD-FOR-WORD from the STUDENT WORK above — it must appear verbatim in that text so it can be located. Never paraphrase it, and never take it from the calibration reference.
 
 You are marking text only. You may not see stimulus images, video, audio or appendices that the task normally includes. Never ask a question, never request more material, and never refuse. When evidence for a criterion is missing from the text, award what the text alone supports, keep the score inside the band the text justifies, and say plainly in that criterion's comment which evidence was unavailable.
@@ -290,7 +292,7 @@ export async function POST(req: Request) {
 
     if (!content || content.trim().length < 200) {
       return NextResponse.json(
-        { error: 'Metin çok kısa. Değerlendirme için en az birkaç paragraf gerekiyor.' },
+        { error: 'That text is too short to mark — please paste at least a few paragraphs.' },
         { status: 400 }
       )
     }
@@ -314,7 +316,7 @@ export async function POST(req: Request) {
         .map((s) => (s.status === 'rejected' ? s.reason?.message : null))
         .filter(Boolean)[0]
       return NextResponse.json(
-        { error: `Değerlendirme başarısız: ${reason || 'bilinmeyen hata'}` },
+        { error: `Marking failed: ${reason || 'unknown error'}` },
         { status: 502 }
       )
     }
@@ -338,7 +340,7 @@ export async function POST(req: Request) {
       if (scores.length === 0) {
         return {
           id: c.id, name: c.name, score: 0, max: c.max,
-          comment: 'Bu kriter için değerlendirme alınamadı.',
+          comment: "We couldn't get a reliable mark for this criterion — run it again.",
           quote: '', quoteNote: '', spread: 0, missing: true,
         }
       }
@@ -419,10 +421,10 @@ export async function POST(req: Request) {
       : null
     // Told plainly, so the student never reads a partial mark as a full one.
     const unassessedNote = unassessed.length
-      ? `Bu bileşenin ${unassessed.reduce((n: number, c: any) => n + c.max, 0)} puanı ` +
-        `(${unassessed.map((c: any) => `${c.id} — ${c.name}`).join(', ')}) bu araçla değerlendirilemez, ` +
-        `çünkü kanıtı gönderdiğin video/ses kaydında. Yukarıdaki puan yalnızca metinden ` +
-        `okunabilen ${assessedMax} puan üzerindendir; ${rubric.totalMax} üzerinden bir toplam ya da not verilmez.`
+      ? `${unassessed.reduce((n: number, c: any) => n + c.max, 0)} of the ${rubric.totalMax} marks on this component ` +
+        `(${unassessed.map((c: any) => `${c.id} — ${c.name}, ${c.max} marks`).join('; ')}) come from your recorded ` +
+        `presentation, which this tool can't watch. The score below is out of ${assessedMax} — it only covers what's ` +
+        `in your written document, so there's no grade or total out of ${rubric.totalMax} yet.`
       : null
 
     return NextResponse.json({

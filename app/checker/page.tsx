@@ -412,7 +412,7 @@ export default function Checker() {
             )}
 {result.unassessedNote && (
               <div className="bg-amber-50 border border-amber-300 rounded-xl p-4">
-                <p className="text-xs font-semibold text-amber-900 mb-1">⚠️ Bu bileşen kısmen değerlendirildi</p>
+                <p className="text-xs font-semibold text-amber-900 mb-1">⚠️ Only part of this component was assessed</p>
                 <p className="text-xs text-amber-800 leading-relaxed">{result.unassessedNote}</p>
               </div>
             )}
@@ -434,7 +434,7 @@ export default function Checker() {
                 <div className="w-24 h-24 bg-indigo-900 rounded-2xl flex flex-col items-center justify-center flex-shrink-0">
                   {result.grade
                     ? <span className="text-white text-3xl font-bold">{result.grade}</span>
-                    : <span className="text-indigo-200 text-xs px-2 text-center leading-tight">not verilmedi</span>}
+                    : <span className="text-indigo-200 text-xs px-2 text-center leading-tight">Text-only score</span>}
                   <span className="text-indigo-300 text-xs">{result.total_score}/{result.total_max}</span>
                 </div>
                 <div className="flex-1">
@@ -471,6 +471,20 @@ export default function Checker() {
                     {!c.missing && c.spread > 1 && (
                       <p className="text-xs text-amber-600 mt-1">⚠ Borderline — markers varied by {c.spread} marks here</p>
                     )}
+                  </div>
+                ))}
+                {result.unassessed?.map((c: any, i: number) => (
+                  <div key={`unassessed-${i}`} className="opacity-60">
+                    <div className="flex justify-between items-baseline mb-1.5">
+                      <span className="text-sm font-medium text-gray-700">
+                        <span className="text-indigo-900 font-bold mr-1">{c.id}.</span>{c.name}
+                      </span>
+                      <span className="text-sm font-bold text-gray-400">— / {c.max}</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full mb-2"></div>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      Not assessed — the evidence for this one is in your recorded presentation, which this tool can't watch.
+                    </p>
                   </div>
                 ))}
               </div>
