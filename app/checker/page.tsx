@@ -77,6 +77,22 @@ export default function Checker() {
     return text
   }
 
+  /**
+   * Catches the case where a PDF's real body is a scanned/embedded image and
+   * only the running header or footer sits in the actual text layer — pdfjs
+   * then returns the same short line over and over, which used to sail past
+   * the length check and get marked as a genuine 0. Whole-line repetition is
+   * the signal: a real essay never repeats one line for most of the document.
+   */
+  function looksLikeNoRealText(text: string): boolean {
+    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean)
+    if (lines.length < 4) return false
+    const counts: Record<string, number> = {}
+    for (const l of lines) counts[l] = (counts[l] || 0) + 1
+    const maxCount = Math.max(...Object.values(counts))
+    return maxCount / lines.length > 0.5
+  }
+
   async function analyze() {
     if (resolution.kind !== 'rubric') return
     setLoading(true)
@@ -89,6 +105,15 @@ export default function Checker() {
       if (inputMode === 'upload' && file) {
         setStatus('Reading PDF...')
         finalContent = await extractPdfText(file)
+        if (looksLikeNoRealText(finalContent)) {
+          setResult({
+            error:
+              "We could only find a repeated header or footer in this PDF — not your essay text. This usually means the page body is a scanned image rather than selectable text, so it never reached the marker. Please check the file, or switch to \"Paste text\" and paste your essay directly."
+          })
+          setStatus('')
+          setLoading(false)
+          return
+        }
         if (user) {
           // Store the object path, not a public URL — the bucket is private.
           const objectPath = storagePath(user.id, file.name)
