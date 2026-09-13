@@ -39,6 +39,22 @@ export default function Home() {
         <p className="text-xs text-gray-400 mt-6">No credit card required · Free to start</p>
       </section>
 
+      <section className="px-6 py-20">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">You don&apos;t have to figure it out alone.</h2>
+          <p className="text-gray-500 text-lg leading-relaxed">
+            NetEdu turns &quot;what should I be doing right now?&quot; into a plan you can just follow —
+            week by week, subject by subject. You do the work; we tell you what&apos;s next, mark it
+            against the real IB criteria, and show you exactly where you stand with the universities
+            you want. No guessing, no last-minute scramble — just follow the plan.
+          </p>
+          <p className="text-sm text-gray-400 mt-6">
+            The first platform to bring your roadmap, coursework marking, university matching and
+            portfolio into one place — instead of five different tools and a spreadsheet.
+          </p>
+        </div>
+      </section>
+
       <section className="px-6 py-12 border-y border-gray-100">
         <div className="max-w-4xl mx-auto grid grid-cols-3 gap-8 text-center">
           <div>
