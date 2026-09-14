@@ -1,8 +1,9 @@
 import type { University } from './schema'
 
 /**
- * United Kingdom — 20 universities, read from official .ac.uk pages on
- * 2 September 2026.
+ * United Kingdom — 30 universities, read from official .ac.uk pages between
+ * 2 and 14 September 2026. The last 11 (from Essex onward) were checked for
+ * Psychology only — see the note above that block.
  *
  * HOW TO READ THIS FILE
  * - Every figure came from the page named in `source`. Nothing is estimated.
@@ -624,7 +625,8 @@ export const UK_UNIVERSITIES: University[] = [
         area: 'Psychology', offered: true, course: 'Psychology BSc',
         ibPoints: 36, ibHl: '6,6,6',
         hlRequired: ['one of Chemistry, Biology, Physics, Psychology or Mathematics'],
-        note: 'Candidates may be interviewed online or asked for an alternative admissions statement.',
+        ieltsOverall: 7.0, ieltsComponent: 6.5,
+        note: 'Candidates may be interviewed online or asked for an alternative admissions statement. English requirement for this course is IELTS 7.0 overall with 6.5 in each component — higher than the university-wide minimum.',
         source: 'https://www.manchester.ac.uk/study/undergraduate/courses/2027/00653/bsc-psychology/',
       },
     ],
@@ -695,9 +697,10 @@ export const UK_UNIVERSITIES: University[] = [
       { area: 'Architecture & Art', offered: false },
       {
         area: 'Psychology', offered: true, course: 'Psychology BSc',
-        ibPoints: 34,
+        ibPoints: 36,
+        ibPointsIfHl: { subjects: ['Mathematics', 'Biology', 'Chemistry', 'Physics'], points: 34 },
         hlRecommended: ['Mathematics', 'Biology', 'Chemistry', 'Physics'],
-        note: '34 overall if you have an HL science; 36 if you do not. The science is a discount, not a prerequisite.',
+        note: '36 overall, or 34 with an HL science (Mathematics, Biology, Chemistry or Physics) — the science is a discount, not a prerequisite.',
         source: 'https://warwick.ac.uk/study/undergraduate/courses/bsc-psychology/',
       },
     ],
@@ -1511,6 +1514,352 @@ export const UK_UNIVERSITIES: University[] = [
         hlRequired: ['one science subject'],
         note: 'Grade 6. The accepted science list is broad: Biology, Chemistry, Computing, Design and Technology, Economics, Environmental Science, Geography, Geology, Mathematics, Physics, Psychology, Statistics.',
         source: 'https://www.exeter.ac.uk/undergraduate-degrees/bsc-psychology/',
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  /* The universities below were added from a single verification pass
+     covering Psychology only (2026-09-14), following a student's own
+     research list. Unlike the entries above, each has just one `areas`
+     record — we have not yet checked these against Medicine, Engineering,
+     Computer Science, Economics & Business, Law or Architecture & Art, so
+     they simply will not appear in a search for those subjects rather than
+     showing an invented figure. (King's College London was already in this
+     file with a fuller, verified dataset, so it isn't repeated here.) */
+
+  {
+    id: 'essex',
+    name: 'University of Essex',
+    city: 'Colchester',
+    country: 'United Kingdom',
+    tier: 'accessible',
+    ibTypicalLow: 29,
+    ibTypicalHigh: 29,
+    ibNote: 'Figure checked for Psychology BSc only.',
+    ieltsOverall: 6.0,
+    ieltsComponent: 5.5,
+    satPolicy: 'unknown',
+    applicationSystem: 'UCAS',
+    cycle: '2026/27 entry',
+    checkedOn: '2026-09-14',
+    sources: ['https://www1.essex.ac.uk/programmespecs/Details.aspx?prog=10639'],
+    gaps: ['International tuition not confirmed from the page read. The course marketing page (essex.ac.uk/courses/...) would not render for verification; the official programme specification was used instead.'],
+    areas: [
+      {
+        area: 'Psychology', offered: true, course: 'BSc (Hons) Psychology',
+        ibPoints: 29,
+        note: 'At least two Higher Level subjects; no specific subject is named. The Mathematics GCSE-equivalent can be met via SL Maths grade 2, HL Maths grade 2, or IB Middle Years Programme Maths grade 4.',
+        source: 'https://www1.essex.ac.uk/programmespecs/Details.aspx?prog=10639',
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'qub',
+    name: "Queen's University Belfast",
+    city: 'Belfast',
+    country: 'United Kingdom',
+    tier: 'mid',
+    ibTypicalLow: 33,
+    ibTypicalHigh: 34,
+    ibNote: 'Figure checked for Psychology BSc only.',
+    satPolicy: 'unknown',
+    applicationSystem: 'UCAS',
+    cycle: '2027/28 entry',
+    checkedOn: '2026-09-14',
+    sources: ['https://www.qub.ac.uk/courses/undergraduate/psychology-bsc-c800/'],
+    gaps: [
+      "Course-specific IELTS was not published on the course page — it only links out to QUB's general international English-language requirements, which we have not yet matched to this course. Check qub.ac.uk directly before quoting a figure. International tuition also not confirmed.",
+    ],
+    areas: [
+      {
+        area: 'Psychology', offered: true, course: 'Psychology BSc',
+        ibPoints: 34,
+        ibPointsIfHl: {
+          subjects: ['Psychology', 'Biology', 'Human Biology', 'Chemistry', 'Computing Science', 'Digital Technology', 'Economics', 'Environmental Science', 'Geography', 'Geology', 'Life and Health Science', 'Mathematics', 'Physics', 'Statistics'],
+          points: 33,
+        },
+        note: 'Two published routes: 34 points with no specific Higher Level subject, or 33 points if one Higher Level subject is from the acceptable-science list (which is unusually broad — it includes Psychology, Economics, Geography and Statistics, not just the traditional sciences).',
+        source: 'https://www.qub.ac.uk/courses/undergraduate/psychology-bsc-c800/',
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'bath',
+    name: 'University of Bath',
+    city: 'Bath',
+    country: 'United Kingdom',
+    tier: 'high',
+    ibTypicalLow: 36,
+    ibTypicalHigh: 36,
+    ibNote: 'Figure checked for Psychology BSc only.',
+    ieltsOverall: 7.0,
+    ieltsComponent: 6.5,
+    satPolicy: 'unknown',
+    tuitionCurrency: 'GBP',
+    tuitionIntlMin: 32000,
+    tuitionYear: '2026/27 entry (2027/28 not yet published)',
+    applicationSystem: 'UCAS',
+    cycle: '2027/28 entry',
+    checkedOn: '2026-09-14',
+    sources: [
+      'https://www.bath.ac.uk/courses/undergraduate-2027/psychology/bsc-psychology/',
+      'https://www.bath.ac.uk/corporate-information/tuition-fees-for-undergraduate-students-starting-in-2026/',
+    ],
+    gaps: ['The UCAS code (C800) was confirmed only via an archived programme-specification document, not the live 2027 page — re-verify before relying on it for a UCAS search.'],
+    areas: [
+      {
+        area: 'Psychology', offered: true, course: 'BSc (Hons) Psychology',
+        ibPoints: 36, ibHl: '7,6,6 (contextual offer: 6,6,5, same 36-point total)',
+        source: 'https://www.bath.ac.uk/courses/undergraduate-2027/psychology/bsc-psychology/',
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'st-andrews',
+    name: 'University of St Andrews',
+    city: 'St Andrews',
+    country: 'United Kingdom',
+    tier: 'high',
+    ibTypicalLow: 36,
+    ibTypicalHigh: 36,
+    ibNote: 'Figure checked for Psychology BSc only.',
+    ieltsOverall: 6.5,
+    ieltsComponent: 6.0,
+    ieltsNote: "Profile 7-D for Science; a different course here could sit in a different profile.",
+    satPolicy: 'unknown',
+    tuitionCurrency: 'GBP',
+    tuitionIntlMin: 33250,
+    tuitionYear: '2026/27 entry (2027/28 not yet published)',
+    applicationSystem: 'UCAS',
+    cycle: '2027 entry',
+    checkedOn: '2026-09-14',
+    sources: [
+      'https://www.st-andrews.ac.uk/subjects/psychology/psychology-bsc/',
+      'https://www.st-andrews.ac.uk/subjects/entry/language-requirements/profiles/7-d/',
+      'https://www.st-andrews.ac.uk/study/undergraduate/fees/world/',
+    ],
+    areas: [
+      {
+        area: 'Psychology', offered: true, course: 'Psychology BSc (Honours)',
+        ibPoints: 36, ibHl: '6,6,5 (minimum offer 6,5,5)',
+        source: 'https://www.st-andrews.ac.uk/subjects/psychology/psychology-bsc/',
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'york',
+    name: 'University of York',
+    city: 'York',
+    country: 'United Kingdom',
+    tier: 'mid',
+    ibTypicalLow: 36,
+    ibTypicalHigh: 36,
+    ibNote: 'Figure checked for Psychology BSc only.',
+    ieltsOverall: 6.5,
+    ieltsComponent: 6.0,
+    satPolicy: 'unknown',
+    tuitionCurrency: 'GBP',
+    tuitionIntlMin: 32350,
+    tuitionYear: '2027/28 entry',
+    applicationSystem: 'UCAS',
+    cycle: '2027/28 entry',
+    checkedOn: '2026-09-14',
+    sources: ['https://www.york.ac.uk/study/undergraduate/courses/bsc-psychology/'],
+    areas: [
+      {
+        area: 'Psychology', offered: true, course: 'BSc (Hons) Psychology',
+        ibPoints: 36,
+        hlRequired: ['one science subject, which may include Psychology'],
+        note: 'Grade 6 required in the Higher Level science. A second science subject is desirable but not essential.',
+        source: 'https://www.york.ac.uk/study/undergraduate/courses/bsc-psychology/',
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'east-london',
+    name: 'University of East London',
+    city: 'London',
+    country: 'United Kingdom',
+    tier: 'accessible',
+    ibTypicalLow: 24,
+    ibTypicalHigh: 24,
+    ibNote: 'Figure checked for Psychology BSc only.',
+    ieltsOverall: 6.0,
+    ieltsComponent: 5.5,
+    ieltsNote: 'Minimum 6.0 in Writing and Speaking, 5.5 in Listening and Reading.',
+    satPolicy: 'unknown',
+    tuitionCurrency: 'GBP',
+    tuitionIntlMin: 16020,
+    tuitionYear: '2026/27 entry (2027/28 not yet published)',
+    applicationSystem: 'UCAS',
+    cycle: '2027 entry',
+    checkedOn: '2026-09-14',
+    sources: ['https://www.uel.ac.uk/undergraduate/courses/bsc-hons-psychology'],
+    areas: [
+      {
+        area: 'Psychology', offered: true, course: 'BSc (Hons) Psychology',
+        ibPoints: 24,
+        note: 'Including a minimum of 15 points at Higher Level. No specific Higher Level subject is required.',
+        source: 'https://www.uel.ac.uk/undergraduate/courses/bsc-hons-psychology',
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'sussex',
+    name: 'University of Sussex',
+    city: 'Brighton',
+    country: 'United Kingdom',
+    tier: 'mid',
+    ibTypicalLow: 34,
+    ibTypicalHigh: 34,
+    ibNote: 'Figure checked for Psychology BSc only.',
+    satPolicy: 'unknown',
+    tuitionCurrency: 'GBP',
+    tuitionIntlMin: 28100,
+    tuitionYear: 'latest published figure, exact entry year not stated on the page',
+    applicationSystem: 'UCAS',
+    cycle: '2027 entry',
+    checkedOn: '2026-09-14',
+    sources: ['https://www.sussex.ac.uk/study/undergraduate/courses/psychology-bsc-hons'],
+    gaps: [
+      "Course-specific IELTS could not be confirmed — Sussex publishes three general tiers (Standard 6.0/5.5, High 6.5/6.0, Advanced 7.0/6.5) but the course page does not state which tier applies to Psychology. Do not assume one; check the course's own English-requirement tab.",
+    ],
+    areas: [
+      {
+        area: 'Psychology', offered: true, course: 'Psychology BSc (Hons)',
+        ibPoints: 34,
+        source: 'https://www.sussex.ac.uk/study/undergraduate/courses/psychology-bsc-hons',
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'oxford-brookes',
+    name: 'Oxford Brookes University',
+    city: 'Oxford',
+    country: 'United Kingdom',
+    tier: 'accessible',
+    ibTypicalLow: 31,
+    ibTypicalHigh: 31,
+    ibNote: 'Figure checked for Psychology BSc only.',
+    ieltsOverall: 6.0,
+    ieltsComponent: 5.5,
+    satPolicy: 'unknown',
+    tuitionCurrency: 'GBP',
+    tuitionIntlMin: 17600,
+    tuitionIntlMax: 19300,
+    tuitionYear: '2026/27 to 2027/28 entry (fee rises across the two years shown on the page)',
+    applicationSystem: 'UCAS',
+    cycle: '2026/27 entry',
+    checkedOn: '2026-09-14',
+    sources: ['https://www.brookes.ac.uk/courses/undergraduate/psychology'],
+    areas: [
+      {
+        area: 'Psychology', offered: true, course: 'BSc (Hons) Psychology',
+        ibPoints: 31, ibPointsMin: 28,
+        note: 'Contextual offer 28 points.',
+        source: 'https://www.brookes.ac.uk/courses/undergraduate/psychology',
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'surrey',
+    name: 'University of Surrey',
+    city: 'Guildford',
+    country: 'United Kingdom',
+    tier: 'mid',
+    ibTypicalLow: 34,
+    ibTypicalHigh: 34,
+    ibNote: 'Figure checked for Psychology BSc only.',
+    ieltsOverall: 6.5,
+    ieltsComponent: 5.5,
+    ieltsNote: '6.5 overall; 6.0 in Writing, 5.5 in each other component.',
+    satPolicy: 'unknown',
+    tuitionCurrency: 'GBP',
+    tuitionIntlMin: 28100,
+    tuitionYear: '2027 entry',
+    applicationSystem: 'UCAS',
+    cycle: '2027 entry',
+    checkedOn: '2026-09-14',
+    sources: ['https://www.surrey.ac.uk/undergraduate/psychology'],
+    areas: [
+      {
+        area: 'Psychology', offered: true, course: 'BSc (Hons) Psychology',
+        ibPoints: 34,
+        note: 'No subject-specific Higher Level requirement beyond the GCSE-equivalent: English A HL4/SL4 (or English B HL5/SL6) and Mathematics HL4/SL4, either stream. Offers are normally made on grades alone — no admissions test.',
+        source: 'https://www.surrey.ac.uk/undergraduate/psychology',
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'westminster',
+    name: 'University of Westminster',
+    city: 'London',
+    country: 'United Kingdom',
+    tier: 'accessible',
+    ibNote: 'Westminster does not publish an IB Diploma point total for Psychology — see the note on the area below. Figure checked for Psychology BSc only.',
+    ieltsOverall: 6.0,
+    ieltsComponent: 5.5,
+    satPolicy: 'unknown',
+    tuitionCurrency: 'GBP',
+    tuitionIntlMin: 19000,
+    tuitionYear: '2027/28 entry (2026/27 was £17,600)',
+    applicationSystem: 'UCAS',
+    cycle: '2027/28 entry',
+    checkedOn: '2026-09-14',
+    sources: ['https://www.westminster.ac.uk/psychology-courses/2027-28/september/full-time/psychology-bsc-honours'],
+    gaps: ['No IB Diploma points total is published for this course — only a UCAS Tariff figure. We do not convert UCAS Tariff to IB points, since that conversion is not an official one-to-one figure.'],
+    areas: [
+      {
+        area: 'Psychology', offered: true, course: 'Psychology BSc Honours',
+        note: 'Stated only as 96 UCAS Tariff points from the full IB Diploma, not as an IB points total — we have not converted this, so it cannot be compared automatically. Check the official page. The IB Career-related Programme is considered case-by-case.',
+        source: 'https://www.westminster.ac.uk/psychology-courses/2027-28/september/full-time/psychology-bsc-honours',
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'west-london',
+    name: 'University of West London',
+    city: 'London',
+    country: 'United Kingdom',
+    tier: 'accessible',
+    ibNote: 'West London does not publish an IB Diploma point total for Psychology — see the note on the area below. Figure checked for Psychology BSc only.',
+    ieltsOverall: 6.0,
+    ieltsComponent: 5.5,
+    satPolicy: 'unknown',
+    tuitionCurrency: 'GBP',
+    tuitionIntlMin: 16750,
+    tuitionYear: 'September 2026, February 2027 or September 2027 entry (one figure covers all three intakes)',
+    applicationSystem: 'UCAS',
+    cycle: '2026/27–2027/28 entry',
+    checkedOn: '2026-09-14',
+    sources: ['https://www.uwl.ac.uk/course/undergraduate/psychology'],
+    gaps: ['No IB Diploma points total is published for this course — the international-entry tab only states that applicants need qualifications "at the same level as UK applicants" (112 UCAS Tariff points for Home applicants), with no stated IB conversion. Contact admissions for an individual assessment rather than guessing a figure.'],
+    areas: [
+      {
+        area: 'Psychology', offered: true, course: 'BSc (Hons) Psychology',
+        note: 'No IB-specific points figure is published for this course. Contact admissions for an individual equivalence assessment.',
+        source: 'https://www.uwl.ac.uk/course/undergraduate/psychology',
       },
     ],
   },

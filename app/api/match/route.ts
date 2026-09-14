@@ -95,6 +95,7 @@ export async function POST(req: Request) {
         name: r.name,
         course: r.course,
         reason: r.reasons[0],
+        source: r.source,
       })),
       checkedRange: coverageDates(all),
     })

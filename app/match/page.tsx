@@ -39,6 +39,7 @@ export default function Match() {
   const [hlSubjects, setHlSubjects] = useState('')
   const [mebAverage, setMebAverage] = useState('')
   const [ielts, setIelts] = useState('')
+  const [toefl, setToefl] = useState('')
   const [budget, setBudget] = useState('')
   const [needsYok, setNeedsYok] = useState(false)
 
@@ -61,6 +62,7 @@ export default function Match() {
           : undefined,
         mebAverage: mebAverage || undefined,
         ielts: ielts || undefined,
+        toefl: toefl || undefined,
         budgetPerYear: budget || undefined,
         budgetCurrency: 'EUR',
         needsYok,
@@ -110,7 +112,7 @@ export default function Match() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Predicted IB total</label>
                 <input type="number" min={24} max={45} value={ibPredicted} onChange={(e) => setIbPredicted(e.target.value)}
@@ -122,11 +124,27 @@ export default function Match() {
                 </label>
                 <input type="number" value={mebAverage} onChange={(e) => setMebAverage(e.target.value)}
                   placeholder="88" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+                {mebAverage && !ibPredicted && (
+                  <p className="text-xs text-amber-600 mt-1 leading-relaxed">
+                    Every university we cover states its offer in IB points, not a Turkish diploma average — the two
+                    aren&apos;t comparable, so add your predicted IB total too if you have one, even a rough estimate.
+                  </p>
+                )}
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">IELTS</label>
                 <input type="number" step="0.5" value={ielts} onChange={(e) => setIelts(e.target.value)}
                   placeholder="7.0" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  TOEFL <span className="text-gray-400 font-normal">if that&apos;s what you sat instead</span>
+                </label>
+                <input type="number" value={toefl} onChange={(e) => setToefl(e.target.value)}
+                  placeholder="100" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
               </div>
             </div>
 
@@ -194,12 +212,25 @@ export default function Match() {
                 )}
 
                 <ul className="flex flex-col gap-1.5 mb-3">
-                  {u.reasons.map((r: string, i: number) => (
-                    <li key={i} className="text-sm text-gray-600 leading-relaxed flex gap-2">
-                      <span className="text-gray-300 shrink-0">·</span>{r}
-                    </li>
-                  ))}
+                  {u.reasons.map((r: string, i: number) => {
+                    const isWarning = r.startsWith('⚠️')
+                    return (
+                      <li
+                        key={i}
+                        className={`text-sm leading-relaxed flex gap-2 ${
+                          isWarning ? 'text-amber-700 bg-amber-50 rounded-lg px-2 py-1' : 'text-gray-600'
+                        }`}
+                      >
+                        {!isWarning && <span className="text-gray-300 shrink-0">·</span>}
+                        {isWarning ? r.replace('⚠️', '').trim() : r}
+                      </li>
+                    )
+                  })}
                 </ul>
+
+                {u.note && (
+                  <p className="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2 mb-3 leading-relaxed">{u.note}</p>
+                )}
 
                 {u.missing?.length > 0 && (
                   <div className="bg-gray-50 rounded-lg px-3 py-2 mb-3">
@@ -247,6 +278,11 @@ export default function Match() {
                 <div key={i} className="border-l-2 border-red-200 pl-3">
                   <p className="text-sm font-medium text-gray-700">{n.name}{n.course ? ` · ${n.course}` : ''}</p>
                   <p className="text-xs text-gray-500 leading-relaxed">{n.reason}</p>
+                  {n.source && (
+                    <a href={n.source} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 underline">
+                      Official page
+                    </a>
+                  )}
                 </div>
               ))}
             </div>

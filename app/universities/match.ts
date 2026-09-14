@@ -34,6 +34,8 @@ export interface MatchRow {
   admissionsTest?: string
   language?: string
   headline?: string
+  /** Anything a student would be misled without — SL routes, contextual offers, oddities. */
+  note?: string
   tuition?: string
   deadline?: string
   cycle: string
@@ -92,6 +94,7 @@ export function matchStudent(
       admissionsTest: req.admissionsTest,
       language: req.language ?? u.teachingLanguage,
       headline: u.headline,
+      note: req.note,
       tuition: req.tuition ?? tuitionLine(u),
       deadline: u.deadlineNote,
       cycle: u.cycle,

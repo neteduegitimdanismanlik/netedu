@@ -103,6 +103,14 @@ export interface AreaRequirement {
   ibHl?: string
   /** HL subjects that must be present. A hard eliminator. */
   hlRequired?: string[]
+  /**
+   * A LOWER points total that applies instead of `ibPoints` when the student
+   * has one of these HL subjects — a discount, not a prerequisite (Warwick
+   * Psychology: 34 with an HL science, 36 without). `ibPoints` above should
+   * hold the higher, unconditional figure; this field only ever lowers it.
+   * Distinct from `hlRequired`, which blocks the application outright.
+   */
+  ibPointsIfHl?: { subjects: string[]; points: number }
   /** HL subjects the university names as helpful but not required. */
   hlRecommended?: string[]
   /** UCAT, LNAT, TMUA, ESAT, TARA, IMAT, TOL, TIL, CEnT-S… absent when none. */
@@ -113,6 +121,15 @@ export interface AreaRequirement {
   testLocations?: string
   /** Language of instruction for this programme when it is not English. */
   language?: string
+  /**
+   * Overrides the university-level ieltsOverall/ieltsComponent when this
+   * specific course publishes its own figure. Several universities (Manchester,
+   * Bristol, Warwick) state a range across courses rather than one number —
+   * without this, every course was silently checked against the lowest figure
+   * in that range, which understates what a specific course actually needs.
+   */
+  ieltsOverall?: number
+  ieltsComponent?: number
   /** Annual tuition for this programme when it differs from the university figure. */
   tuition?: string
   interview?: boolean
@@ -268,8 +285,16 @@ export function assessFit(
   }
 
   // 1. Hard prerequisites.
+  // hlUnconfirmed marks a course that has a hard HL prerequisite we cannot
+  // check yet, because the student hasn't told us their HL subjects. Points
+  // alone must never turn that into a Match/Safety/Reach badge further down —
+  // a strong predicted total is meaningless if the one required HL subject
+  // turns out to be missing, and showing "Match" here reads as a promise we
+  // cannot back up. See the final verdict-capping step below.
+  let hlUnconfirmed = false
   if (req.hlRequired?.length) {
     if (!profile.hlSubjects?.length) {
+      hlUnconfirmed = true
       missing.push(
         `This course requires ${req.hlRequired.join(' and ')} at Higher Level. Add your HL subjects to check.`
       )
@@ -310,9 +335,31 @@ export function assessFit(
     return { verdict: 'unknown', reasons: reasons.filter(Boolean), missing, verified: true }
   }
 
-  if (req.ibPoints != null) {
+  // A published points DISCOUNT for having a qualifying HL subject — not a
+  // prerequisite (that's hlRequired above). Only ever lowers the figure, and
+  // only once we actually know the student's HL subjects; unknown subjects
+  // means we cannot confirm the discount, so the higher base figure stands.
+  let effectiveIbPoints = req.ibPoints
+  let ibPointsQualifierNote = ''
+  if (req.ibPointsIfHl && req.ibPoints != null) {
+    if (profile.hlSubjects?.length) {
+      const qualifies = req.ibPointsIfHl.subjects.some((s) => hasHl(profile.hlSubjects!, s))
+      if (qualifies) {
+        effectiveIbPoints = req.ibPointsIfHl.points
+        ibPointsQualifierNote = ` (your Higher Level subjects qualify you for this lower total — it is ${req.ibPoints} otherwise)`
+      } else {
+        ibPointsQualifierNote = ` (this would be ${req.ibPointsIfHl.points} with ${req.ibPointsIfHl.subjects.join(' or ')} at Higher Level)`
+      }
+    } else {
+      missing.push(
+        `The points requirement here depends on your Higher Level subjects (as low as ${req.ibPointsIfHl.points} with ${req.ibPointsIfHl.subjects.join(' or ')}). Add your HL subjects to see the figure that applies to you.`
+      )
+    }
+  }
+
+  if (effectiveIbPoints != null) {
     if (profile.ibPredicted != null) {
-      const gap = profile.ibPredicted - req.ibPoints
+      const gap = profile.ibPredicted - effectiveIbPoints
       const withinPublishedRange =
         req.ibPointsMin != null && profile.ibPredicted >= req.ibPointsMin && gap < 0
 
@@ -321,7 +368,7 @@ export function assessFit(
       else verdict = 'safety'
 
       const shortfall = Math.abs(gap)
-      const stated = `Requires ${req.ibPoints} points${req.ibHl ? ` with ${req.ibHl} at HL` : ''}`
+      const stated = `Requires ${effectiveIbPoints} points${req.ibHl ? ` with ${req.ibHl} at HL` : ''}${ibPointsQualifierNote}`
 
       if (gap < 0 && withinPublishedRange) {
         reasons.push(
@@ -338,7 +385,7 @@ export function assessFit(
       }
     } else {
       missing.push(
-        `Requires ${req.ibPoints} IB points${req.ibHl ? ` with ${req.ibHl} at HL` : ''}. Add your predicted total to see where you stand.`
+        `Requires ${effectiveIbPoints} IB points${req.ibHl ? ` with ${req.ibHl} at HL` : ''}${ibPointsQualifierNote}. Add your predicted total to see where you stand.`
       )
       if (profile.mebAverage != null) {
         reasons.push(
@@ -348,16 +395,32 @@ export function assessFit(
     }
   }
 
-  // 3. English.
-  if (university.ieltsOverall != null) {
+  // 3. English. A course-specific figure (req) overrides the university-wide
+  // one — several universities publish a range across courses rather than a
+  // single number, and comparing everyone to the low end of that range
+  // understated what a specific course actually needs.
+  const ieltsRequired = req.ieltsOverall ?? university.ieltsOverall
+  const ieltsComponentRequired = req.ieltsComponent ?? university.ieltsComponent
+  if (ieltsRequired != null) {
     if (profile.ielts != null) {
-      if (profile.ielts < university.ieltsOverall) {
+      if (profile.ielts < ieltsRequired) {
+        // Marked with ⚠️ so the UI can style this apart from a neutral reason —
+        // an IELTS shortfall is a real barrier even on a course whose grades
+        // are otherwise a Match, and burying it as a plain bullet reads as if
+        // it doesn't matter.
         reasons.push(
-          `IELTS ${university.ieltsOverall} required${university.ieltsComponent ? ` with ${university.ieltsComponent} in each component` : ''}; you have ${profile.ielts}.`
+          `⚠️ IELTS ${ieltsRequired} required${ieltsComponentRequired ? ` with ${ieltsComponentRequired} in each component` : ''}; you have ${profile.ielts}.`
         )
       }
-    } else if (profile.toefl == null) {
-      missing.push(`IELTS ${university.ieltsOverall} is required and you have not entered an English score.`)
+    } else if (profile.toefl != null) {
+      // We only hold the IELTS figure for most courses. Say so plainly rather
+      // than silently comparing nothing, and pass along whatever the
+      // university's own English-policy note says about TOEFL specifically.
+      reasons.push(
+        `We only hold this course's IELTS requirement (${ieltsRequired}${ieltsComponentRequired ? ` overall, ${ieltsComponentRequired} in each component` : ' overall'}) — not a TOEFL figure.${university.ieltsNote ? ` ${university.ieltsNote}` : ' Check the official page for the TOEFL-equivalent score.'}`
+      )
+    } else {
+      missing.push(`IELTS ${ieltsRequired} is required and you have not entered an English score.`)
     }
   }
 
@@ -379,6 +442,16 @@ export function assessFit(
   }
   if (profile.needsYok && university.yokRecognised === undefined) {
     missing.push('YÖK recognition for this university has not been checked yet.')
+  }
+
+  // A required HL subject we could not check must never be papered over by a
+  // good points total. Cap the verdict at 'unknown' rather than let Match /
+  // Safety / Reach imply an eligibility we have not actually confirmed — the
+  // `missing` entry above already tells the student exactly what to add.
+  // (verdict can only be 'unknown' | 'reach' | 'match' | 'safety' here — every
+  // 'not-eligible' path above returns immediately.)
+  if (hlUnconfirmed) {
+    verdict = 'unknown'
   }
 
   return { verdict, reasons, missing, verified: true }

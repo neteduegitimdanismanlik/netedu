@@ -180,6 +180,8 @@ ${content.slice(0, MAX_CONTENT_CHARS)}
 
 Mark strictly against the band descriptors above. Award each criterion a whole-number score within its maximum. Judge the whole piece, including its closing sections.
 
+Use the full range the rubric allows. Do not pull scores toward the middle of the range out of caution or politeness. If the work clearly meets the lowest band for a criterion, award that low mark even if it feels harsh; if it clearly meets the highest band, award full marks even if a theoretically better piece is imaginable. A mark near the middle should reflect work that genuinely sits in the middle band — not hesitation about giving an extreme score.
+
 Write "comment", "summary", "strengths", "weaknesses" and "improvements" in plain, encouraging English a 16-18 year-old IB student can read without a dictionary. Say plainly what was there, what was missing, and what to change next time. Avoid assessment jargon — do not write phrases like "criterion-referenced", "holistic best-fit judgement", "descriptor" or "band" in these fields; describe the work itself instead.
 
 For "quote": copy an exact sentence WORD-FOR-WORD from the STUDENT WORK above — it must appear verbatim in that text so it can be located. Never paraphrase it, and never take it from the calibration reference.
