@@ -79,16 +79,23 @@ export default function Checker() {
 
   /**
    * Catches the case where a PDF's real body is a scanned/embedded image and
-   * only the running header or footer sits in the actual text layer — pdfjs
-   * then returns the same short line over and over, which used to sail past
-   * the length check and get marked as a genuine 0. Whole-line repetition is
-   * the signal: a real essay never repeats one line for most of the document.
+   * only the running header or footer sits in the actual text layer. Verified
+   * against an official IB scanned exemplar: extractPdfText joins each PAGE's
+   * text items into a single line, so a repeated header comes back as one
+   * line PER PAGE, differing only by the page number — e.g. "...assessment
+   * work 1", "...assessment work 2". A naive exact-line duplicate check never
+   * catches this since no two lines are byte-identical. Stripping digits
+   * before comparing collapses those page-number-only differences, so what's
+   * really the same header repeated ten times is correctly seen as one line
+   * repeated across (almost) the whole document — which a real essay, where
+   * every page's text is different, never does.
    */
   function looksLikeNoRealText(text: string): boolean {
     const lines = text.split('\n').map((l) => l.trim()).filter(Boolean)
     if (lines.length < 4) return false
+    const normalized = lines.map((l) => l.replace(/\d+/g, '').trim())
     const counts: Record<string, number> = {}
-    for (const l of lines) counts[l] = (counts[l] || 0) + 1
+    for (const l of normalized) counts[l] = (counts[l] || 0) + 1
     const maxCount = Math.max(...Object.values(counts))
     return maxCount / lines.length > 0.5
   }
