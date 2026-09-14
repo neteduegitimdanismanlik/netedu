@@ -109,9 +109,9 @@ const IB_SCIENCES_MARKING: MarkingModel = {
     },
     {
       criterionId: 'C',
-      six: 'The conclusion is derived from the processed data including its uncertainty range; the relationship is named with the correct mathematical term; whether the experimental range contains the accepted value is stated explicitly; the accepted value is either traceably referenced or its absence is justified.',
+      six: 'The conclusion is derived from the processed data including its uncertainty range; the relationship is named with the correct mathematical term. Where a genuine accepted value exists, whether the experimental range contains it is stated explicitly. Where none exists, the report says so, and the result is instead contextualised against related, referenced values (similar shapes, similar systems, similar mechanisms) — a reasoned qualitative comparison is the top-band route here, since there is no accepted value for the range to contain.',
       four: 'The conclusion is relevant and stated but does not fully match the analysis — usually because the uncertainty range never enters it; comparison with scientific context exists but is superficial, naming a law without a numerical comparison.',
-      movingLine: 'Write the result as value ± range, then say in one sentence whether that range contains the accepted value. If it does not, do not hide it — discussing why raises the mark rather than lowering it. Naming a law is not a comparison.',
+      movingLine: 'If a genuine accepted value exists: write the result as value ± range, then say in one sentence whether that range contains it. If it does not, do not hide it — discussing why raises the mark rather than lowering it. If no accepted value exists and the essay says so, a reasoned comparison to related, referenced values satisfies this criterion on its own — do not require a range-containment sentence against those reference values, they are context, not an accepted value. Naming a law with no numbers attached is not a comparison, either way.',
     },
     {
       criterionId: 'D',
@@ -219,6 +219,13 @@ const IB_SCIENCES_MARKING: MarkingModel = {
       claim: 'Every claim needs a citation, and a long bibliography earns marks under Conclusion.',
       reality: 'Widely accepted laws and theories need no citation; a specific numerical value quoted from elsewhere does. Sources must be limited to those actually used and must be traceable. In one sample the bibliography was full but nothing in the text referred to it, and that strand nearly scored zero. A gradient value produced by the investigation itself needs no source.',
       detector: 'Output treats the number of sources as a positive signal, or asks for a citation for a result the investigation produced.',
+    },
+    {
+      id: 'no-accepted-value-still-needs-containment',
+      severity: 'high',
+      claim: 'When no accepted or literature value exists for the measured quantity, top marks on Conclusion still require the essay to state explicitly whether its experimental range contains the informal reference values it compares against.',
+      reality: 'The band descriptor only asks for range-containment against a genuine accepted value. When none exists and the student says so, comparing the result qualitatively to related, referenced values — similar shapes, similar systems, similar mechanisms — is itself the top-band route: "the accepted value is either traceably referenced or its absence is justified." An officially assessed sample took full marks on Conclusion this way, comparing an unmeasurable drag coefficient to the known values for a flat plate and a bullet with no containment statement, because no accepted value existed to contain.',
+      detector: 'Feedback docks Conclusion because the essay does not state whether its range contains reference values used only for qualitative context, in a report that has already said no accepted value exists for the quantity itself.',
     },
     {
       id: 'appendix-counts',
