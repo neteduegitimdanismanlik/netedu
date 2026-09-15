@@ -20,3 +20,9 @@ export const DAILY_CHECKS = 3
 
 /** CAS projects a student may ask to join per day. Not advertised either. */
 export const DAILY_JOIN_LIMIT = 2
+
+/** Mock Interview sessions a Pro student may start per day. Not advertised. */
+export const DAILY_INTERVIEWS = 3
+
+/** Individual Oral prep briefings a Pro student may request per day. Not advertised. */
+export const DAILY_ORAL_PREPS = 3

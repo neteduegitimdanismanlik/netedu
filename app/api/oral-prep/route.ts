@@ -3,6 +3,7 @@ import { getRubric } from '@/app/rubrics/schema'
 import { getMarkingModel } from '@/app/rubrics/checker-guards'
 import { getTopicRules } from '@/app/rubrics/topic-rules'
 import { languageAOralPrep } from '@/app/rubrics/language-a-oral'
+import { requirePro, countToday, limitReached, admin, DAILY_ORAL_PREPS } from '@/lib/plan'
 
 const MAX_CHARS = 20000
 
@@ -198,6 +199,9 @@ Return ONLY raw JSON, no markdown, no backticks:
 
 export async function POST(req: Request) {
   try {
+    const gate = await requirePro(req, 'Individual Oral prep')
+    if (gate instanceof NextResponse) return gate
+
     const { mode, rubricId, material, transcript } = await req.json()
 
     const rubric = getRubric(rubricId)
@@ -212,6 +216,15 @@ export async function POST(req: Request) {
           { status: 400 }
         )
       }
+      const used = await countToday('feature_usage', 'user_id', gate.userId, {
+        column: 'feature',
+        value: 'oral-prep',
+      })
+      if (used >= DAILY_ORAL_PREPS) {
+        return limitReached("You've used today's oral prep briefings. Come back tomorrow.")
+      }
+      await admin.from('feature_usage').insert({ user_id: gate.userId, feature: 'oral-prep' })
+
       const result = await buildBrief(rubric, '', material)
       return NextResponse.json(result)
     }

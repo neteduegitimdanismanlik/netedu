@@ -1,10 +1,23 @@
 import { NextResponse } from 'next/server'
+import { requirePro, countToday, limitReached, admin, DAILY_INTERVIEWS } from '@/lib/plan'
 
 export async function POST(req: Request) {
   try {
+    const gate = await requirePro(req, 'Mock Interview')
+    if (gate instanceof NextResponse) return gate
+
     const { action, university, department, messages, answer } = await req.json()
 
     if (action === 'start') {
+      const used = await countToday('feature_usage', 'user_id', gate.userId, {
+        column: 'feature',
+        value: 'interview',
+      })
+      if (used >= DAILY_INTERVIEWS) {
+        return limitReached("You've used today's mock interviews. Come back tomorrow.")
+      }
+      await admin.from('feature_usage').insert({ user_id: gate.userId, feature: 'interview' })
+
       const prompt = `You are an admissions interviewer at ${university} for ${department}. Start the interview with a warm welcome and ask the FIRST interview question. Make it realistic to ${university}'s actual interview style. Oxford/Cambridge: focus on academic depth and critical thinking. US Ivy League: focus on personal story, leadership, impact. Imperial/UCL: focus on motivation and technical interest. Keep it conversational. Just ask the first question, nothing else.`
 
       const res = await fetch('https://api.anthropic.com/v1/messages', {

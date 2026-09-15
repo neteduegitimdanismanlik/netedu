@@ -24,6 +24,8 @@ export {
   FREE_UNIVERSITY_MATCHES,
   DAILY_CHECKS,
   DAILY_JOIN_LIMIT,
+  DAILY_INTERVIEWS,
+  DAILY_ORAL_PREPS,
 } from './plan-limits'
 
 export type Plan = 'free' | 'pro'
@@ -63,16 +65,31 @@ export async function limitsWaived(userId: string): Promise<boolean> {
   return (await rawPlan(userId)) === 'unlimited'
 }
 
-/** Rows this user created since midnight UTC. */
-export async function countToday(table: string, column: string, userId: string): Promise<number> {
+/**
+ * Rows this user created since midnight UTC.
+ *
+ * `extra` narrows to one more column — used by shared tables like
+ * feature_usage, where several features share one table and a count for
+ * "interview" must not see rows written for "oral-prep".
+ */
+export async function countToday(
+  table: string,
+  column: string,
+  userId: string,
+  extra?: { column: string; value: string }
+): Promise<number> {
   const since = new Date()
   since.setUTCHours(0, 0, 0, 0)
 
-  const { count } = await admin
+  let query = admin
     .from(table)
     .select('id', { count: 'exact', head: true })
     .eq(column, userId)
     .gte('created_at', since.toISOString())
+
+  if (extra) query = query.eq(extra.column, extra.value)
+
+  const { count } = await query
 
   return count ?? 0
 }
