@@ -415,10 +415,12 @@ export async function POST(req: Request) {
 // Portfolio subjects: the mark is for one piece, not the whole submission.
     const r: any = rubric
     const portfolioNote = r.shape === 'portfolio'
-      ? `Bu bir ${r.instanceLabel ?? 'parça'} puanı: ${total}/${r.totalMax}. ` +
-        `Tam portfolyo ${r.instanceCount} ${r.instanceLabel} içeriyor. ` +
+      ? `This is a mark for one ${r.instanceLabel ?? 'piece'}: ${total}/${r.totalMax}. ` +
+        `The full portfolio has ${r.instanceCount} ${r.instanceLabel}${r.instanceCount === 1 ? '' : 's'}. ` +
         (r.portfolioCriteria?.length
-          ? `Ayrıca ${r.portfolioCriteria.map((c: any) => `${c.id} (${c.max} puan)`).join(', ')} kriteri üç parçaya birlikte uygulanır ve tek parçadan değerlendirilemez.`
+          ? `${r.portfolioCriteria.map((c: any) => `${c.id} (${c.max} marks)`).join(', ')} ${
+              r.portfolioCriteria.length === 1 ? 'is judged' : 'are judged'
+            } across all ${r.instanceCount} pieces together, so it can't be assessed from just this one.`
           : '')
       : null
     // Told plainly, so the student never reads a partial mark as a full one.
