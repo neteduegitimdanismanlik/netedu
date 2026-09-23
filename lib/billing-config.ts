@@ -57,3 +57,20 @@ export function priceFor(interval: BillingInterval, currency: ChargeCurrency): n
   if (interval === 'monthly') return currency === 'TRY' ? PRO_MONTHLY_TRY : PRO_MONTHLY_USD
   return currency === 'TRY' ? PRO_ANNUAL_TRY : PRO_ANNUAL_USD
 }
+
+/**
+ * Paddle — the interim provider while the şahıs şirketi paperwork is stuck.
+ * Paddle can't charge in TRY at all (see the comment at the top of this
+ * file), so for now EVERYONE checking out through Paddle pays the USD
+ * price, Turkish and foreign customers alike. Once iyzico is live, Turkish
+ * customers move to the TL plans above and Paddle stays only for foreign
+ * cards — this constant doesn't need to change for that, only which
+ * checkout button a given user sees.
+ *
+ * Empty until scripts/paddle-setup-plans.js creates the two prices and its
+ * output is pasted in here.
+ */
+export const PADDLE_PRICE_IDS: Record<BillingInterval, string> = {
+  monthly: '',
+  annual: '',
+}

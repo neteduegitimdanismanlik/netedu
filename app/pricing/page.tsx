@@ -1,7 +1,11 @@
 'use client'
+import { useState } from 'react'
 import Link from 'next/link'
 import Navbar from '../components/Navbar'
 import { subjectGroups, subjectState } from '../rubrics/subject-map'
+import { PaddleCheckoutButton } from '../../components/PaddleCheckoutButton'
+import { PRO_MONTHLY_USD, PRO_ANNUAL_USD } from '../../lib/billing-config'
+import type { BillingInterval } from '../../lib/billing-config'
 
 const CONTACT = 'neteduegitimdanismanlik@gmail.com'
 
@@ -24,7 +28,7 @@ const coveredSubjects = [
 const proMailto = `mailto:${CONTACT}?subject=${encodeURIComponent(
   'NetEdu Pro — access request'
 )}&body=${encodeURIComponent(
-  'Hi,\n\nI would like to upgrade to NetEdu Pro (49 EUR / month).\n\nStudent name:\nSchool:\nEmail used on NetEdu:\n\nThank you.'
+  'Hi,\n\nI am having trouble upgrading to NetEdu Pro through the site and would like help.\n\nStudent name:\nSchool:\nEmail used on NetEdu:\n\nThank you.'
 )}`
 
 const freeFeatures = [
@@ -45,6 +49,8 @@ const proFeatures = [
 ]
 
 export default function Pricing() {
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly')
+
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar showBack backHref="/dashboard" backLabel="Dashboard" />
@@ -95,9 +101,36 @@ export default function Pricing() {
               <h2 className="font-bold text-gray-900 text-lg">Pro</h2>
               <p className="text-xs text-gray-400">For the year that decides where you go</p>
             </div>
+
+            <div className="flex gap-1.5 mb-4 bg-gray-100 rounded-lg p-1 w-fit">
+              <button
+                onClick={() => setBillingInterval('monthly')}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                  billingInterval === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBillingInterval('annual')}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                  billingInterval === 'annual' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                }`}
+              >
+                Annual
+              </button>
+            </div>
+
             <div className="mb-6">
-              <span className="text-4xl font-bold text-gray-900">€49</span>
-              <span className="text-sm text-gray-400"> /month</span>
+              <span className="text-4xl font-bold text-gray-900">
+                ${billingInterval === 'monthly' ? PRO_MONTHLY_USD : PRO_ANNUAL_USD}
+              </span>
+              <span className="text-sm text-gray-400"> {billingInterval === 'monthly' ? '/month' : '/year'}</span>
+              {billingInterval === 'annual' && (
+                <p className="text-xs text-gray-400 mt-1">
+                  ${PRO_MONTHLY_USD}/mo billed once a year — priced for the school year, not the summer.
+                </p>
+              )}
             </div>
             <p className="text-xs font-medium text-gray-500 mb-3">Everything in Free, plus:</p>
             <ul className="flex flex-col gap-3 mb-7 flex-1">
@@ -108,11 +141,9 @@ export default function Pricing() {
                 </li>
               ))}
             </ul>
-            <a
-              href={proMailto}
-              className="w-full py-3 rounded-xl text-sm font-medium bg-indigo-900 text-white hover:bg-indigo-800 text-center block"
-            >
-              Request Pro access →
+            <PaddleCheckoutButton interval={billingInterval} />
+            <a href={proMailto} className="mt-3 text-xs text-gray-400 hover:text-gray-600 text-center block">
+              Having trouble paying? Contact us →
             </a>
           </div>
         </div>
