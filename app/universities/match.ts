@@ -41,6 +41,8 @@ export interface MatchRow {
   cycle: string
   checkedOn: string
   source?: string
+  /** predicted − effective requirement, in IB points. Used to rank 'reach' rows by how close they actually are. */
+  gapPoints?: number
 }
 
 const VERDICT_ORDER: Record<FitVerdict, number> = {
@@ -100,12 +102,22 @@ export function matchStudent(
       cycle: u.cycle,
       checkedOn: u.checkedOn,
       source: req.source ?? u.sources[0],
+      gapPoints: fit.gapPoints,
     })
   }
 
   rows.sort((a, b) => {
     const v = VERDICT_ORDER[a.verdict] - VERDICT_ORDER[b.verdict]
     if (v !== 0) return v
+
+    // Within Reach specifically, closest first. A 1-point reach and a
+    // 7-point reach plus an interview are not the same suggestion, and
+    // sorting by tier alone put Oxbridge ahead of both regardless of gap.
+    if (a.verdict === 'reach' && a.gapPoints != null && b.gapPoints != null) {
+      const g = Math.abs(a.gapPoints) - Math.abs(b.gapPoints)
+      if (g !== 0) return g
+    }
+
     // Within a band, spread the tiers rather than stacking the famous ones.
     const tierRank = { high: 0, mid: 1, accessible: 2 } as const
     return tierRank[a.tier] - tierRank[b.tier]

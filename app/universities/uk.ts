@@ -1,8 +1,8 @@
 import type { University } from './schema'
 
 /**
- * United Kingdom — 30 universities, read from official .ac.uk pages between
- * 2 and 14 September 2026. The last 11 (from Essex onward) were checked for
+ * United Kingdom — 34 universities, read from official .ac.uk pages between
+ * 2 and 28 September 2026. From Essex onward (14 of the 34) were checked for
  * Psychology only — see the note above that block.
  *
  * HOW TO READ THIS FILE
@@ -773,9 +773,9 @@ export const UK_UNIVERSITIES: University[] = [
       { area: 'Architecture & Art', offered: false },
       {
         area: 'Psychology', offered: true, course: 'Psychology BSc',
-        ibPoints: 38, ibHl: '18 HL points including 6 in a science',
-        hlRequired: ['a science-related subject'],
-        note: 'Bristol does not publish which subjects count as science-related — check with the department before relying on this.',
+        ibPoints: 38, ibHl: '18 HL points including 6 in a science-related subject',
+        hlRequired: ['one of Biology, Chemistry, Computer Science, Further Mathematics, Geography, Mathematics, Physics, Psychology or Statistics'],
+        note: 'Science-related subjects, as published: Biology, Chemistry, Computer Science, Further Mathematics, Geography, Mathematics, Physics, Psychology and Statistics.',
         source: 'https://www.bristol.ac.uk/study/undergraduate/2027/psychology/bsc-psychology/',
       },
     ],
@@ -857,8 +857,11 @@ export const UK_UNIVERSITIES: University[] = [
       {
         area: 'Psychology', offered: true, course: 'Psychology BSc / MA',
         ibPoints: 36, ibHl: '6,6,5',
-        hlRequired: ['two sciences (BSc) or English/Humanities (MA)'],
-        note: 'Plus Standard Level Mathematics at 4. The BSc and MA routes have different subject requirements.',
+        hlRequiredAnyOf: [
+          { count: 2, subjects: ['Biology', 'Chemistry', 'Physics', 'Computer Science', 'Environmental Systems and Societies'] },
+          { count: 1, subjects: ['English', 'a Humanities subject'] },
+        ],
+        note: 'Two published routes: the BSc wants two Higher Level science subjects, the MA wants one Higher Level subject in English or a Humanities subject (plus Standard Level English at 6). Glasgow does not publish which subjects count as "science" for the BSc route — this checks Biology, Chemistry, Physics, Computer Science and Environmental Systems and Societies; if Mathematics is your only other science-adjacent Higher Level, check with the department before relying on this. Also requires Standard Level Mathematics at 4.',
         source: 'https://www.gla.ac.uk/undergraduate/degrees/psychology/',
       },
     ],
@@ -982,7 +985,7 @@ export const UK_UNIVERSITIES: University[] = [
       },
       {
         area: 'Economics & Business', offered: true, course: 'Economics BSc',
-        note: 'Requirements could not be read — the course page returned a server error on every attempt. Check the university page directly.',
+        note: "We weren't able to load this course's entry requirements from Birmingham's website. Please check the official page below for the current IB points and subjects needed.",
         source: 'https://www.birmingham.ac.uk/study/undergraduate/subjects/economics-courses/economics-bsc',
       },
       {
@@ -1407,7 +1410,7 @@ export const UK_UNIVERSITIES: University[] = [
       },
       {
         area: 'Engineering', offered: true, course: 'Mechanical Engineering MEng',
-        note: 'A-level offer AAA. The IB requirement did not render. Lancaster’s general guidance for engineering accepts SL Analysis and Approaches at 7 alongside HL Physics or Chemistry at 6.',
+        note: "Lancaster publishes this course's A-level offer as AAA, but not its IB points figure. Their general engineering guidance accepts Standard Level Analysis and Approaches at 7 alongside Higher Level Physics or Chemistry at 6.",
         source: 'https://www.lancaster.ac.uk/study/undergraduate/courses/mechanical-engineering-meng-hons-h303/2027/',
       },
       {
@@ -1418,22 +1421,22 @@ export const UK_UNIVERSITIES: University[] = [
       },
       {
         area: 'Economics & Business', offered: true, course: 'Economics BSc',
-        note: 'A-level offer AAB, no required subjects listed. IB requirement did not render; the university equivalence for AAB is 35 with 16 HL points.',
+        note: "Lancaster publishes this course's A-level offer as AAB, with no required subjects listed — but not its own IB points figure. Based on their official grade-equivalence table, AAB corresponds to roughly 35 points with 16 from your best three Higher Levels; treat this as an estimate, not this course's own published number.",
         source: 'https://www.lancaster.ac.uk/study/undergraduate/courses/economics-bsc-hons-l100/2026/',
       },
       {
         area: 'Law', offered: true, course: 'Law LLB',
-        note: 'A-level offer AAB, no required subjects and no LNAT. IB requirement did not render; equivalence for AAB is 35 with 16 HL points.',
+        note: "Lancaster publishes this course's A-level offer as AAB, with no required subjects and no LNAT — but not its own IB points figure. Based on their official grade-equivalence table, AAB corresponds to roughly 35 points with 16 from your best three Higher Levels; treat this as an estimate, not this course's own published number.",
         source: 'https://www.lancaster.ac.uk/study/undergraduate/courses/law-llb-hons-m100/2026/',
       },
       {
         area: 'Architecture & Art', offered: true, course: 'Fine Art BA',
-        note: 'Lancaster has no Architecture degree. Fine Art A-level offer ABB; the IB requirement and any portfolio requirement did not render.',
+        note: "Lancaster has no Architecture degree. Fine Art's A-level offer is published as ABB, but its IB points figure and any portfolio requirement are not — check the official page for those. Based on Lancaster's official grade-equivalence table, ABB corresponds to roughly 32 points with 16 from your best three Higher Levels; treat this as an estimate, not this course's own published number.",
         source: 'https://www.lancaster.ac.uk/study/undergraduate/courses/fine-art-ba-hons-w100/2027/',
       },
       {
         area: 'Psychology', offered: true, course: 'Psychology BSc',
-        note: 'A-level offer AAB, no required subjects listed. IB requirement did not render.',
+        note: "Lancaster publishes this course's A-level offer as AAB, with no required subjects listed — but not its own IB points figure. Based on their official grade-equivalence table, AAB corresponds to roughly 35 points with 16 from your best three Higher Levels; treat this as an estimate, not this course's own published number.",
         source: 'https://www.lancaster.ac.uk/study/undergraduate/courses/psychology-bsc-hons-c800/2027/',
       },
     ],
@@ -1860,6 +1863,107 @@ export const UK_UNIVERSITIES: University[] = [
         area: 'Psychology', offered: true, course: 'BSc (Hons) Psychology',
         note: 'No IB-specific points figure is published for this course. Contact admissions for an individual equivalence assessment.',
         source: 'https://www.uwl.ac.uk/course/undergraduate/psychology',
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'liverpool',
+    name: 'University of Liverpool',
+    city: 'Liverpool',
+    country: 'United Kingdom',
+    tier: 'mid',
+    ibTypicalLow: 32,
+    ibTypicalHigh: 32,
+    ibNote: 'Figure checked for Psychology BSc only.',
+    ieltsOverall: 7.0,
+    ieltsComponent: 6.5,
+    satPolicy: 'unknown',
+    tuitionCurrency: 'GBP',
+    tuitionIntlMin: 32000,
+    tuitionYear: '2026/27 entry (2027/28 not yet published)',
+    applicationSystem: 'UCAS',
+    cycle: '2027 entry',
+    checkedOn: '2026-09-28',
+    sources: [
+      'https://www.liverpool.ac.uk/study/undergraduate/courses/psychology-bsc-hons/entry-requirements/',
+      'https://www.liverpool.ac.uk/study/undergraduate/courses/psychology-bsc-hons/about-us',
+    ],
+    gaps: [
+      "The course also asks for 6 at Higher Level in a science subject, but Liverpool doesn't publish which subjects count as science on this page, so that part can't be checked automatically — verify your HL choice satisfies it before relying on a Match or Reach badge here.",
+    ],
+    areas: [
+      {
+        area: 'Psychology', offered: true, course: 'Psychology BSc (Hons)',
+        ibPoints: 32, ibHl: '6,5,5 across three Higher Levels, including 6 in a Higher Level science subject',
+        note: 'Two published routes to the same 32: an overall total with no score below 4 and 6 in a Higher Level science subject, or 6,5,5 across three Higher Levels including 6 in a Higher Level science subject. Which subjects count as "science" is not stated. UCAS C800.',
+        source: 'https://www.liverpool.ac.uk/study/undergraduate/courses/psychology-bsc-hons/entry-requirements/',
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'newcastle',
+    name: 'Newcastle University',
+    city: 'Newcastle upon Tyne',
+    country: 'United Kingdom',
+    tier: 'mid',
+    ibTypicalLow: 34,
+    ibTypicalHigh: 34,
+    ibNote: 'Figure checked for Psychology BSc only.',
+    ieltsOverall: 6.5,
+    ieltsComponent: 5.5,
+    ieltsNote: 'University-wide minimum — individual course pages list a higher figure when one applies. No course-specific figure is published for Psychology BSc.',
+    satPolicy: 'unknown',
+    tuitionCurrency: 'GBP',
+    tuitionIntlMin: 30900,
+    tuitionIntlMax: 31950,
+    tuitionYear: '2026/27 entry is £30,900; 2027 entry is £31,950',
+    applicationSystem: 'UCAS',
+    cycle: '2027 entry',
+    checkedOn: '2026-09-28',
+    sources: [
+      'https://www.ncl.ac.uk/undergraduate/degrees/c800/',
+      'https://www.ncl.ac.uk/international/language/',
+    ],
+    areas: [
+      {
+        area: 'Psychology', offered: true, course: 'Psychology BSc',
+        ibPoints: 34,
+        note: 'No Higher Level subject is named for this course, and no HL grade breakdown is published — only the 34-point total. UCAS C800.',
+        source: 'https://www.ncl.ac.uk/undergraduate/degrees/c800/',
+      },
+    ],
+  },
+
+  /* ---------------------------------------------------------------- */
+  {
+    id: 'cardiff',
+    name: 'Cardiff University',
+    city: 'Cardiff',
+    country: 'United Kingdom',
+    tier: 'mid',
+    ibTypicalLow: 32,
+    ibTypicalHigh: 36,
+    ibNote: 'Figure checked for Psychology BSc only.',
+    ieltsOverall: 6.5,
+    ieltsComponent: 5.5,
+    satPolicy: 'unknown',
+    tuitionCurrency: 'GBP',
+    tuitionIntlMin: 31700,
+    tuitionYear: '2027 entry',
+    applicationSystem: 'UCAS',
+    cycle: '2027 entry',
+    checkedOn: '2026-09-28',
+    sources: ['https://www.cardiff.ac.uk/study/undergraduate/courses/course/psychology-bsc'],
+    areas: [
+      {
+        area: 'Psychology', offered: true, course: 'Psychology BSc',
+        ibPoints: 36, ibPointsMin: 32, ibHl: '6,6,6 or 6,6,5 across three Higher Levels, or 6 in a single Higher Level subject',
+        note: 'No specific Higher Level subject is required — the requirement is a grade profile, not a named subject. UCAS C800.',
+        source: 'https://www.cardiff.ac.uk/study/undergraduate/courses/course/psychology-bsc',
       },
     ],
   },

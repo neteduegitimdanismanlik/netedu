@@ -104,6 +104,18 @@ export interface AreaRequirement {
   /** HL subjects that must be present. A hard eliminator. */
   hlRequired?: string[]
   /**
+   * Alternative ways to satisfy a subject-count prerequisite — a hard
+   * eliminator, like `hlRequired`, but for requirements `hlRequired` cannot
+   * express: "at least N of these", or "route A's requirement OR route B's".
+   * Satisfying any ONE alternative in the array is enough (Glasgow Psychology:
+   * two HL sciences for the BSc route, OR one HL English/Humanities subject
+   * for the MA route — two different counts over two different subject
+   * lists, either one sufficient). Each student HL subject counts toward an
+   * alternative at most once, even if it matches more than one name in that
+   * alternative's `subjects` list.
+   */
+  hlRequiredAnyOf?: { count: number; subjects: string[] }[]
+  /**
    * A LOWER points total that applies instead of `ibPoints` when the student
    * has one of these HL subjects — a discount, not a prerequisite (Warwick
    * Psychology: 34 with an HL science, 36 without). `ibPoints` above should
@@ -243,6 +255,14 @@ export interface FitResult {
   missing: string[]
   /** True when the figures came from a checked official page rather than a general rule. */
   verified: boolean
+  /**
+   * predicted − effective requirement, in IB points. Negative means short.
+   * Only set when both figures are known. Used to rank 'reach' results by how
+   * close they actually are — a 1-point reach and a 7-point reach are not the
+   * same kind of suggestion, and stacking the famous names first buried the
+   * difference.
+   */
+  gapPoints?: number
 }
 
 /** Loose subject matching — 'Mathematics AA' should satisfy a 'Mathematics' requirement. */
@@ -314,8 +334,47 @@ export function assessFit(
     }
   }
 
+  // 1b. Alternative subject-count prerequisites — same hard-eliminator status
+  // as hlRequired above, just for a shape hlRequired cannot express: "at
+  // least N of these", possibly with more than one route to satisfy it.
+  if (req.hlRequiredAnyOf?.length) {
+    if (!profile.hlSubjects?.length) {
+      hlUnconfirmed = true
+      missing.push(
+        `This course requires ${req.hlRequiredAnyOf
+          .map((alt) => `${alt.count} of ${alt.subjects.join(', ')}`)
+          .join(', or ')} at Higher Level. Add your HL subjects to check.`
+      )
+    } else {
+      const matchCounts = req.hlRequiredAnyOf.map((alt) => {
+        // Each of the student's HL subjects counts once toward this
+        // alternative, even if it happens to match more than one name in
+        // alt.subjects (e.g. both 'Mathematics' and 'Mathematics AA').
+        const matched = profile.hlSubjects!.filter((s) => alt.subjects.some((r) => hasHl([s], r)))
+        return { alt, met: matched.length >= alt.count }
+      })
+      const satisfied = matchCounts.some((m) => m.met)
+      if (!satisfied) {
+        return {
+          verdict: 'not-eligible',
+          reasons: [
+            `${req.course || area} requires ${req.hlRequiredAnyOf
+              .map((alt) => `${alt.count} of ${alt.subjects.join(', ')}`)
+              .join(', or ')} at Higher Level, which you are not taking. This is a prerequisite, not a preference — the application cannot be made without it.`,
+          ],
+          missing: [],
+          verified: true,
+        }
+      }
+      const metAlt = matchCounts.find((m) => m.met)!.alt
+      reasons.push(`You have the required Higher Level subjects (${metAlt.count} of ${metAlt.subjects.join(', ')}).`)
+    }
+  }
+
   // 2. Points — but only where the country actually makes grade offers.
   let verdict: FitVerdict = 'unknown'
+  // Hoisted out of the block below so the final return can rank on it.
+  let gapPoints: number | undefined
   const model = university.admissionModel ?? 'offer'
 
   if (model !== 'offer' && req.ibPoints == null) {
@@ -360,6 +419,7 @@ export function assessFit(
   if (effectiveIbPoints != null) {
     if (profile.ibPredicted != null) {
       const gap = profile.ibPredicted - effectiveIbPoints
+      gapPoints = gap
       const withinPublishedRange =
         req.ibPointsMin != null && profile.ibPredicted >= req.ibPointsMin && gap < 0
 
@@ -454,7 +514,7 @@ export function assessFit(
     verdict = 'unknown'
   }
 
-  return { verdict, reasons, missing, verified: true }
+  return { verdict, reasons, missing, verified: true, gapPoints }
 }
 
 /** Human label for a verdict, for the UI. */
