@@ -18,9 +18,9 @@ export interface LegalDocument {
  * so an unfilled field is noticed rather than published silently.
  */
 export const LEGAL = {
-  controller: '[Veri sorumlusunun adı soyadı / şirket unvanı]',
-  address: '[Açık adres]',
+  controller: 'NetEdu',
+  address: '',
   email: 'neteduegitimdanismanlik@gmail.com',
-  effectiveDate: '[gg.aa.yyyy]',
+  effectiveDate: '11.10.2026',
   deleteDays: 30,
 }

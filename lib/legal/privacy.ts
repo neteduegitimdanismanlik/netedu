@@ -11,7 +11,7 @@ const tr: LegalDocument = {
     {
       title: '1. Veri sorumlusu',
       body: [
-        `${controller}, ${address}. İletişim: ${email}.`,
+        `${controller}${address ? `, ${address}` : ''}. İletişim: ${email}.`,
       ],
     },
     {
@@ -109,7 +109,7 @@ const en: LegalDocument = {
   sections: [
     {
       title: '1. Data controller',
-      body: [`${controller}, ${address}. Contact: ${email}.`],
+      body: [`${controller}${address ? `, ${address}` : ''}. Contact: ${email}.`],
     },
     {
       title: '2. Data we process',
