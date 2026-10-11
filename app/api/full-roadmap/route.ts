@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { callerId, unauthorized } from '@/lib/api-auth'
 import { planOf, paymentRequired } from '@/lib/plan'
+import { consentGate } from '@/lib/consent'
 
 export const maxDuration = 60
 
@@ -15,6 +16,9 @@ export async function POST(req: Request) {
     const { yearIndex, totalYears } = await req.json()
     const userId = await callerId(req)
     if (!userId) return unauthorized()
+
+    const blocked = await consentGate(userId, 'account')
+    if (blocked) return blocked
 
     // Free builds the current year only. Later years are Pro — each one is a
     // separate Anthropic call, and the full multi-year plan is the paid part.

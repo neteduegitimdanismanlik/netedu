@@ -2,47 +2,72 @@
 /**
  * One-time setup script — NOT part of the app's runtime.
  *
- * Creates the "NetEdu Pro" product in Paddle and its two USD prices
- * (monthly, annual), then prints the price ids to paste into
- * lib/billing-config.ts's PADDLE_PRICE_IDS. Run it once against sandbox
- * while developing, and again against production right before launch —
- * sandbox and production are separate Paddle accounts with separate ids,
- * a sandbox price id will not work in production.
+ * Creates the single "NetEdu Pro" product in Paddle and its two USD prices
+ * (monthly, annual) — one plan, same price for everyone, no trial. This is
+ * the plan actually wired into the app (lib/billing-config.ts, the pricing
+ * page, the checkout button) — nothing tiered, nothing trial-gated.
+ *
+ * Uses Node's built-in fetch — no SDK install needed to just run this once.
  *
  * Usage:
- *   PADDLE_API_KEY=... PADDLE_ENV=sandbox node scripts/paddle-setup-plans.js
+ *   PADDLE_API_KEY=pdl_sdbx_... PADDLE_ENV=sandbox node scripts/paddle-setup-plans.js
  */
 
-const { Environment, Paddle } = require('@paddle/paddle-node-sdk')
+const API_KEY = process.env.PADDLE_API_KEY
+const BASE_URL = process.env.PADDLE_ENV === 'production'
+  ? 'https://api.paddle.com'
+  : 'https://sandbox-api.paddle.com'
+
+if (!API_KEY) {
+  console.error('Set PADDLE_API_KEY first, e.g.:\n  PADDLE_API_KEY=pdl_sdbx_... node scripts/paddle-setup-plans.js')
+  process.exitCode = 1
+  return
+}
 
 const PRO_MONTHLY_USD = 49
 const PRO_ANNUAL_USD = 400
 
-const paddle = new Paddle(process.env.PADDLE_API_KEY, {
-  environment: process.env.PADDLE_ENV === 'production' ? Environment.production : Environment.sandbox,
-})
+async function paddle(method, endpoint, body) {
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  })
+  const json = await res.json()
+  if (!res.ok) {
+    throw new Error(`${method} ${endpoint} -> ${res.status}: ${JSON.stringify(json.error || json)}`)
+  }
+  return json.data
+}
 
 async function main() {
-  console.log(`Creating against Paddle ${process.env.PADDLE_ENV === 'production' ? 'production' : 'sandbox'}\n`)
+  console.log(`Creating against: ${BASE_URL}\n`)
 
-  const product = await paddle.products.create({ name: 'NetEdu Pro', taxCategory: 'standard' })
+  const product = await paddle('POST', '/products', {
+    name: 'NetEdu Pro',
+    tax_category: 'standard',
+    description: 'NetEdu Pro subscription',
+  })
   console.log('Product created:', product.id)
 
-  const monthly = await paddle.prices.create({
+  const monthly = await paddle('POST', '/prices', {
     description: 'NetEdu Pro — Monthly',
-    productId: product.id,
-    unitPrice: { amount: String(PRO_MONTHLY_USD * 100), currencyCode: 'USD' }, // Paddle prices are in the smallest currency unit — cents.
-    billingCycle: { interval: 'month', frequency: 1 },
-    taxMode: 'account_setting',
+    product_id: product.id,
+    unit_price: { amount: String(PRO_MONTHLY_USD * 100), currency_code: 'USD' },
+    billing_cycle: { interval: 'month', frequency: 1 },
+    tax_mode: 'account_setting',
   })
   console.log(`Price monthly ($${PRO_MONTHLY_USD}):`, monthly.id)
 
-  const annual = await paddle.prices.create({
+  const annual = await paddle('POST', '/prices', {
     description: 'NetEdu Pro — Annual',
-    productId: product.id,
-    unitPrice: { amount: String(PRO_ANNUAL_USD * 100), currencyCode: 'USD' },
-    billingCycle: { interval: 'year', frequency: 1 },
-    taxMode: 'account_setting',
+    product_id: product.id,
+    unit_price: { amount: String(PRO_ANNUAL_USD * 100), currency_code: 'USD' },
+    billing_cycle: { interval: 'year', frequency: 1 },
+    tax_mode: 'account_setting',
   })
   console.log(`Price annual ($${PRO_ANNUAL_USD}):`, annual.id)
 
@@ -57,6 +82,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error('\nSetup failed:', err.message || err)
-  process.exit(1)
+  console.error('\nSetup failed:', err.message)
+  process.exitCode = 1
 })

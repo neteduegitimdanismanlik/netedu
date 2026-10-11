@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import ConsentFields, { emptyConsent, validateConsent, consentMetadata, isMinor } from '../components/ConsentFields'
 
 export default function Auth() {
   const [email, setEmail] = useState('')
@@ -9,6 +10,7 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [consent, setConsent] = useState(emptyConsent)
 
   async function handleSubmit() {
     setLoading(true)
@@ -18,9 +20,26 @@ export default function Auth() {
       if (error) setMessage(error.message)
       else window.location.href = '/dashboard'
     } else {
-      const { error } = await supabase.auth.signUp({ email, password })
+      const invalid = validateConsent(consent, email)
+      if (invalid) {
+        setMessage(invalid)
+        setLoading(false)
+        return
+      }
+      // The consent travels as signup metadata; a database trigger stores it
+      // in public.consents (see sql/consents.sql).
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: consentMetadata(consent) },
+      })
       if (error) setMessage(error.message)
-      else setMessage('Account created! You can now login.')
+      else
+        setMessage(
+          isMinor(consent)
+            ? "Account created! You can now login. We'll e-mail your parent for approval when you first sign in."
+            : 'Account created! You can now login.'
+        )
     }
     setLoading(false)
   }
@@ -63,6 +82,8 @@ export default function Auth() {
               className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
             />
           </div>
+
+          {!isLogin && <ConsentFields value={consent} onChange={setConsent} />}
 
           {message && (
             <div className={`text-sm px-4 py-3 rounded-xl ${message.includes('created') || message.includes('sent') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>

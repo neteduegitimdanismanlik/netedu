@@ -113,7 +113,7 @@ sql/cas-chat.sql        CAS tabloları + RLS
 
 **Önce yapılması gerekenler:**
 
-1. **Gizlilik politikası.** Öğrenci metni saklanıyor, admin okuyabiliyor, Anthropic API'ye gidiyor, Vercel/Supabase'de barınıyor. Canlıya gerçek öğrenci almadan önce şart. KVKK/GDPR.
+1. ~~Gizlilik politikası~~ → 11 Ekim'de kuruldu, bkz. §11. Kalan: `lib/legal/types.ts` içindeki köşeli parantezleri doldur, avukata okut, Resend domain doğrula.
 2. **Anthropic'te aylık harcama tavanı.** Beş dakikalık iş, ertelenmemeli.
 3. **CAS'i iki hesapla baştan sona test et** — Ask to join → Accept → sohbet → iletişim uyarısı.
 
@@ -170,3 +170,14 @@ sql/cas-chat.sql        CAS tabloları + RLS
 ## Yeni oturuma nasıl başlanır
 
 Bu notu yapıştır, sonra ne yapmak istediğini söyle. Yeni oturumun bilmesi gereken tek ek şey: dosyalar `C:\Users\PC\netedu-proje` altında ve bilgisayar bağlıysa doğrudan düzenlenebilir.
+
+---
+
+## 11. KVKK / onay sistemi (11 Ekim 2026)
+
+- **Metinler:** `/privacy` (Aydınlatma Metni) ve `/terms` (Kullanım Koşulları), TR + EN, Türkçe esas. İçerik `lib/legal/privacy.ts` ve `lib/legal/terms.ts`'te; unvan, adres, yürürlük tarihi `lib/legal/types.ts` → `LEGAL`.
+- **Sürüm:** `lib/consent-shared.ts` → `NOTICE_VERSION`. Metin önemli ölçüde değişirse artır; giriş yapan herkes bir kez `/consent`'e yönlendirilir.
+- **Tablo:** `public.consents` (`sql/consents.sql`). Kayıt formundaki onay signUp metadata'sıyla gelir, trigger satıra çevirir. Eski kullanıcılar `/consent` ekranında onay verir.
+- **Yaş:** 13 altı kayıt olamaz. 18 altı veli e-postası verir; veli `/parent-consent/[token]` sayfasında adını yazıp onaylar (ad, tarih, IP, metin sürümü saklanır).
+- **Sunucu kilidi:** `requireUser` onay yoksa 403 döner. `requirePro` ve `/api/portfolio` POST ayrıca 18 altı için veli onayı arar. Tarayıcıdaki `ConsentGate` sadece yönlendirme ve banner.
+- **Bilinen açık:** Veli e-postası `onboarding@resend.dev` ile yalnızca Resend hesap sahibine gider. Domain doğrulanıp `RESEND_FROM` tanımlanana kadar veliler e-posta almaz, 18 altı öğrenciler kilitli kalır.

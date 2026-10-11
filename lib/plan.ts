@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { callerId } from './api-auth'
 import { FREE_UNIVERSITY_MATCHES } from './plan-limits'
+import { consentGate } from './consent'
 
 /**
  * What Free gets and what Pro gets — in one file, enforced on the server.
@@ -114,6 +115,11 @@ export function limitReached(message: string) {
 export async function requireUser(req: Request): Promise<{ userId: string } | NextResponse> {
   const userId = await callerId(req)
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // No accepted Privacy Notice, no processing. 403 with a message the page can show.
+  const blocked = await consentGate(userId, 'account')
+  if (blocked) return blocked
+
   return { userId }
 }
 
@@ -128,5 +134,11 @@ export async function requirePro(
   if ((await planOf(gate.userId)) !== 'pro') {
     return paymentRequired(`${feature} is part of Pro.`)
   }
+
+  // Every Pro feature sends the student's own work to Anthropic. A minor
+  // needs a parent's approval on file before that can happen.
+  const blocked = await consentGate(gate.userId, 'content')
+  if (blocked) return blocked
+
   return gate
 }

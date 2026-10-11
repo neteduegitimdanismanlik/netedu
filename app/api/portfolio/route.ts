@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { recomputeIdentityScore } from '@/lib/identity'
 import { callerId, callerIsAdmin, unauthorized, forbidden } from '@/lib/api-auth'
+import { consentGate } from '@/lib/consent'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,6 +20,10 @@ export async function POST(req: Request) {
     // The owner is whoever holds the session, not whoever claims an id.
     const userId = await callerId(req)
     if (!userId) return unauthorized()
+
+    // The item goes to Anthropic for scoring: needs a parent's approval for minors.
+    const blocked = await consentGate(userId, 'content')
+    if (blocked) return blocked
 
     const prompt = `You are an academic portfolio evaluator for university admissions. Score this student submission out of 100.
 Item: "${title}"

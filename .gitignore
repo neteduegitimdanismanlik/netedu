@@ -42,3 +42,7 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# local export/scratch folder some tool writes into the project root —
+# has held a copy of .env.local before (with secrets), never belongs in git
+/Claude outputs/

@@ -4,10 +4,30 @@ import Link from 'next/link'
 import Navbar from '../components/Navbar'
 import { subjectGroups, subjectState } from '../rubrics/subject-map'
 import { PaddleCheckoutButton } from '../../components/PaddleCheckoutButton'
-import { PRO_MONTHLY_USD, PRO_ANNUAL_USD } from '../../lib/billing-config'
+import { PRO_MONTHLY_USD, PRO_ANNUAL_USD, PADDLE_PRICE_IDS } from '../../lib/billing-config'
 import type { BillingInterval } from '../../lib/billing-config'
 
 const CONTACT = 'neteduegitimdanismanlik@gmail.com'
+
+/**
+ * Card payments are not live yet — no registered company to collect through,
+ * so Pro access is granted by hand after a student emails in. The Paddle
+ * checkout below is real infrastructure, already wired up, but it must never
+ * reach a student before scripts/paddle-setup-plans.js has actually been run
+ * against a real Paddle account and its price ids pasted into
+ * lib/billing-config.ts.
+ *
+ * This flag is what makes that safe by DEFAULT rather than by discipline: it
+ * reads those price ids, not a separate on/off switch, so there is nothing
+ * to remember to flip. Ship this file to production today, next month,
+ * whenever — as long as PADDLE_PRICE_IDS stays empty, every visitor gets the
+ * plain "email us" card below, identical to what is live now. The Paddle
+ * card only appears once real price ids are pasted in, which only happens
+ * once the company and the Paddle account are actually ready to charge
+ * someone. Nobody needs to remember to "turn this on" — filling in the price
+ * ids *is* turning it on.
+ */
+const paddleReady = Boolean(PADDLE_PRICE_IDS.monthly && PADDLE_PRICE_IDS.annual)
 
 /**
  * The subject list is derived from the rubric registry, never hand-written —
@@ -102,49 +122,75 @@ export default function Pricing() {
               <p className="text-xs text-gray-400">For the year that decides where you go</p>
             </div>
 
-            <div className="flex gap-1.5 mb-4 bg-gray-100 rounded-lg p-1 w-fit">
-              <button
-                onClick={() => setBillingInterval('monthly')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
-                  billingInterval === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBillingInterval('annual')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
-                  billingInterval === 'annual' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
-                }`}
-              >
-                Annual
-              </button>
-            </div>
+            {paddleReady ? (
+              <>
+                <div className="flex gap-1.5 mb-4 bg-gray-100 rounded-lg p-1 w-fit">
+                  <button
+                    onClick={() => setBillingInterval('monthly')}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                      billingInterval === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                  <button
+                    onClick={() => setBillingInterval('annual')}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                      billingInterval === 'annual' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                    }`}
+                  >
+                    Annual
+                  </button>
+                </div>
 
-            <div className="mb-6">
-              <span className="text-4xl font-bold text-gray-900">
-                ${billingInterval === 'monthly' ? PRO_MONTHLY_USD : PRO_ANNUAL_USD}
-              </span>
-              <span className="text-sm text-gray-400"> {billingInterval === 'monthly' ? '/month' : '/year'}</span>
-              {billingInterval === 'annual' && (
-                <p className="text-xs text-gray-400 mt-1">
-                  ${PRO_MONTHLY_USD}/mo billed once a year — priced for the school year, not the summer.
-                </p>
-              )}
-            </div>
-            <p className="text-xs font-medium text-gray-500 mb-3">Everything in Free, plus:</p>
-            <ul className="flex flex-col gap-3 mb-7 flex-1">
-              {proFeatures.map((f, i) => (
-                <li key={i} className="flex gap-2 text-sm text-gray-600 leading-relaxed">
-                  <span className="text-indigo-700 flex-shrink-0">✓</span>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <PaddleCheckoutButton interval={billingInterval} />
-            <a href={proMailto} className="mt-3 text-xs text-gray-400 hover:text-gray-600 text-center block">
-              Having trouble paying? Contact us →
-            </a>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold text-gray-900">
+                    ${billingInterval === 'monthly' ? PRO_MONTHLY_USD : PRO_ANNUAL_USD}
+                  </span>
+                  <span className="text-sm text-gray-400"> {billingInterval === 'monthly' ? '/month' : '/year'}</span>
+                  {billingInterval === 'annual' && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      ${PRO_MONTHLY_USD}/mo billed once a year — priced for the school year, not the summer.
+                    </p>
+                  )}
+                </div>
+                <p className="text-xs font-medium text-gray-500 mb-3">Everything in Free, plus:</p>
+                <ul className="flex flex-col gap-3 mb-7 flex-1">
+                  {proFeatures.map((f, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-gray-600 leading-relaxed">
+                      <span className="text-indigo-700 flex-shrink-0">✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <PaddleCheckoutButton interval={billingInterval} />
+                <a href={proMailto} className="mt-3 text-xs text-gray-400 hover:text-gray-600 text-center block">
+                  Having trouble paying? Contact us →
+                </a>
+              </>
+            ) : (
+              <>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold text-gray-900">€{PRO_MONTHLY_USD}</span>
+                  <span className="text-sm text-gray-400"> /month</span>
+                </div>
+                <p className="text-xs font-medium text-gray-500 mb-3">Everything in Free, plus:</p>
+                <ul className="flex flex-col gap-3 mb-7 flex-1">
+                  {proFeatures.map((f, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-gray-600 leading-relaxed">
+                      <span className="text-indigo-700 flex-shrink-0">✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <a
+                  href={proMailto}
+                  className="w-full py-3 rounded-xl text-sm font-medium bg-indigo-900 text-white hover:bg-indigo-800 text-center block"
+                >
+                  Request Pro access →
+                </a>
+              </>
+            )}
           </div>
         </div>
 
@@ -182,3 +228,4 @@ export default function Pricing() {
     </main>
   )
 }
+

@@ -1,7 +1,7 @@
 /**
  * Pro plan pricing — the one place these numbers live.
  *
- * The advertised price is always in USD ("$49/mo, $360/yr"). What actually
+ * The advertised price is always in USD ("$19/mo, $400/yr"). What actually
  * gets charged depends on the card:
  *
  *   - Turkish-issued cards CANNOT be charged in a foreign currency for a
@@ -20,7 +20,7 @@
  */
 export const TRY_PER_USD = 48.5
 
-export const PRO_MONTHLY_USD = 49
+export const PRO_MONTHLY_USD = 19
 /** Priced for ~9 months of real use, not 12 — students are off in the summer. */
 export const PRO_ANNUAL_USD = 400
 

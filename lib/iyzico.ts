@@ -10,11 +10,37 @@ import Iyzipay from 'iyzipay'
  * once the production merchant account is approved. Never hit production
  * with sandbox keys or vice versa — the reference codes are not compatible
  * across environments.
+ *
+ * Built lazily, on first actual use, rather than when this module loads —
+ * same reasoning as lib/paddle.ts: constructing eagerly meant any route
+ * that merely imported this file crashed Next's build-time "collecting page
+ * data" step whenever the iyzico keys were unset. The Proxy keeps every
+ * existing `iyzipay.someMethod(...)` call site working unchanged.
  */
-export const iyzipay = new Iyzipay({
-  apiKey: process.env.IYZIPAY_API_KEY!,
-  secretKey: process.env.IYZIPAY_SECRET_KEY!,
-  uri: process.env.IYZIPAY_URI || 'https://sandbox-api.iyzipay.com',
+let client: Iyzipay | null = null
+
+function getClient(): Iyzipay {
+  if (!client) {
+    const apiKey = process.env.IYZIPAY_API_KEY
+    const secretKey = process.env.IYZIPAY_SECRET_KEY
+    if (!apiKey || !secretKey) {
+      throw new Error(
+        'IYZIPAY_API_KEY / IYZIPAY_SECRET_KEY are not set. Add them to .env.local for local dev, and to the Vercel project env vars for deploys.'
+      )
+    }
+    client = new Iyzipay({
+      apiKey,
+      secretKey,
+      uri: process.env.IYZIPAY_URI || 'https://sandbox-api.iyzipay.com',
+    })
+  }
+  return client
+}
+
+export const iyzipay = new Proxy({} as Iyzipay, {
+  get(_target, prop, receiver) {
+    return Reflect.get(getClient(), prop, receiver)
+  },
 })
 
 /**
