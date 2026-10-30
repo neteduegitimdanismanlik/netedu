@@ -81,6 +81,23 @@ export default function Match() {
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar showBack backHref="/dashboard" backLabel="Dashboard" />
+
+      {/* Upsell to the 1:1 consultancy service — fixed in the right margin on wide
+          screens, hidden on mobile where there's no room for it. The destination
+          is deliberately not shown as visible text, only as the link's target. */}
+      <a
+        href="https://neteduconsultancy.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hidden lg:flex fixed top-32 right-6 w-44 flex-col items-center gap-2 rounded-2xl border border-indigo-100 bg-white px-4 py-5 text-center shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl z-10"
+      >
+        <span className="text-2xl">✨</span>
+        <span className="text-sm font-semibold leading-snug text-indigo-900">
+          Want more? Get 1:1 private consultancy
+        </span>
+        <span className="text-xs font-medium text-indigo-600">Click here →</span>
+      </a>
+
       <div className="max-w-3xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">University Matches</h1>
         <p className="text-sm text-gray-500 mb-8 leading-relaxed">

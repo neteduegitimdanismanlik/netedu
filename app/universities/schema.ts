@@ -123,6 +123,19 @@ export interface AreaRequirement {
    * Distinct from `hlRequired`, which blocks the application outright.
    */
   ibPointsIfHl?: { subjects: string[]; points: number }
+  /** Whether this course accepts the Turkish national diploma (Lise Diploması) at all. */
+  mebAccepted?: boolean
+  /**
+   * Minimum Turkish diploma average, out of 100, that this course publishes
+   * as roughly equivalent to its IB/A-level offer. Absent when the university
+   * accepts the diploma but has not published a specific number — in that
+   * case we tell the student to contact admissions rather than inventing one.
+   */
+  mebMinAverage?: number
+  /** Anything about the MEB equivalence a student would be misled without. */
+  mebNote?: string
+  /** The official page the MEB figure or acceptance was read from. */
+  mebSource?: string
   /** HL subjects the university names as helpful but not required. */
   hlRecommended?: string[]
   /** UCAT, LNAT, TMUA, ESAT, TARA, IMAT, TOL, TIL, CEnT-S… absent when none. */
@@ -256,10 +269,13 @@ export interface FitResult {
   /** True when the figures came from a checked official page rather than a general rule. */
   verified: boolean
   /**
-   * predicted − effective requirement, in IB points. Negative means short.
-   * Only set when both figures are known. Used to rank 'reach' results by how
-   * close they actually are — a 1-point reach and a 7-point reach are not the
-   * same kind of suggestion, and stacking the famous names first buried the
+   * predicted − effective requirement, in IB points — or, for a student
+   * matched on their Turkish diploma average instead (no predicted IB total
+   * given), their MEB average − the university's published MEB threshold,
+   * in percentage points. Negative means short either way. Only set when
+   * both figures are known. Used to rank 'reach' results by how close they
+   * actually are — a 1-point reach and a 7-point reach are not the same
+   * kind of suggestion, and stacking the famous names first buried the
    * difference.
    */
   gapPoints?: number
@@ -447,11 +463,47 @@ export function assessFit(
       missing.push(
         `Requires ${effectiveIbPoints} IB points${req.ibHl ? ` with ${req.ibHl} at HL` : ''}${ibPointsQualifierNote}. Add your predicted total to see where you stand.`
       )
-      if (profile.mebAverage != null) {
+    }
+  }
+
+  // 2b. Turkish national diploma (MEB) — a separate scoring path from IB
+  // points. Only runs when the student has no predicted IB total (IB, when
+  // given, is always the more precise figure and takes priority above) but
+  // does have a MEB average, and only produces a real Reach/Match/Safety
+  // verdict when the university has actually published a number
+  // (mebMinAverage) rather than just accepting the diploma in principle.
+  if (profile.ibPredicted == null && profile.mebAverage != null) {
+    if (req.mebAccepted && req.mebMinAverage != null) {
+      const mebGap = profile.mebAverage - req.mebMinAverage
+      gapPoints = mebGap
+      if (mebGap < 0) verdict = 'reach'
+      else if (mebGap <= 5) verdict = 'match'
+      else verdict = 'safety'
+
+      const shortfall = Math.abs(mebGap)
+      const stated = `This university reads a Turkish diploma average of roughly ${req.mebMinAverage}/100 as equivalent to its offer for this course${req.mebNote ? ` (${req.mebNote})` : ''}.`
+
+      if (mebGap < 0) {
         reasons.push(
-          `You gave a Turkish diploma average of ${profile.mebAverage}/100. This university publishes its requirement in IB points, so the two cannot be compared directly — check the university's own equivalence page.`
+          `${stated} Your average of ${profile.mebAverage} is ${shortfall} point${shortfall === 1 ? '' : 's'} short of that.`
         )
+      } else if (mebGap === 0) {
+        reasons.push(`${stated} Your average of ${profile.mebAverage} meets it exactly, with no margin.`)
+      } else {
+        reasons.push(`${stated} Your average of ${profile.mebAverage} clears it by ${mebGap}.`)
       }
+    } else if (req.mebAccepted) {
+      reasons.push(
+        `${university.name} accepts the Turkish national diploma for this course${req.mebNote ? ` (${req.mebNote})` : ''}, but has not published a specific average — contact admissions with your transcript to check where you stand.`
+      )
+    } else if (effectiveIbPoints == null) {
+      missing.push(
+        `${university.name} has not published how it reads the Turkish national diploma for this course, and there is no IB points figure on file either. Check the course page directly, or add a predicted IB total if you have one.`
+      )
+    } else {
+      reasons.push(
+        `You gave a Turkish diploma average of ${profile.mebAverage}/100. This university publishes its requirement in IB points, so the two cannot be compared directly — check the university's own equivalence page.`
+      )
     }
   }
 

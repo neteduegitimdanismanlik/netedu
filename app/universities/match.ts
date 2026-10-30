@@ -101,7 +101,7 @@ export function matchStudent(
       deadline: u.deadlineNote,
       cycle: u.cycle,
       checkedOn: u.checkedOn,
-      source: req.source ?? u.sources[0],
+      source: req.source ?? req.mebSource ?? u.sources[0],
       gapPoints: fit.gapPoints,
     })
   }
