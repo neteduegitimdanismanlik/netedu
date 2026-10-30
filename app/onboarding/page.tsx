@@ -1,6 +1,7 @@
 ﻿'use client'
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { authHeaders } from '@/lib/session'
 import Navbar from '../components/Navbar'
 import SearchSelect from '../components/SearchSelect'
 import { universityList, departmentList } from '../components/data'
@@ -36,6 +37,7 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false)
   const [checked, setChecked] = useState<boolean[]>([])
   const [step1Error, setStep1Error] = useState('')
+  const [analyzeError, setAnalyzeError] = useState('')
 
   /**
    * GPA, diploma type and the two target fields used to be skippable —
@@ -55,6 +57,7 @@ export default function Onboarding() {
 
   async function analyze() {
     setLoading(true)
+    setAnalyzeError('')
     // A proof/document link folds into the same text field rather than a new
     // database column — "Clubs & extracurriculars" already has a clubs
     // column it writes to, and this avoids needing a schema migration just
@@ -65,32 +68,47 @@ export default function Onboarding() {
     const researchFinal = withProof(research, researchProof)
     const awardsFinal = withProof(awards, awardsProof)
     const activities = [clubsFinal, volunteeringFinal, researchFinal, awardsFinal].filter(Boolean).join(', ')
-    const res = await fetch('/api/roadmap', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ grade, gpa, university, department, activities, diplomaType, sat, ielts })
-    })
-    const data = await res.json()
-    setResult(data.result)
-    setChecked(new Array(data.result?.this_week?.length || 0).fill(false))
-    const { data: userData } = await supabase.auth.getUser()
-    if (userData.user) {
-      await supabase.from('profiles').upsert({
-        id: userData.user.id,
-        grade, gpa: parseFloat(gpa), school, nationality,
-        diploma_type: diplomaType,
-        sat: sat ? parseInt(sat) : null,
-        ielts: ielts ? parseFloat(ielts) : null,
-        target_university: university,
-        target_department: department,
-        clubs: clubsFinal, volunteering: volunteeringFinal, research: researchFinal, awards: awardsFinal,
-        activities,
-        roadmap: JSON.stringify(data.result),
-        updated_at: new Date().toISOString()
+    try {
+      const res = await fetch('/api/roadmap', {
+        method: 'POST',
+        // Without the Authorization header, requireUser() on the server has
+        // nothing to check (it reads the bearer token, never cookies), so it
+        // silently returns 401 on every call. That used to mean this button
+        // looked like it did nothing: no result, no error shown, dropped
+        // straight back onto this same screen. The checker page already
+        // sends this same header on its API calls.
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify({ grade, gpa, university, department, activities, diplomaType, sat, ielts })
       })
+      const data = await res.json()
+      if (!data.result) {
+        setAnalyzeError(data.error || "Something went wrong building your roadmap. Please try again.")
+        setLoading(false)
+        return
+      }
+      setResult(data.result)
+      setChecked(new Array(data.result?.this_week?.length || 0).fill(false))
+      const { data: userData } = await supabase.auth.getUser()
+      if (userData.user) {
+        await supabase.from('profiles').upsert({
+          id: userData.user.id,
+          grade, gpa: parseFloat(gpa), school, nationality,
+          diploma_type: diplomaType,
+          sat: sat ? parseInt(sat) : null,
+          ielts: ielts ? parseFloat(ielts) : null,
+          target_university: university,
+          target_department: department,
+          clubs: clubsFinal, volunteering: volunteeringFinal, research: researchFinal, awards: awardsFinal,
+          activities,
+          roadmap: JSON.stringify(data.result),
+          updated_at: new Date().toISOString()
+        })
+      }
+      setStep(3)
+    } catch (e: any) {
+      setAnalyzeError(e.message || "Couldn't reach the server. Check your connection and try again.")
     }
     setLoading(false)
-    setStep(3)
   }
 
   /**
@@ -322,6 +340,9 @@ export default function Onboarding() {
               <textarea value={awards} onChange={e => setAwards(e.target.value)} placeholder="Math olympiad 2nd place, Google Python certificate — who issued it, when?" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
               <input type="text" value={awardsProof} onChange={e => setAwardsProof(e.target.value)} placeholder="Link to proof or document (optional)" className="w-full mt-2 px-4 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:border-indigo-500" />
             </div>
+            {analyzeError && (
+              <div className="text-sm px-4 py-3 rounded-xl bg-red-50 text-red-600">{analyzeError}</div>
+            )}
             <div className="flex gap-3">
               <button onClick={() => setStep(1)} className="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50">← Back</button>
               <button onClick={analyze} disabled={loading} className="flex-1 bg-indigo-900 text-white py-3 rounded-xl font-medium text-sm disabled:opacity-50 hover:bg-indigo-800">
