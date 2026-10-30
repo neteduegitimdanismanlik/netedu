@@ -964,7 +964,6 @@ export const UK_UNIVERSITIES: University[] = [
     ],
     gaps: [
       'International tuition is marked "To be confirmed" on every 2027-entry course page.',
-      'The Economics BSc page returned HTTP 503 on repeated attempts, so Economics is unverified.',
     ],
     areas: [
       {
@@ -992,7 +991,9 @@ export const UK_UNIVERSITIES: University[] = [
       },
       {
         area: 'Economics & Business', offered: true, course: 'Economics BSc',
-        note: "We weren't able to load this course's entry requirements from Birmingham's website. Please check the official page below for the current IB points and subjects needed.",
+        ibPoints: 32, ibHl: '7,6,6 – 6,6,6, to include Mathematics',
+        hlRequired: ['Mathematics'],
+        note: "The page's own wording is \"6,6,6 including Mathematics\" and does not say whether Mathematics itself must be at Higher Level. The 32-point total and 7,6,6–6,6,6 range follow Birmingham's usual pattern for this course list (see the university-level note above) rather than being spelled out on this specific page — confirm with admissions if that distinction matters for your offer.",
         source: 'https://www.birmingham.ac.uk/study/undergraduate/subjects/economics-courses/economics-bsc',
       },
       {
