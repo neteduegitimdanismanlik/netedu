@@ -143,8 +143,9 @@ export default function Match() {
                   placeholder="88" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
                 {mebAverage && !ibPredicted && (
                   <p className="text-xs text-amber-600 mt-1 leading-relaxed">
-                    Every university we cover states its offer in IB points, not a Turkish diploma average — the two
-                    aren&apos;t comparable, so add your predicted IB total too if you have one, even a rough estimate.
+                    Some of the universities we cover have published how they read a Turkish diploma average directly,
+                    so you can get a real Match/Reach/Safety answer from this alone. Most still only state their offer
+                    in IB points, though — add a predicted IB total too if you have even a rough estimate, to see those as well.
                   </p>
                 )}
               </div>
