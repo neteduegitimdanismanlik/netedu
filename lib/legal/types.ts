@@ -20,7 +20,7 @@ export interface LegalDocument {
 export const LEGAL = {
   controller: 'NetEdu',
   address: '',
-  email: 'neteduegitimdanismanlik@gmail.com',
+  email: 'info@neteduapp.com',
   effectiveDate: '11.10.2026',
   deleteDays: 30,
 }

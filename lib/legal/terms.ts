@@ -18,6 +18,7 @@ const tr: LegalDocument = {
       body: [
         `NetEdu'yu ${MIN_AGE} yaşından küçükler kullanamaz. 18 yaşından küçüksen ödev yükleme ve yapay zekâ geri bildirimi için velinin onayı gerekir.`,
         'Kayıtta verdiğin bilgilerin, özellikle doğum tarihinin ve velinin e-posta adresinin doğru olmasından sen sorumlusun. Hesabını başkasıyla paylaşamazsın.',
+        'NetEdu, kayıt sırasında beyan edilen bilgileri resmî bir belgeyle doğrulamaz ve doğrulamakla yükümlü değildir. Doğum tarihinin yanlış veya eksik beyan edilmesi — örneğin veli onayı sürecini atlamak ya da veliye bildirim gitmesini engellemek amacıyla — NetEdu\'nun bilgisi ve kontrolü dışındadır; bundan doğacak sonuçlardan NetEdu sorumlu tutulamaz, sorumluluk bilgiyi yanlış beyan eden kullanıcıya aittir.',
       ],
     },
     {
@@ -76,6 +77,7 @@ const tr: LegalDocument = {
       title: '10. Sorumluluk',
       body: [
         'Hizmeti kesintisiz ve hatasız sunmak için makul çabayı gösteririz, ancak bunu garanti edemeyiz. Kanunen izin verilen ölçüde, geri bildirimlere dayanarak verdiğin kararlardan doğan dolaylı zararlardan sorumlu değiliz. Kasıt ve ağır kusurdan doğan sorumluluğumuz ile tüketici mevzuatından doğan hakların saklıdır.',
+        'Aynı şekilde, kullanıcıların profil ve kayıt bilgilerinde (doğum tarihi dahil) beyan ettiği yanlış veya eksik bilgilerden kaynaklanan sonuçlardan da kanunen izin verilen ölçüde sorumlu değiliz; bkz. madde 2.',
       ],
     },
     {
@@ -109,6 +111,7 @@ const en: LegalDocument = {
       body: [
         `You must be at least ${MIN_AGE}. If you are under 18, a parent must approve before you can upload work and receive AI feedback.`,
         "You are responsible for the details you give at sign-up being accurate, especially your date of birth and your parent's e-mail. You may not share your account.",
+        "NetEdu does not verify the information declared at sign-up against an official document and is under no obligation to do so. If a date of birth is misstated or incomplete — for example to skip the parental-consent step or to keep a parent from being notified — that is outside NetEdu's knowledge and control; NetEdu is not liable for the consequences, which rest with the user who provided the inaccurate information.",
       ],
     },
     {
@@ -167,6 +170,7 @@ const en: LegalDocument = {
       title: '10. Liability',
       body: [
         'We make reasonable efforts to keep NetEdu running and accurate but cannot guarantee it. To the extent the law allows, we are not liable for indirect loss arising from decisions you make based on the feedback. This does not limit liability for intent or gross negligence, or your rights under consumer law.',
+        "Likewise, to the extent the law allows, we are not liable for consequences arising from inaccurate or incomplete information users declare in their profile or at sign-up, including date of birth; see section 2.",
       ],
     },
     {

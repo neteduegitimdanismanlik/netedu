@@ -7,7 +7,7 @@ import { PaddleCheckoutButton } from '../../components/PaddleCheckoutButton'
 import { PRO_MONTHLY_USD, PRO_ANNUAL_USD, PADDLE_PRICE_IDS } from '../../lib/billing-config'
 import type { BillingInterval } from '../../lib/billing-config'
 
-const CONTACT = 'neteduegitimdanismanlik@gmail.com'
+const CONTACT = 'info@neteduapp.com'
 
 /**
  * Card payments are not live yet — no registered company to collect through,

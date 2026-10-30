@@ -42,6 +42,7 @@ const tr: LegalDocument = {
       body: [
         `NetEdu'ya ${MIN_AGE} yaşından küçükler kayıt olamaz. 18 yaşından küçük kullanıcılar kayıt olurken velinin e-posta adresini verir; veliye bir onay bağlantısı gönderilir. Veli onay verene kadar hesap açılır ve profil doldurulabilir, ancak ödev yükleme ve yapay zekâ geri bildirimi kapalıdır.`,
         `Veli onayını istediği zaman ${email} adresine yazarak geri çekebilir; bu durumda hesap ve yüklenen içerikler silinir.`,
+        'Yaş ve doğum tarihi bilgisi kayıt sırasında kullanıcı tarafından beyan edilir; NetEdu bu bilgiyi resmî bir belgeyle doğrulamaz. Veli onay süreci, beyan edilen bu bilgiye dayanır.',
         'CAS işbirliği alanında öğrencilerin gerçek isimleri diğer öğrencilere gösterilmez, yalnızca baş harfler görünür.',
       ],
     },
@@ -139,6 +140,7 @@ const en: LegalDocument = {
       body: [
         `You must be at least ${MIN_AGE} to have an account. Users under 18 give a parent's e-mail address at sign-up and we send that parent an approval link. Until the parent approves, the student can use the account and fill in their profile, but uploading work and AI feedback stay locked.`,
         `A parent can withdraw approval at any time by writing to ${email}; the account and uploaded content are then deleted.`,
+        "Age and date of birth are self-declared by the user at sign-up; NetEdu does not verify this against an official document. The parental-consent process relies on the information declared.",
         "In CAS collaboration, students' real names are never shown to other students, only their initials.",
       ],
     },
