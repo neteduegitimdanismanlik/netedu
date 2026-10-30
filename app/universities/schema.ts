@@ -281,16 +281,41 @@ export interface FitResult {
   gapPoints?: number
 }
 
-/** Loose subject matching — 'Mathematics AA' should satisfy a 'Mathematics' requirement. */
+/**
+ * Which Mathematics stream a string names: 'aa' (Analysis and Approaches),
+ * 'ai' (Applications and Interpretation), 'generic' (says Mathematics but
+ * not which stream), or null (not Mathematics at all).
+ */
+function mathStream(s: string): 'aa' | 'ai' | 'generic' | null {
+  if (!s.includes('math')) return null
+  if (/\bai\b/.test(s) || s.includes('applications')) return 'ai'
+  if (/\baa\b/.test(s) || s.includes('analysis')) return 'aa'
+  return 'generic'
+}
+
+/**
+ * Loose subject matching — 'Mathematics AA' should satisfy a plain
+ * 'Mathematics' requirement. But a requirement that names a specific stream
+ * ('Mathematics: Analysis and Approaches') must stay stream-specific: a
+ * student taking Applications and Interpretation does not satisfy it just
+ * because both strings contain "math". Several universities in this file
+ * (Cambridge, Glasgow, Edinburgh, Manchester...) require Analysis and
+ * Approaches specifically and say so explicitly — getting this wrong tells a
+ * student they qualify for a course that would reject their application.
+ */
 function hasHl(studentHl: string[], required: string): boolean {
   const want = required.toLowerCase()
   return studentHl.some((s) => {
     const have = s.toLowerCase()
     if (have.includes(want) || want.includes(have)) return true
-    // 'Mathematics Analysis and Approaches' vs 'Mathematics AA'
-    if (want.includes('analysis') && have.includes('math') && /\baa\b|analysis/.test(have)) return true
-    if (want.includes('applications') && have.includes('math') && /\bai\b|applications/.test(have)) return true
-    if (want.startsWith('mathematics') && have.includes('math')) return true
+    if (want.startsWith('mathematics')) {
+      const wantStream = mathStream(want)
+      const haveStream = mathStream(have)
+      if (!haveStream) return false
+      // A plain 'Mathematics' requirement (no stream named) accepts either
+      // stream. A stream-specific requirement needs a matching stream.
+      return wantStream === 'generic' || haveStream === wantStream
+    }
     return false
   })
 }
