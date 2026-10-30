@@ -25,16 +25,46 @@ export default function Onboarding() {
   const [university, setUniversity] = useState('')
   const [department, setDepartment] = useState('')
   const [clubs, setClubs] = useState('')
+  const [clubsProof, setClubsProof] = useState('')
   const [volunteering, setVolunteering] = useState('')
+  const [volunteeringProof, setVolunteeringProof] = useState('')
   const [research, setResearch] = useState('')
+  const [researchProof, setResearchProof] = useState('')
   const [awards, setAwards] = useState('')
+  const [awardsProof, setAwardsProof] = useState('')
   const [result, setResult] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [checked, setChecked] = useState<boolean[]>([])
+  const [step1Error, setStep1Error] = useState('')
+
+  /**
+   * GPA, diploma type and the two target fields used to be skippable —
+   * nothing stopped a student reaching Step 2 with all four blank, after
+   * which the roadmap request had nothing real to work from. These are the
+   * ones the roadmap actually depends on, so they're the ones enforced here;
+   * school and nationality stay optional.
+   */
+  function goToStep2() {
+    if (!gpa.trim() || !diplomaType || !university || !department) {
+      setStep1Error('Please fill in GPA, diploma type, target university and target department before continuing.')
+      return
+    }
+    setStep1Error('')
+    setStep(2)
+  }
 
   async function analyze() {
     setLoading(true)
-    const activities = [clubs, volunteering, research, awards].filter(Boolean).join(', ')
+    // A proof/document link folds into the same text field rather than a new
+    // database column — "Clubs & extracurriculars" already has a clubs
+    // column it writes to, and this avoids needing a schema migration just
+    // to capture one optional link per category.
+    const withProof = (text: string, proof: string) => (proof.trim() ? `${text}\n\nProof/document: ${proof.trim()}` : text)
+    const clubsFinal = withProof(clubs, clubsProof)
+    const volunteeringFinal = withProof(volunteering, volunteeringProof)
+    const researchFinal = withProof(research, researchProof)
+    const awardsFinal = withProof(awards, awardsProof)
+    const activities = [clubsFinal, volunteeringFinal, researchFinal, awardsFinal].filter(Boolean).join(', ')
     const res = await fetch('/api/roadmap', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -53,7 +83,7 @@ export default function Onboarding() {
         ielts: ielts ? parseFloat(ielts) : null,
         target_university: university,
         target_department: department,
-        clubs, volunteering, research, awards,
+        clubs: clubsFinal, volunteering: volunteeringFinal, research: researchFinal, awards: awardsFinal,
         activities,
         roadmap: JSON.stringify(data.result),
         updated_at: new Date().toISOString()
@@ -61,6 +91,24 @@ export default function Onboarding() {
     }
     setLoading(false)
     setStep(3)
+  }
+
+  /**
+   * A light personalization touch instead of a generic 🎯 on every profile —
+   * picks whichever activity category the student actually wrote the most
+   * about and gives it a small identity. Purely computed from what's already
+   * on screen, no AI call and no new data to store.
+   */
+  function mascot(): { emoji: string; label: string } {
+    const candidates: { emoji: string; label: string; text: string }[] = [
+      { emoji: '🦉', label: 'The Researcher', text: research },
+      { emoji: '🦁', label: 'The Leader', text: clubs },
+      { emoji: '🐬', label: 'The Changemaker', text: volunteering },
+      { emoji: '🦅', label: 'The Achiever', text: awards },
+    ]
+    const best = candidates.reduce((a, b) => (b.text.trim().length > a.text.trim().length ? b : a))
+    if (!best.text.trim()) return { emoji: '🦊', label: 'The Explorer' }
+    return best
   }
 
   function toggleCheck(i: number) {
@@ -75,9 +123,9 @@ export default function Onboarding() {
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-4">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-xl">🎯</div>
+            <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-xl">{mascot().emoji}</div>
             <div>
-              <h2 className="font-semibold text-gray-800">Profile Analysis</h2>
+              <h2 className="font-semibold text-gray-800">Your Profile · {mascot().label}</h2>
               <p className="text-xs text-gray-400">{grade} · GPA {gpa} · {university}</p>
             </div>
           </div>
@@ -186,20 +234,20 @@ export default function Onboarding() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">GPA (out of 100)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">GPA (out of 100) <span className="text-red-400">*</span></label>
                 <input type="number" value={gpa} onChange={e => setGpa(e.target.value)} placeholder="85" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Current school</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Current school <span className="text-gray-400 font-normal">(optional)</span></label>
               <input type="text" value={school} onChange={e => setSchool(e.target.value)} placeholder="TED Antalya, Özel Doğa..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nationality <span className="text-gray-400 font-normal">(optional)</span></label>
               <input type="text" value={nationality} onChange={e => setNationality(e.target.value)} placeholder="Turkish, British..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Diploma type</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Diploma type <span className="text-red-400">*</span></label>
               <select value={diplomaType} onChange={e => setDiplomaType(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500">
                 <option value="">Select diploma</option>
                 <option>IB Diploma</option>
@@ -220,14 +268,17 @@ export default function Onboarding() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Target university</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Target university <span className="text-red-400">*</span></label>
               <SearchSelect options={universityList} value={university} onChange={setUniversity} placeholder="Search universities..." />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Target department</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Target department <span className="text-red-400">*</span></label>
               <SearchSelect options={departmentList} value={department} onChange={setDepartment} placeholder="Search departments..." />
             </div>
-            <button onClick={() => setStep(2)} className="w-full bg-indigo-900 text-white py-3 rounded-xl font-medium text-sm mt-2 hover:bg-indigo-800">
+            {step1Error && (
+              <div className="text-sm px-4 py-3 rounded-xl bg-red-50 text-red-600">{step1Error}</div>
+            )}
+            <button onClick={goToStep2} className="w-full bg-indigo-900 text-white py-3 rounded-xl font-medium text-sm mt-2 hover:bg-indigo-800">
               Next: Activities →
             </button>
           </div>
@@ -253,19 +304,23 @@ export default function Onboarding() {
           <div className="flex flex-col gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Clubs & extracurriculars <span className="text-gray-400 font-normal">(optional)</span></label>
-              <textarea value={clubs} onChange={e => setClubs(e.target.value)} placeholder="Robotics club, student council, debate team..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
+              <textarea value={clubs} onChange={e => setClubs(e.target.value)} placeholder="Robotics club, student council, debate team — what did you actually do, not just the name?" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
+              <input type="text" value={clubsProof} onChange={e => setClubsProof(e.target.value)} placeholder="Link to proof or document (optional)" className="w-full mt-2 px-4 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:border-indigo-500" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Volunteering & community service <span className="text-gray-400 font-normal">(optional)</span></label>
-              <textarea value={volunteering} onChange={e => setVolunteering(e.target.value)} placeholder="Red Crescent volunteer, animal shelter..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
+              <textarea value={volunteering} onChange={e => setVolunteering(e.target.value)} placeholder="Red Crescent volunteer, animal shelter — what was your role, how often, for how long?" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
+              <input type="text" value={volunteeringProof} onChange={e => setVolunteeringProof(e.target.value)} placeholder="Link to proof or document (optional)" className="w-full mt-2 px-4 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:border-indigo-500" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Research & projects <span className="text-gray-400 font-normal">(optional)</span></label>
-              <textarea value={research} onChange={e => setResearch(e.target.value)} placeholder="Water quality research project, mobile app..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
+              <textarea value={research} onChange={e => setResearch(e.target.value)} placeholder="Water quality research project, mobile app — what's it about, what stage is it at?" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
+              <input type="text" value={researchProof} onChange={e => setResearchProof(e.target.value)} placeholder="Link to proof or document (optional)" className="w-full mt-2 px-4 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:border-indigo-500" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Awards & certificates <span className="text-gray-400 font-normal">(optional)</span></label>
-              <textarea value={awards} onChange={e => setAwards(e.target.value)} placeholder="Math olympiad 2nd place, Google Python certificate..." className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
+              <textarea value={awards} onChange={e => setAwards(e.target.value)} placeholder="Math olympiad 2nd place, Google Python certificate — who issued it, when?" className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 resize-none h-20" />
+              <input type="text" value={awardsProof} onChange={e => setAwardsProof(e.target.value)} placeholder="Link to proof or document (optional)" className="w-full mt-2 px-4 py-2 border border-gray-200 rounded-xl text-xs outline-none focus:border-indigo-500" />
             </div>
             <div className="flex gap-3">
               <button onClick={() => setStep(1)} className="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50">← Back</button>

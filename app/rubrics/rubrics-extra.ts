@@ -6,6 +6,7 @@
 import { globalPoliticsRubricSL, globalPoliticsRubricHL } from './global-politics'
 import { businessManagementRubric } from './business-management'
 import { computerScienceRubric } from './computer-science'
+import { designTechnologyRubric } from './design-technology'
 import { mathematicsRubric } from './mathematics'
 import { digitalSocietyRubric } from './digital-society'
 import { philosophyRubric } from './philosophy'
@@ -64,6 +65,7 @@ export const extraRubrics: ExtendedRubric[] = [
   globalPoliticsRubricHL,
   businessManagementRubric,
   computerScienceRubric,
+  designTechnologyRubric,
   mathematicsRubric,
   digitalSocietyRubric,
   philosophyRubric,

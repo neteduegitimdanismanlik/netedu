@@ -22,9 +22,10 @@ const SCIENCES_ASSUMED = [
   // 'ess' is NOT listed as a key: matches() uses substring matching, so it
   // would swallow "busin-ess management" and any other subject containing it.
   'environmental systems and societies',
-  // Computer Science removed: its IA is five criteria worth 30 marks, not the
-  // four six-mark sciences criteria. It has its own rubric now.
-  'design technology'
+  // Computer Science and Design Technology removed: neither shares the
+  // four six-mark sciences criteria (CS is five criteria / 30 marks, Design
+  // Technology is five criteria / 33 marks following the Design Cycle, not a
+  // lab report). Both have their own rubric now.
 ]
 const ORAL_SUBJECTS = [
   'language b', 'ab initio',
@@ -101,6 +102,16 @@ if (matches(subject, ['business management', 'business and management'])) {
       needsLevel: false,
       confidence: 'high',
       note: 'Marked out of 30 across five criteria, identical at SL and HL. Paste your documentation only — the video and the appendices cannot be read here, so criterion D (Development, 12 of the 30 marks) is inferred from what your documentation evidences rather than observed.'
+    }
+  }
+
+  if (matches(subject, ['design technology'])) {
+    return {
+      kind: 'rubric',
+      rubricId: 'ib-ia-design-technology',
+      needsLevel: false,
+      confidence: 'high',
+      note: 'Marked out of 33 across five criteria (Empathize, Defining the project, Ideation and modelling, Designing a solution, Presenting a solution), identical at SL and HL. This is the Design Cycle rubric, not the sciences one — and we only read the text layer of your PDF, so photos, CAD renders and drawings are not actually seen; marks on the more visual criteria come from what your prose describes and justifies around them.'
     }
   }
   if (matches(subject, ['digital society'])) {
