@@ -13,13 +13,18 @@ export default function Dashboard() {
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) window.location.href = '/auth'
-      else {
-        setUser(data.user)
-        const { data: profileData } = await supabase
-          .from('profiles').select('*').eq('id', data.user.id).single()
-        setProfile(profileData)
-      }
+      if (!data.user) { window.location.href = '/auth'; return }
+      setUser(data.user)
+      const { data: profileData } = await supabase
+        .from('profiles').select('*').eq('id', data.user.id).single()
+      setProfile(profileData)
+    }).catch(() => {
+      // The session check itself can fail outright (a network blip, an
+      // expired/invalid token) rather than just resolving with no user.
+      // Without this, that case never ran the redirect above and the page
+      // sat on "Loading..." forever — which is exactly what a logged-out
+      // visitor landing here via the logo or a stale "Dashboard" link saw.
+      window.location.href = '/auth'
     })
   }, [])
 

@@ -213,7 +213,19 @@ export default function Checker() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">1. Your subject</label>
-              <select value={subject} onChange={e => setSubject(e.target.value)}
+              <select value={subject} onChange={e => {
+                  // Switching subjects used to leave the previous subject's
+                  // title, pasted text, uploaded file and marked report all
+                  // sitting there — a student could end up submitting a
+                  // Chemistry IA under an Economics rubric without noticing.
+                  setSubject(e.target.value)
+                  setTitle('')
+                  setContent('')
+                  setFile(null)
+                  setResult(null)
+                  setAnalysedContent('')
+                  setViewMode('report')
+                }}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500">
                 <option value="">Select your subject...</option>
                 {subjectGroups.map(g => {

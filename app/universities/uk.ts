@@ -1010,7 +1010,7 @@ export const UK_UNIVERSITIES: University[] = [
       {
         area: 'Psychology', offered: true, course: 'Psychology BSc',
         ibPoints: 32, ibHl: '6,6,6 – 6,6,5',
-        note: 'The A-level route names a science subject, which implies an HL science expectation, but the page does not state one. Unconfirmed.',
+        note: "No Higher Level subject is required for the IB offer. The science-or-not split you may see mentioned (AAB with a science, AAA without) is part of Birmingham's separate A-level offer and does not apply to the IB route.",
         source: 'https://www.birmingham.ac.uk/study/undergraduate/subjects/psychology-and-neuroscience-courses/psychology-bsc',
       },
     ],

@@ -100,7 +100,15 @@ export default function Auth() {
           </button>
 
           <button
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={() => {
+              setIsLogin(!isLogin)
+              // A password typed into one mode (say, a mistyped login
+              // attempt) used to still be sitting in the field after
+              // switching to sign-up or back — visible, and submittable
+              // against the wrong flow.
+              setPassword('')
+              setMessage('')
+            }}
             className="text-sm text-gray-500 hover:text-indigo-900 text-center transition-colors"
           >
             {isLogin ? 'No account? Sign up' : 'Already have an account? Login'}
