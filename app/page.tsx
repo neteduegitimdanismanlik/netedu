@@ -148,16 +148,27 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="px-8 py-8 border-t border-gray-100 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-indigo-900 rounded-md flex items-center justify-center">
-            <span className="text-white text-xs font-bold">N</span>
-          </div>
-          <span className="font-semibold text-indigo-900">NetEdu</span>
+      <footer className="px-8 py-8 border-t border-gray-100">
+        {/* Free guides — the public SEO pages. Linking them from the home page
+            tells search engines they matter and gives visitors a way in
+            without signing up first. */}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-6">
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Free guides</span>
+          <Link href="/universities" className="text-sm text-gray-500 hover:text-indigo-700">University requirements (IB &amp; Turkish diploma)</Link>
+          <Link href="/ib-ia" className="text-sm text-gray-500 hover:text-indigo-700">IB IA rubrics by subject</Link>
+          <Link href="/ib-roadmap" className="text-sm text-gray-500 hover:text-indigo-700">IB roadmap, Grade 9 to 12</Link>
         </div>
-        <div className="flex items-center gap-4">
-          <a href="/pricing" className="text-xs text-gray-400 hover:text-gray-600">Pricing</a>
-          <span className="text-xs text-gray-400">© 2026 NetEdu. All rights reserved.</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-indigo-900 rounded-md flex items-center justify-center">
+              <span className="text-white text-xs font-bold">N</span>
+            </div>
+            <span className="font-semibold text-indigo-900">NetEdu</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <a href="/pricing" className="text-xs text-gray-400 hover:text-gray-600">Pricing</a>
+            <span className="text-xs text-gray-400">© 2026 NetEdu. All rights reserved.</span>
+          </div>
         </div>
       </footer>
     </main>
