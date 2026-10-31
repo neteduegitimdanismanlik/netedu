@@ -65,13 +65,17 @@ export interface SyllabusSubject {
   /** Which /ib-ia pages this subject's IA lives on, and for which level. */
   iaPages: { slug: string; level?: 'SL' | 'HL' }[]
   notes: string[]
-  source: string
+  /** Public URL of the source, when the IB publishes one. */
+  source?: string
+  /** What the figures were read from. Defaults to the subject brief. */
+  sourceLabel?: string
   checkedOn: string
 }
 
 const CHECKED = '2026-10-31'
 const G3 = 'Group 3 — Individuals and Societies'
 const G4 = 'Group 4 — Sciences'
+const G5 = 'Group 5 — Mathematics'
 
 /** Biology, Chemistry and Physics share the same assessment model from 2025. */
 function sciencesAssessment(paper1: string, paper2: string): SyllabusSubject['assessment'] {
@@ -441,43 +445,42 @@ export const SYLLABUS: SyllabusSubject[] = [
     firstAssessment: '2027',
     hoursSL: 150,
     hoursHL: 240,
+    // Read from the full guide (December 2025 update), which supersedes the
+    // 2024 subject brief. The brief described SL as exam-only with different
+    // hours; the guide gives SL an internal assessment worth 30%.
     topics: [
-      {
-        name: 'Concepts, content and contexts', hoursSL: 110, hoursHL: 110,
-        note: 'Content is drawn from the biological, cognitive and sociocultural approaches, and applied across four contexts.',
-      },
-      { name: 'Class practicals (at least four)', hoursSL: 40, hoursHL: 40 },
-      {
-        name: 'HL extensions', hlOnly: true, hoursHL: 70,
-        subtopics: [
-          { name: 'The role of culture, motivation and technology in shaping human behaviour', level: 'hl' },
-          { name: 'Data analysis and interpretation', level: 'hl' },
-        ],
-      },
-      { name: 'Internal assessment: research proposal', hlOnly: true, hoursHL: 20 },
+      { name: 'Concepts', subtopics: [{ name: 'Bias' }, { name: 'Causality' }, { name: 'Change' }, { name: 'Measurement' }, { name: 'Perspective' }, { name: 'Responsibility' }] },
+      { name: 'Content', subtopics: [{ name: 'Biological approach' }, { name: 'Cognitive approach' }, { name: 'Sociocultural approach' }, { name: 'Research methodology' }] },
+      { name: 'Contexts', subtopics: [{ name: 'Health and well-being' }, { name: 'Human development' }, { name: 'Human relationships' }, { name: 'Learning and cognition' }] },
+      { name: 'Integrating concepts, content and contexts', hoursSL: 100, hoursHL: 100 },
+      { name: 'Class practicals (at least four)', hoursSL: 30, hoursHL: 30 },
+      { name: 'HL extension: The role of culture, motivation and technology in shaping human behaviour', hlOnly: true, hoursHL: 45 },
+      { name: 'HL extension: Data analysis and interpretation', hlOnly: true, hoursHL: 45 },
+      { name: 'Internal assessment: research proposal', hoursSL: 20, hoursHL: 20 },
     ],
+    topicNote: 'Concepts, content and contexts are taught together, not as separate units: the content is applied in each of the four contexts, and the class practicals sit inside them.',
     assessment: {
       SL: [
-        { component: 'Paper 1', format: 'Short-answer and extended-response questions integrating concepts, content and contexts', hours: 1.5, weight: 50 },
-        { component: 'Paper 2', format: 'Questions on the class practicals and the evaluation of an unseen study', hours: 1.5, weight: 50 },
+        { component: 'Paper 1', format: 'Short-answer questions and a concept-based extended response, integrating concepts, content and contexts', hours: 1.5, weight: 35 },
+        { component: 'Paper 2', format: 'Questions on the class practicals, then the evaluation of an unseen study', hours: 1.5, weight: 35 },
+        { component: 'Internal assessment: research proposal', format: 'A proposal for a study of a population of interest, up to 2,200 words', weight: 30, internal: true },
       ],
       HL: [
-        { component: 'Paper 1', format: 'Short-answer and extended-response questions integrating concepts, content and contexts', hours: 1.5, weight: 25 },
-        { component: 'Paper 2', format: 'Questions on the class practicals and the evaluation of an unseen study', hours: 1.5, weight: 25 },
-        { component: 'Paper 3', format: 'Source-based questions analysing and interpreting research data', hours: 1.75, weight: 30 },
-        { component: 'Internal assessment: research proposal', format: 'A proposal for a study of a topic in a specified population', weight: 20, internal: true },
+        { component: 'Paper 1', format: 'Short-answer questions and a concept-based extended response, integrating concepts, content and contexts', hours: 1.5, weight: 25 },
+        { component: 'Paper 2', format: 'Questions on the class practicals, then the evaluation of an unseen study', hours: 1.5, weight: 25 },
+        { component: 'Paper 3', format: 'Source-based questions analysing quantitative and qualitative research data, from one HL extension', hours: 1.75, weight: 30 },
+        { component: 'Internal assessment: research proposal', format: 'A proposal for a study of a population of interest, up to 2,200 words', weight: 20, internal: true },
       ],
     },
-    assessmentNote: 'At SL the grade comes entirely from the two exams — there is no internal assessment.',
     ia: {
-      name: 'Research proposal (HL only)',
-      description: 'A proposal for a psychological study of a topic in a specified population. It is designed, not carried out.',
-      weightSL: null,
+      name: 'Research proposal',
+      description: 'A proposal for a study of a population of interest, using one of the four research methods from the class practicals. It is designed, not carried out. Same task at SL and HL, marked out of 24.',
+      weightSL: 30,
       weightHL: 20,
     },
-    iaPages: [{ slug: 'psychology', level: 'HL' }],
-    notes: ['This is the new course (first assessment 2027). In it the internal assessment is HL only.'],
-    source: 'https://www.ibo.org/globalassets/new-structure/university-admission/pdfs/dp_psychology_subjectbrief_en.pdf',
+    iaPages: [{ slug: 'psychology' }],
+    notes: ['This is the new course, first assessed in May 2027.'],
+    sourceLabel: 'IB Psychology guide, first assessment 2027 (December 2025 update)',
     checkedOn: CHECKED,
   },
   {
@@ -585,6 +588,219 @@ export const SYLLABUS: SyllabusSubject[] = [
     iaPages: [{ slug: 'economics' }],
     notes: ['This course runs from first assessment 2022 to last assessment 2029.'],
     source: 'https://ibo.org/globalassets/new-structure/programmes/dp/pdfs/hl-economics-en.pdf',
+    checkedOn: CHECKED,
+  },
+  {
+    slug: 'business-management',
+    subject: 'Business Management',
+    group: G3,
+    firstAssessment: '2024',
+    hoursSL: 150,
+    hoursHL: 240,
+    topics: [
+      {
+        name: 'Unit 1: Introduction to business management', hoursSL: 20, hoursHL: 20,
+        subtopics: [
+          { name: '1.1 What is a business?' }, { name: '1.2 Types of business entities' }, { name: '1.3 Business objectives' },
+          { name: '1.4 Stakeholders' }, { name: '1.5 Growth and evolution' }, { name: '1.6 Multinational companies (MNCs)' },
+        ],
+      },
+      {
+        name: 'Unit 2: Human resource management', hoursSL: 20, hoursHL: 35,
+        subtopics: [
+          { name: '2.1 Introduction to human resource management' }, { name: '2.2 Organizational structure' }, { name: '2.3 Leadership and management' },
+          { name: '2.4 Motivation and demotivation' }, { name: '2.5 Organizational (corporate) culture', level: 'hl' }, { name: '2.6 Communication' },
+          { name: '2.7 Industrial/employee relations', level: 'hl' },
+        ],
+      },
+      {
+        name: 'Unit 3: Finance and accounts', hoursSL: 30, hoursHL: 45,
+        subtopics: [
+          { name: '3.1 Introduction to finance' }, { name: '3.2 Sources of finance' }, { name: '3.3 Costs and revenues' }, { name: '3.4 Final accounts' },
+          { name: '3.5 Profitability and liquidity ratio analysis' }, { name: '3.6 Debt/equity ratio analysis', level: 'hl' }, { name: '3.7 Cash flow' },
+          { name: '3.8 Investment appraisal' }, { name: '3.9 Budgets', level: 'hl' },
+        ],
+      },
+      {
+        name: 'Unit 4: Marketing', hoursSL: 30, hoursHL: 35,
+        subtopics: [
+          { name: '4.1 Introduction to marketing' }, { name: '4.2 Marketing planning' }, { name: '4.3 Sales forecasting', level: 'hl' },
+          { name: '4.4 Market research' }, { name: '4.5 The seven Ps of the marketing mix' }, { name: '4.6 International marketing', level: 'hl' },
+        ],
+      },
+      {
+        name: 'Unit 5: Operations management', hoursSL: 15, hoursHL: 45,
+        subtopics: [
+          { name: '5.1 Introduction to operations management' }, { name: '5.2 Operations methods' }, { name: '5.3 Lean production and quality management', level: 'hl' },
+          { name: '5.4 Location' }, { name: '5.5 Break-even analysis' }, { name: '5.6 Production planning', level: 'hl' },
+          { name: '5.7 Crisis management and contingency planning', level: 'hl' }, { name: '5.8 Research and development', level: 'hl' },
+          { name: '5.9 Management information systems', level: 'hl' },
+        ],
+      },
+      { name: 'Business management toolkit', hoursSL: 10, hoursHL: 35 },
+      { name: 'Research for the Paper 1 pre-released statement', hoursSL: 5, hoursHL: 5 },
+      { name: 'Internal assessment: business research project', hoursSL: 20, hoursHL: 20 },
+    ],
+    topicNote: 'Operations management is where the levels differ most — 15 hours at SL, 45 at HL, with five HL-only sub-topics.',
+    assessment: {
+      SL: [
+        { component: 'Paper 1', format: 'Structured questions and one extended response on an unseen case study, set up by a pre-released statement', hours: 1.5, weight: 35 },
+        { component: 'Paper 2', format: 'Structured and extended-response questions on unseen material with a quantitative focus', hours: 1.5, weight: 35 },
+        { component: 'Internal assessment: business research project', format: 'A research project on a real organization, up to 1,800 words', weight: 30, internal: true },
+      ],
+      HL: [
+        { component: 'Paper 1', format: 'Structured questions and one extended response on an unseen case study, set up by a pre-released statement', hours: 1.5, weight: 25 },
+        { component: 'Paper 2', format: 'Structured and extended-response questions on unseen material with a quantitative focus, including HL topics', hours: 1.75, weight: 30 },
+        { component: 'Paper 3', format: 'One compulsory question on unseen material about a social enterprise', hours: 1.25, weight: 25 },
+        { component: 'Internal assessment: business research project', format: 'A research project on a real organization, up to 1,800 words', weight: 20, internal: true },
+      ],
+    },
+    ia: {
+      name: 'Business research project',
+      description: 'A research project on a real business issue or problem facing a particular organization, seen through a key concept. Up to 1,800 words, marked out of 25. Same task at SL and HL.',
+      weightSL: 30,
+      weightHL: 20,
+    },
+    iaPages: [{ slug: 'business-management' }],
+    notes: ['This course was first assessed in 2024. Older material describing an SL "written commentary" IA belongs to the previous course.'],
+    source: 'https://www.ibo.org/globalassets/new-structure/university-admission/pdfs/subject-guides/business-management-guide.pdf',
+    sourceLabel: 'IB Business management guide, first assessment 2024',
+    checkedOn: CHECKED,
+  },
+  {
+    slug: 'computer-science',
+    subject: 'Computer Science',
+    group: G4,
+    firstAssessment: '2027',
+    hoursSL: 150,
+    hoursHL: 240,
+    topics: [
+      {
+        name: 'Theme A: Concepts of computer science', hoursSL: 38, hoursHL: 72,
+        subtopics: [{ name: 'A1 Computer fundamentals' }, { name: 'A2 Networks' }, { name: 'A3 Databases' }, { name: 'A4 Machine learning' }],
+        note: 'A1–A3 take 11 hours each at SL and 18 at HL; machine learning goes from 5 hours at SL to 18 at HL.',
+      },
+      {
+        name: 'Theme B: Computational thinking and problem-solving', hoursSL: 52, hoursHL: 93,
+        subtopics: [
+          { name: 'B1 Computational thinking' }, { name: 'B2 Programming' }, { name: 'B3 Object-oriented programming' },
+          { name: 'B4 Abstract data types', level: 'hl' },
+        ],
+        note: 'Programming is the single biggest block: 40 hours at SL, 42 at HL.',
+      },
+      { name: 'Case study', hoursSL: 15, hoursHL: 30 },
+      { name: 'Internal assessment: the computational solution', hoursSL: 35, hoursHL: 35 },
+      { name: 'Collaborative sciences project', hoursSL: 10, hoursHL: 10 },
+    ],
+    assessment: {
+      SL: [
+        { component: 'Paper 1', format: 'Extended-response questions on theme A, then short-response questions on the pre-seen case study', hours: 1.25, weight: 35 },
+        { component: 'Paper 2', format: 'Extended-response questions on theme B', hours: 1.25, weight: 35 },
+        { component: 'Internal assessment: the computational solution', format: 'One task: a computational solution, marked out of 30', weight: 30, internal: true },
+      ],
+      HL: [
+        { component: 'Paper 1', format: 'Extended-response questions on theme A, then short- and extended-response questions on the pre-seen case study', hours: 2, weight: 40 },
+        { component: 'Paper 2', format: 'Extended-response questions on theme B', hours: 2, weight: 40 },
+        { component: 'Internal assessment: the computational solution', format: 'One task: a computational solution, marked out of 30', weight: 20, internal: true },
+      ],
+    },
+    ia: {
+      name: 'The computational solution',
+      description: 'One task: building and documenting a computational solution to a problem, marked out of 30. Same task at SL and HL.',
+      weightSL: 30,
+      weightHL: 20,
+    },
+    iaPages: [{ slug: 'computer-science' }],
+    notes: ['This is the new course, first assessed in May 2027. There is no Paper 3 at HL any more — the case study is examined in Paper 1.'],
+    source: 'https://ibo.org/globalassets/new-structure/university-admission/pdfs/subject-guides/computer-science-first-assessment-2027-guide-sbs.pdf',
+    sourceLabel: 'IB Computer science guide, first assessment 2027',
+    checkedOn: CHECKED,
+  },
+  {
+    slug: 'mathematics-aa',
+    subject: 'Mathematics AA',
+    group: G5,
+    firstAssessment: '2021',
+    hoursSL: 150,
+    hoursHL: 240,
+    topics: [
+      { name: 'Topic 1: Number and algebra', hoursSL: 19, hoursHL: 39 },
+      { name: 'Topic 2: Functions', hoursSL: 21, hoursHL: 32 },
+      { name: 'Topic 3: Geometry and trigonometry', hoursSL: 25, hoursHL: 51 },
+      { name: 'Topic 4: Statistics and probability', hoursSL: 27, hoursHL: 33 },
+      { name: 'Topic 5: Calculus', hoursSL: 28, hoursHL: 55 },
+      { name: 'The toolkit and the mathematical exploration (the IA)', hoursSL: 30, hoursHL: 30 },
+    ],
+    topicNote: 'Mathematics: Analysis and Approaches. All five topics are compulsory at both levels; HL adds further content (marked "AHL" in the guide) inside each topic rather than separate topics. Calculus and geometry are where HL grows most.',
+    assessment: {
+      SL: [
+        { component: 'Paper 1', format: 'Short- and extended-response questions — no calculator', hours: 1.5, weight: 40 },
+        { component: 'Paper 2', format: 'Short- and extended-response questions — calculator required', hours: 1.5, weight: 40 },
+        { component: 'Internal assessment: mathematical exploration', format: 'An individual written exploration, marked out of 20', weight: 20, internal: true },
+      ],
+      HL: [
+        { component: 'Paper 1', format: 'Short- and extended-response questions — no calculator', hours: 2, weight: 30 },
+        { component: 'Paper 2', format: 'Short- and extended-response questions — calculator required', hours: 2, weight: 30 },
+        { component: 'Paper 3', format: 'Two extended problem-solving questions — calculator required', hours: 1.25, weight: 20 },
+        { component: 'Internal assessment: mathematical exploration', format: 'An individual written exploration, marked out of 20', weight: 20, internal: true },
+      ],
+    },
+    ia: {
+      name: 'Mathematical exploration',
+      description: 'An individual piece of written work investigating an area of mathematics of your choice, marked out of 20. Same task at SL and HL.',
+      weightSL: 20,
+      weightHL: 20,
+    },
+    iaPages: [{ slug: 'mathematics-aa' }],
+    notes: [
+      'The main exam difference from Mathematics AI: in AA, Paper 1 is taken without a calculator.',
+      'You can take only one of the two IB mathematics courses.',
+    ],
+    source: 'https://ibo.org/globalassets/new-structure/university-admission/pdfs/subject-guides/mathematics-analysis-approaches-guide.pdf',
+    sourceLabel: 'IB Mathematics: analysis and approaches guide, first assessment 2021 (November 2024 update)',
+    checkedOn: CHECKED,
+  },
+  {
+    slug: 'mathematics-ai',
+    subject: 'Mathematics AI',
+    group: G5,
+    firstAssessment: '2021',
+    hoursSL: 150,
+    hoursHL: 240,
+    topics: [
+      { name: 'Topic 1: Number and algebra', hoursSL: 16, hoursHL: 29 },
+      { name: 'Topic 2: Functions', hoursSL: 31, hoursHL: 42 },
+      { name: 'Topic 3: Geometry and trigonometry', hoursSL: 18, hoursHL: 46 },
+      { name: 'Topic 4: Statistics and probability', hoursSL: 36, hoursHL: 52 },
+      { name: 'Topic 5: Calculus', hoursSL: 19, hoursHL: 41 },
+      { name: 'The toolkit and the mathematical exploration (the IA)', hoursSL: 30, hoursHL: 30 },
+    ],
+    topicNote: 'Mathematics: Applications and Interpretation. All five topics are compulsory at both levels; HL adds further content (marked "AHL" in the guide) inside each topic. Statistics and probability is the biggest topic at both levels.',
+    assessment: {
+      SL: [
+        { component: 'Paper 1', format: 'Short-response questions — calculator required', hours: 1.5, weight: 40 },
+        { component: 'Paper 2', format: 'Extended-response questions — calculator required', hours: 1.5, weight: 40 },
+        { component: 'Internal assessment: mathematical exploration', format: 'An individual written exploration, marked out of 20', weight: 20, internal: true },
+      ],
+      HL: [
+        { component: 'Paper 1', format: 'Short-response questions — calculator required', hours: 2, weight: 30 },
+        { component: 'Paper 2', format: 'Extended-response questions — calculator required', hours: 2, weight: 30 },
+        { component: 'Paper 3', format: 'Two extended problem-solving questions — calculator required', hours: 1.25, weight: 20 },
+        { component: 'Internal assessment: mathematical exploration', format: 'An individual written exploration, marked out of 20', weight: 20, internal: true },
+      ],
+    },
+    ia: {
+      name: 'Mathematical exploration',
+      description: 'An individual piece of written work investigating an area of mathematics of your choice, marked out of 20. Same task at SL and HL.',
+      weightSL: 20,
+      weightHL: 20,
+    },
+    iaPages: [{ slug: 'mathematics-ai' }],
+    notes: [
+      'Every AI paper is taken with a calculator — unlike Mathematics AA, where Paper 1 is calculator-free.',
+      'You can take only one of the two IB mathematics courses. Some university courses ask for AA specifically — check yours in the university pages.',
+    ],
+    sourceLabel: 'IB Mathematics: applications and interpretation guide, first assessment 2021 (August 2025 update)',
     checkedOn: CHECKED,
   },
 ]

@@ -138,10 +138,11 @@ if (matches(subject, ['business management', 'business and management'])) {
       rubricId: 'ib-ia-psychology',
       needsLevel: false,
       confidence: 'high',
-      // Verified against the IB Psychology subject brief (first assessment
-      // 2027): the research proposal is HL only, and SL is assessed by two
-      // exams alone. Said up front so an SL student doesn't spend time on it.
-      note: 'From first assessment 2027 the Psychology IA — a research proposal, marked out of 24 across four criteria — is HL only. SL students do not submit an internal assessment.'
+      // Verified against the IB Psychology guide (first assessment 2027,
+      // December 2025 update): same task at SL and HL, 30% of the SL grade and
+      // 20% of the HL grade. (The earlier 2024 subject brief showed SL as
+      // exam-only; the guide supersedes it.)
+      note: 'Marked out of 24 across four criteria, the same task at SL and HL. It is a research proposal: the study is designed, not carried out. Up to 2,200 words.'
     }
   }
 

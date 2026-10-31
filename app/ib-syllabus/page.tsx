@@ -7,7 +7,7 @@ import { SYLLABUS } from './data'
 export const metadata: Metadata = {
   title: 'IB Syllabus by Subject: Topics, HL Content and Exam Weightings | NetEdu',
   description:
-    'The current IB Diploma syllabus for Biology, Chemistry, Physics, Design Technology, Economics, Psychology, Philosophy, Global Politics and Digital Society — every topic, what is HL only, and how each paper is weighted.',
+    'The current IB Diploma syllabus for Mathematics AA and AI, Biology, Chemistry, Physics, Computer Science, Design Technology, Economics, Business Management, Psychology, Philosophy, Global Politics and Digital Society — every topic, what is HL only, and how each paper is weighted.',
 }
 
 export default function SyllabusIndex() {
@@ -36,7 +36,7 @@ export default function SyllabusIndex() {
         <h1 className="text-3xl font-bold text-gray-900 mb-3">IB syllabus by subject</h1>
         <p className="text-gray-600 mb-1 max-w-2xl">
           The current IB Diploma syllabus, subject by subject — every topic, what's HL only, and how each paper and the
-          internal assessment are weighted. Taken from the official IB subject briefs.
+          internal assessment are weighted. Taken from the official IB subject guides and briefs.
         </p>
         <p className="text-xs text-gray-400 mb-8">IB müfredatı ve sınav yapısı, ders ders</p>
 

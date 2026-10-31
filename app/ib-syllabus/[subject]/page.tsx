@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ subject: 
   const topics = s.topics.filter((t) => !t.name.toLowerCase().includes('internal assessment')).slice(0, 4).map((t) => t.name).join(', ')
   return {
     title: `IB ${s.subject} Syllabus & Exam Structure (first assessment ${s.firstAssessment}) | NetEdu`,
-    description: `IB ${s.subject} SL and HL: every topic (${topics}…), what's HL only, and how each paper and the IA are weighted. From the official IB subject brief.`,
+    description: `IB ${s.subject} SL and HL: every topic (${topics}…), what's HL only, and how each paper and the IA are weighted. From the official IB documentation.`,
   }
 }
 
@@ -184,8 +184,13 @@ export default async function SyllabusPage({ params }: { params: Promise<{ subje
         )}
 
         <p className="text-xs text-gray-400 mb-8">
-          From the official IB subject brief (first assessment {s.firstAssessment}), checked {s.checkedOn}.{' '}
-          <a href={s.source} target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-700">Source ↗</a>
+          From the {s.sourceLabel || `official IB subject brief (first assessment ${s.firstAssessment})`}, checked {s.checkedOn}.
+          {s.source && (
+            <>
+              {' '}
+              <a href={s.source} target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-700">Source ↗</a>
+            </>
+          )}
         </p>
 
         <div className="bg-indigo-900 text-white rounded-2xl p-6 mb-8">
