@@ -309,6 +309,12 @@ export default function Checker() {
                 {resolution.confidence === 'high' && resolution.note && (
                   <p className="text-xs text-gray-500 mt-2">{resolution.note}</p>
                 )}
+                {docType === 'EE' && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Criterion E marks your Reflection and Progress Form statement (up to 500 words). Paste it after
+                    your essay, under a heading like &quot;Reflection&quot;, so E can be marked too.
+                  </p>
+                )}
               </div>
             )}
 

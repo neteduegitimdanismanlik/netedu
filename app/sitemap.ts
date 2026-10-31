@@ -16,6 +16,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: BASE_URL, changeFrequency: 'weekly', priority: 1 },
     { url: `${BASE_URL}/universities`, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${BASE_URL}/ib-roadmap`, changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${BASE_URL}/ib-extended-essay`, changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${BASE_URL}/ib-tok`, changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${BASE_URL}/ucas-personal-statement`, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${BASE_URL}/pricing`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE_URL}/auth`, changeFrequency: 'monthly', priority: 0.6 },
   ]

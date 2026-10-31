@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ subject: 
   const names = p.rubric.criteria.map((c: any) => c.name).join(', ')
   return {
     title: `IB ${p.subject} IA Rubric & Marking Criteria (out of ${p.rubric.totalMax}) | NetEdu`,
-    description: `How the IB ${p.subject} Internal Assessment is marked: ${p.rubric.criteria.length} criteria (${names}), out of ${p.rubric.totalMax}. Check your own IA against the rubric for free.`,
+    description: `How the IB ${p.subject} Internal Assessment is marked: ${p.rubric.criteria.length} criteria (${names}), out of ${p.rubric.totalMax}. Check your own IA against the rubric with NetEdu.`,
   }
 }
 
@@ -83,7 +83,7 @@ export default async function IaSubjectPage({ params }: { params: Promise<{ subj
           >
             Check my {p.subject} IA →
           </Link>
-          <p className="text-xs text-gray-500">Free: a mark per criterion against this rubric, and what's holding each one back.</p>
+          <p className="text-xs text-gray-500">Pro: a mark per criterion against this rubric, and what's holding each one back.</p>
         </div>
 
         <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-4">
@@ -151,7 +151,7 @@ export default async function IaSubjectPage({ params }: { params: Promise<{ subj
           <p className="font-semibold mb-1">See what your own {p.subject} IA would score — criterion by criterion.</p>
           <p className="text-sm text-indigo-200 mb-4">
             NetEdu's checker marks your draft against this exact rubric, shows the band each criterion lands in, and
-            tells you what's holding it back from the next one. Free to try.
+            tells you what's holding it back from the next one.
           </p>
           <Link
             href="/auth"

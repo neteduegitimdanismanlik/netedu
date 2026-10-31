@@ -121,39 +121,50 @@ export const rubrics: Rubric[] = [
     ]
   },
   {
+    // Extended Essay, first assessment May 2027 (guide published 2025).
+    // The old 34-mark model (Focus and method / K&U / Critical thinking 12 /
+    // Presentation / Engagement 6) was last assessed in November 2026, so
+    // every EE submitted from here on is marked out of 30 like this.
+    // Criterion names and maxima match the new guide. Descriptors are our own
+    // short summaries, not the IB's markband text. The IB does not publish EE
+    // grade boundaries in advance: gradeScale is an estimate, scaled from the
+    // proportions of past sessions — indicative only, like the IA scales.
+    // Criterion E marks the RPF statement: if the student pastes only the
+    // essay, there is little for E to go on.
     id: 'ib-ee',
     framework: 'IB',
     documentType: 'Extended Essay',
-    label: 'IB — Extended Essay',
-    totalMax: 34,
+    label: 'IB — Extended Essay (May 2027 onward)',
+    totalMax: 30,
     gradeScale: [
-      { grade: 'A', min: 27 }, { grade: 'B', min: 21 }, { grade: 'C', min: 14 },
-      { grade: 'D', min: 7 }, { grade: 'E', min: 0 }
+      { grade: 'A', min: 24 }, { grade: 'B', min: 19 }, { grade: 'C', min: 12 },
+      { grade: 'D', min: 6 }, { grade: 'E', min: 0 }
     ],
     criteria: [
-      { id: 'A', name: 'Focus and Method', max: 6, description: 'Topic, research question and methodology', bands: [
-        { range: '5-6', descriptor: 'Clearly identified and focused topic with an appropriate, well-explained research question and methodology' },
-        { range: '3-4', descriptor: 'Topic and research question identified, methodology mostly appropriate' },
-        { range: '1-2', descriptor: 'Topic communicated unclearly, research question too broad' },
+      { id: 'A', name: 'Framework for the essay', max: 6, description: 'Research question, chosen approach and methods, and a structure and presentation that support the argument', bands: [
+        { range: '5-6', descriptor: 'A focused, clearly stated research question; the approach and methods are well chosen and justified; structure, layout and referencing consistently support the reader' },
+        { range: '3-4', descriptor: 'Research question stated but broad or only partly focused; methods mostly appropriate; structure and referencing generally clear with lapses' },
+        { range: '1-2', descriptor: 'Research question unclear or too broad; approach poorly suited or unexplained; structure and referencing get in the way' },
       ]},
-      { id: 'B', name: 'Knowledge and Understanding', max: 6, description: 'Subject context and terminology', bands: [
-        { range: '5-6', descriptor: 'Knowledge is precise, well-contextualised, terminology used consistently and effectively' },
-        { range: '3-4', descriptor: 'Knowledge is mostly relevant with generally accurate terminology' },
-        { range: '1-2', descriptor: 'Knowledge is limited or largely descriptive' },
+      { id: 'B', name: 'Knowledge and understanding', max: 6, description: 'Subject knowledge, terminology and use of sources, in the context of the research question', bands: [
+        { range: '5-6', descriptor: 'Knowledge is accurate, relevant and well contextualised; subject terminology and concepts used precisely; sources well selected' },
+        { range: '3-4', descriptor: 'Knowledge mostly relevant and accurate; terminology generally appropriate; sources adequate' },
+        { range: '1-2', descriptor: 'Knowledge limited, largely descriptive or not connected to the research question; terminology weak' },
       ]},
-      { id: 'C', name: 'Critical Thinking', max: 12, description: 'Research, analysis and argument', bands: [
-        { range: '9-12', descriptor: 'Research is well-analysed, arguments are coherent, conclusions fully supported by evidence' },
-        { range: '5-8', descriptor: 'Research is relevant, analysis present but inconsistent, arguments partially supported' },
-        { range: '1-4', descriptor: 'Research is descriptive with minimal analysis and unsupported conclusions' },
+      { id: 'C', name: 'Analysis and line of argument', max: 6, description: 'How evidence is analysed and built into a coherent, reasoned argument that answers the research question', bands: [
+        { range: '5-6', descriptor: 'Evidence is analysed, not just reported; a clear, coherent line of argument runs through the essay and answers the research question' },
+        { range: '3-4', descriptor: 'Some effective analysis; the argument is present but uneven or partly descriptive' },
+        { range: '1-2', descriptor: 'Mostly description or summary; little analysis and no clear line of argument' },
       ]},
-      { id: 'D', name: 'Presentation', max: 4, description: 'Structure, layout and citation', bands: [
-        { range: '3-4', descriptor: 'Structure and layout consistently support the argument, citations complete' },
-        { range: '1-2', descriptor: 'Presentation is mostly appropriate with some inconsistencies' },
+      { id: 'D', name: 'Discussion and evaluation', max: 8, description: 'Weighing evidence, sources and methods, considering other views and limitations, and reaching a conclusion the essay supports', bands: [
+        { range: '7-8', descriptor: 'Sustained, critical evaluation of evidence, sources and methods; alternative views and limitations weighed; conclusion fully supported and its significance discussed' },
+        { range: '5-6', descriptor: 'Evaluation present and mostly relevant; some alternative views or limitations considered; conclusion largely supported' },
+        { range: '3-4', descriptor: 'Evaluation limited or generic; conclusion only partly supported by the discussion' },
+        { range: '1-2', descriptor: 'Little or no evaluation; conclusion missing, unsupported or merely restates the findings' },
       ]},
-      { id: 'E', name: 'Engagement', max: 6, description: 'Reflection on process and decision-making', bands: [
-        { range: '5-6', descriptor: 'Reflections are analytical and show genuine intellectual initiative' },
-        { range: '3-4', descriptor: 'Reflections are descriptive of the process' },
-        { range: '1-2', descriptor: 'Reflections are limited and superficial' },
+      { id: 'E', name: 'Reflection', max: 4, description: 'The reflective statement on the Reflection and Progress Form (up to 500 words): decisions made, challenges, and what the student learned as a researcher', bands: [
+        { range: '3-4', descriptor: 'Reflection is evaluative: explains key decisions and how thinking and approach changed, showing growth as a researcher' },
+        { range: '1-2', descriptor: 'Reflection is mostly descriptive of what was done, with little evaluation of decisions or learning' },
       ]},
     ]
   },

@@ -158,6 +158,9 @@ export default function Home() {
           <Link href="/ib-syllabus" className="text-sm text-gray-500 hover:text-indigo-700">IB syllabus by subject</Link>
           <Link href="/ib-ia" className="text-sm text-gray-500 hover:text-indigo-700">IB IA rubrics by subject</Link>
           <Link href="/ib-roadmap" className="text-sm text-gray-500 hover:text-indigo-700">IB roadmap, Grade 9 to 12</Link>
+          <Link href="/ib-extended-essay" className="text-sm text-gray-500 hover:text-indigo-700">Extended Essay 2027 criteria</Link>
+          <Link href="/ib-tok" className="text-sm text-gray-500 hover:text-indigo-700">TOK and bonus points</Link>
+          <Link href="/ucas-personal-statement" className="text-sm text-gray-500 hover:text-indigo-700">UCAS personal statement</Link>
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

@@ -11,7 +11,7 @@ import { iaSubjectPages } from './subjects'
 export const metadata: Metadata = {
   title: 'IB Internal Assessment (IA) Rubrics & Marking Criteria by Subject | NetEdu',
   description:
-    'How every IB Internal Assessment is marked: criteria, marks and word limits for Biology, Chemistry, Physics, Economics, Psychology, Business Management, Computer Science, Mathematics and more — plus a free AI check against the rubric.',
+    'How every IB Internal Assessment is marked: criteria, marks and word limits for Biology, Chemistry, Physics, Economics, Psychology, Business Management, Computer Science, Mathematics and more — plus an AI check of your own draft against the rubric.',
 }
 
 export default function IaIndex() {
@@ -54,7 +54,7 @@ export default function IaIndex() {
             href="/auth"
             className="shrink-0 bg-white text-indigo-900 px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-50 text-center"
           >
-            Check my IA free →
+            Check my IA →
           </Link>
         </div>
 
