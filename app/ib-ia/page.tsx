@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { seo, breadcrumbLd } from '@/lib/seo'
+import JsonLd from '@/app/components/JsonLd'
 import Link from 'next/link'
 import { iaSubjectPages } from './subjects'
 
@@ -8,11 +10,11 @@ import { iaSubjectPages } from './subjects'
  * links into one page per subject, each of which pushes to the checker.
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = seo('/ib-ia', {
   title: 'IB Internal Assessment (IA) Rubrics & Marking Criteria by Subject | NetEdu',
   description:
     'How every IB Internal Assessment is marked: criteria, marks and word limits for Biology, Chemistry, Physics, Economics, Psychology, Business Management, Computer Science, Mathematics and more — plus an AI check of your own draft against the rubric.',
-}
+})
 
 export default function IaIndex() {
   const pages = iaSubjectPages()
@@ -24,6 +26,7 @@ export default function IaIndex() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbLd([{ name: 'NetEdu', path: '/' }, { name: 'IB IA rubrics', path: '/ib-ia' }])} />
       <nav className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 w-fit">
           <div className="w-8 h-8 bg-indigo-900 rounded-lg flex items-center justify-center">
@@ -40,7 +43,9 @@ export default function IaIndex() {
           How each IB IA is marked — the criteria, the marks behind each one, and the word limit — for{' '}
           {pages.length} subjects.
         </p>
-        <p className="text-xs text-gray-400 mb-6">IB IA değerlendirme kriterleri, ders ders</p>
+        <p className="text-xs text-gray-400 mb-6">
+          <Link href={'/tr/ib-ia'} hrefLang="tr" className="hover:text-indigo-700">IB IA değerlendirme kriterleri, ders ders — Türkçe oku →</Link>
+        </p>
 
         <div className="bg-indigo-900 text-white rounded-2xl p-6 mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>

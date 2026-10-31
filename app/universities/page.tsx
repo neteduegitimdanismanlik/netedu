@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { seo, breadcrumbLd } from '@/lib/seo'
+import JsonLd from '@/app/components/JsonLd'
 import Link from 'next/link'
 import { UNIVERSITIES } from './index'
 import { areaSlug } from './slugs'
@@ -12,11 +14,11 @@ import { areaSlug } from './slugs'
  * to it besides the sitemap.
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = seo('/universities', {
   title: 'University IB & Turkish Diploma Requirements — NetEdu',
   description:
     'Verified IB Diploma and Turkish national diploma (MEB) entry requirements for universities across the UK, Netherlands, Italy, Czechia, Belgium, Switzerland, France and Japan — by university and by department.',
-}
+})
 
 export default function UniversitiesIndex() {
   const byCountry = new Map<string, typeof UNIVERSITIES>()
@@ -27,6 +29,7 @@ export default function UniversitiesIndex() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbLd([{ name: 'NetEdu', path: '/' }, { name: 'Universities', path: '/universities' }])} />
       <nav className="bg-white border-b border-gray-100 px-6 py-4">
         <Link href="/" className="flex items-center gap-2 w-fit">
           <div className="w-8 h-8 bg-indigo-900 rounded-lg flex items-center justify-center">

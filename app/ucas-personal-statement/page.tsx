@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { seo, breadcrumbLd } from '@/lib/seo'
+import JsonLd from '@/app/components/JsonLd'
 import Counter from './Counter'
 import { QUESTIONS } from './questions'
 
@@ -17,11 +19,11 @@ import { QUESTIONS } from './questions'
  * The IB-specific advice (where the EE, IAs, TOK and CAS go) is NetEdu's own.
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = seo('/ucas-personal-statement', {
   title: 'UCAS Personal Statement: The 3 Questions, Character Count and IB Tips | NetEdu',
   description:
     'The new UCAS personal statement explained for IB students: the three questions, the 4,000-character limit and 350-character minimum, a free character counter, and where your Extended Essay, IAs, TOK and CAS belong.',
-}
+})
 
 const IB_TIPS: { q: number; text: string }[] = [
   { q: 1, text: 'Lead with the interest itself, not the career. What in the subject made you want three or four more years of it — a problem, an idea, a book, a question you kept coming back to?' },
@@ -50,10 +52,13 @@ function Nav() {
 export default function PersonalStatementPage() {
   return (
     <main className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbLd([{ name: 'NetEdu', path: '/' }, { name: 'UCAS personal statement', path: '/ucas-personal-statement' }])} />
       <Nav />
       <div className="max-w-3xl mx-auto px-4 py-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">The UCAS personal statement: three questions, 4,000 characters</h1>
-        <p className="text-xs text-gray-400 mb-4">UCAS personal statement soruları ve karakter sınırı — IB öğrencileri için</p>
+        <p className="text-xs text-gray-400 mb-4">
+          <Link href={'/tr/ucas-personal-statement'} hrefLang="tr" className="hover:text-indigo-700">UCAS personal statement soruları ve karakter sınırı — IB öğrencileri için — Türkçe oku →</Link>
+        </p>
         <p className="text-gray-600 mb-5">
           Since 2026 entry, the UCAS personal statement is no longer one free-form essay. You answer three set
           questions instead, within the same 4,000-character limit. Here&apos;s how it works, a counter to check your

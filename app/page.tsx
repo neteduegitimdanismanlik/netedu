@@ -1,4 +1,12 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
+import type { Metadata } from 'next'
+import { seo } from '@/lib/seo'
+
+export const metadata: Metadata = seo('/', {
+  title: 'NetEdu — University guidance for IB students',
+  description:
+    'IB and Turkish diploma requirements for universities in the UK and Europe, IA and Extended Essay marking against the official criteria, university matching and a personal roadmap — in one place.',
+})
 
 export default function Home() {
   return (

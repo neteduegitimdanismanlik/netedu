@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { seo, breadcrumbLd } from '@/lib/seo'
+import JsonLd from '@/app/components/JsonLd'
 
 /**
  * Public guide to Theory of Knowledge assessment and the EE/TOK bonus points
@@ -17,11 +19,11 @@ import Link from 'next/link'
  * unchanged for the 2027 Extended Essay.
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = seo('/ib-tok', {
   title: 'IB TOK Essay, Exhibition and Bonus Points Matrix | NetEdu',
   description:
     'How Theory of Knowledge is assessed: the 1,600-word TOK essay and the 950-word exhibition, each marked out of 10 — plus the full EE/TOK matrix showing how many bonus points (0–3) every grade combination earns.',
-}
+})
 
 const GRADES = ['A', 'B', 'C', 'D', 'E'] as const
 
@@ -63,10 +65,13 @@ function Nav() {
 export default function TokPage() {
   return (
     <main className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbLd([{ name: 'NetEdu', path: '/' }, { name: 'TOK and bonus points', path: '/ib-tok' }])} />
       <Nav />
       <div className="max-w-3xl mx-auto px-4 py-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">TOK assessment and the IB bonus points matrix</h1>
-        <p className="text-xs text-gray-400 mb-4">IB TOK essay, exhibition ve EE/TOK bonus puan tablosu</p>
+        <p className="text-xs text-gray-400 mb-4">
+          <Link href={'/tr/ib-tok'} hrefLang="tr" className="hover:text-indigo-700">IB TOK essay, exhibition ve EE/TOK bonus puan tablosu — Türkçe oku →</Link>
+        </p>
         <p className="text-gray-600 mb-5">
           Theory of Knowledge is assessed in two parts — an essay and an exhibition — and graded A to E. With your
           Extended Essay grade, it decides up to 3 of the 45 Diploma points.

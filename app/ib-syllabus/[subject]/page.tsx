@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { SYLLABUS, syllabusBySlug, type AssessmentComponent, type SyllabusSubject } from '../data'
+import { seo, breadcrumbLd } from '@/lib/seo'
+import JsonLd from '@/app/components/JsonLd'
 
 /**
  * One public page per IB subject: the syllabus and how the subject is
@@ -19,10 +21,10 @@ export async function generateMetadata({ params }: { params: Promise<{ subject: 
   const s = syllabusBySlug(subject)
   if (!s) return {}
   const topics = s.topics.filter((t) => !t.name.toLowerCase().includes('internal assessment')).slice(0, 4).map((t) => t.name).join(', ')
-  return {
+  return seo(`/ib-syllabus/${s.slug}`, {
     title: `IB ${s.subject} Syllabus & Exam Structure (first assessment ${s.firstAssessment}) | NetEdu`,
     description: `IB ${s.subject} SL and HL: every topic (${topics}…), what's HL only, and how each paper and the IA are weighted. From the official IB documentation.`,
-  }
+  })
 }
 
 function hours(h?: number): string {
@@ -69,6 +71,7 @@ export default async function SyllabusPage({ params }: { params: Promise<{ subje
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbLd([{ name: 'NetEdu', path: '/' }, { name: 'IB syllabus', path: '/ib-syllabus' }, { name: `IB ${s.subject}`, path: `/ib-syllabus/${s.slug}` }])} />
       <nav className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 w-fit">
           <div className="w-8 h-8 bg-indigo-900 rounded-lg flex items-center justify-center">

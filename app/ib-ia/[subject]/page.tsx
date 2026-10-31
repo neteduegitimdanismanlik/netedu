@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { iaSubjectPages, iaSubjectBySlug, firstSentence } from '../subjects'
 import { syllabusForIaPage, iaWeightSentence } from '../../ib-syllabus/data'
+import { seo, breadcrumbLd } from '@/lib/seo'
+import JsonLd from '@/app/components/JsonLd'
 
 /**
  * One public page per IB subject: how its Internal Assessment is marked.
@@ -29,10 +31,10 @@ export async function generateMetadata({ params }: { params: Promise<{ subject: 
   const p = iaSubjectBySlug(subject)
   if (!p) return {}
   const names = p.rubric.criteria.map((c: any) => c.name).join(', ')
-  return {
+  return seo(`/ib-ia/${p.slug}`, {
     title: `IB ${p.subject} IA Rubric & Marking Criteria (out of ${p.rubric.totalMax}) | NetEdu`,
     description: `How the IB ${p.subject} Internal Assessment is marked: ${p.rubric.criteria.length} criteria (${names}), out of ${p.rubric.totalMax}. Check your own IA against the rubric with NetEdu.`,
-  }
+  })
 }
 
 export default async function IaSubjectPage({ params }: { params: Promise<{ subject: string }> }) {
@@ -57,6 +59,7 @@ export default async function IaSubjectPage({ params }: { params: Promise<{ subj
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbLd([{ name: 'NetEdu', path: '/' }, { name: 'IB IA rubrics', path: '/ib-ia' }, { name: `IB ${p.subject} IA`, path: `/ib-ia/${p.slug}` }])} />
       <nav className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 w-fit">
           <div className="w-8 h-8 bg-indigo-900 rounded-lg flex items-center justify-center">
@@ -72,7 +75,9 @@ export default async function IaSubjectPage({ params }: { params: Promise<{ subj
           <Link href="/ib-ia" className="hover:text-indigo-700">IB IA rubrics</Link> / {p.group}
         </p>
         <h1 className="text-3xl font-bold text-gray-900 mb-1">IB {p.subject} IA: rubric and marking criteria</h1>
-        <p className="text-xs text-gray-400 mb-5">IB {p.subject} IA değerlendirme kriterleri ve puanlama</p>
+        <p className="text-xs text-gray-400 mb-5">
+          <Link href={`/tr/ib-ia/${p.slug}`} hrefLang="tr" className="hover:text-indigo-700">IB {p.subject} IA değerlendirme kriterleri ve puanlama — Türkçe oku →</Link>
+        </p>
 
         {/* Top CTA — the same destination as the big block at the bottom, for
             visitors who already know the rubric and came for the check. */}

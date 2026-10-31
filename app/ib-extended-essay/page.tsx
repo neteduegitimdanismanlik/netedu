@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { seo, breadcrumbLd } from '@/lib/seo'
+import JsonLd from '@/app/components/JsonLd'
 import { getRubric } from '../rubrics/schema'
 
 /**
@@ -18,11 +20,11 @@ import { getRubric } from '../rubrics/schema'
  * not listed. Check against the IB guide before adding detail.
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = seo('/ib-extended-essay', {
   title: 'IB Extended Essay 2027: New Criteria, Marks and Word Count | NetEdu',
   description:
     'How the IB Extended Essay is marked from May 2027: five criteria out of 30 (Framework, Knowledge and understanding, Analysis, Discussion and evaluation, Reflection), the 4,000-word limit, the 500-word reflection, and what changed from the old 34-mark model.',
-}
+})
 
 const OLD_MODEL = [
   { id: 'A', name: 'Focus and method', max: 6 },
@@ -65,14 +67,17 @@ export default function ExtendedEssayPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbLd([{ name: 'NetEdu', path: '/' }, { name: 'Extended Essay', path: '/ib-extended-essay' }])} />
       <Nav />
       <div className="max-w-3xl mx-auto px-4 py-10">
         <p className="text-xs font-semibold text-indigo-700 mb-2">For EEs submitted from May 2027</p>
         <h1 className="text-3xl font-bold text-gray-900 mb-1">The IB Extended Essay: how it&apos;s marked now</h1>
-        <p className="text-xs text-gray-400 mb-4">IB Extended Essay 2027 değerlendirme kriterleri ve kelime sınırı</p>
+        <p className="text-xs text-gray-400 mb-4">
+          <Link href={'/tr/ib-extended-essay'} hrefLang="tr" className="hover:text-indigo-700">IB Extended Essay 2027 değerlendirme kriterleri ve kelime sınırı — Türkçe oku →</Link>
+        </p>
         <p className="text-gray-600 mb-5">
           The Extended Essay changed for students finishing the Diploma in May 2027 and later. It&apos;s now marked out
-          of {total} across five criteria, with a single reflection at the end. Here&apos;s what each criterion
+          of {total}{' '}across five criteria, with a single reflection at the end. Here&apos;s what each criterion
           rewards and what changed.
         </p>
 

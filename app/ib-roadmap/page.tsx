@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { seo, breadcrumbLd } from '@/lib/seo'
+import JsonLd from '@/app/components/JsonLd'
 import Link from 'next/link'
 import { UNIVERSITIES } from '../universities/index'
 import type { SubjectArea } from '../universities/schema'
@@ -15,11 +17,11 @@ import type { SubjectArea } from '../universities/schema'
  * uses, at build time, so it can never drift from what /universities shows.
  */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = seo('/ib-roadmap', {
   title: 'IB University Roadmap: What to Do in Grades 9, 10, 11 and 12 | NetEdu',
   description:
     'A year-by-year plan for IB students applying to university: choosing HL subjects, IA and Extended Essay, IELTS and admissions tests (UCAT, LNAT, TMUA), personal statements and deadlines — plus a personal roadmap built from your own profile.',
-}
+})
 
 /** How many UK courses in one area make a given HL subject a hard requirement. */
 function hlStat(area: SubjectArea, keyword: string) {
@@ -109,6 +111,7 @@ export default function IbRoadmapPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbLd([{ name: 'NetEdu', path: '/' }, { name: 'IB roadmap', path: '/ib-roadmap' }])} />
       <nav className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 w-fit">
           <div className="w-8 h-8 bg-indigo-900 rounded-lg flex items-center justify-center">
@@ -124,7 +127,9 @@ export default function IbRoadmapPage() {
 
       <div className="max-w-3xl mx-auto px-4 py-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">The IB university roadmap, year by year</h1>
-        <p className="text-xs text-gray-400 mb-4">IB öğrencileri için 9-12. sınıf üniversite başvuru yol haritası</p>
+        <p className="text-xs text-gray-400 mb-4">
+          <Link href={'/tr/ib-roadmap'} hrefLang="tr" className="hover:text-indigo-700">IB öğrencileri için 9-12. sınıf üniversite başvuru yol haritası — Türkçe oku →</Link>
+        </p>
         <p className="text-gray-600 mb-5">
           What to do in each year from Grade 9 to graduation if you're an IB student applying to university — and
           the decisions that quietly close doors if you make them late.

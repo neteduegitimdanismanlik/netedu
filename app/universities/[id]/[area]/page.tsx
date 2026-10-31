@@ -4,6 +4,9 @@ import { notFound } from 'next/navigation'
 import { UNIVERSITIES, byId } from '../../index'
 import { areaSlug, areaFromSlug } from '../../slugs'
 import type { AreaRequirement } from '../../schema'
+import { seo, breadcrumbLd } from '@/lib/seo'
+import JsonLd from '@/app/components/JsonLd'
+import { guideLinksFor } from '../../guide-links'
 
 /**
  * The actual long-tail SEO page: one university, one department. This is
@@ -47,10 +50,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { u, a } = found
   const course = a.course || a.area
   const ibBit = a.ibPoints ? `${a.ibPoints} IB points` : 'IB requirements'
-  return {
+  return seo(`/universities/${u.id}/${areaSlug(a.area)}`, {
     title: `${course} at ${u.name} — ${ibBit}${a.mebAccepted ? ' & Turkish Diploma (MEB)' : ''} | NetEdu`,
     description: `${u.name} ${course}: ${a.ibPoints ? `${a.ibPoints} IB points` : 'IB requirement'}${a.ibHl ? `, HL ${a.ibHl}` : ''}${a.mebAccepted ? '. Accepts the Turkish national diploma (MEB)' : ''}. Checked ${u.checkedOn}, sourced from the university's own page.`,
-  }
+  })
 }
 
 export default async function AreaPage({ params }: { params: Promise<{ id: string; area: string }> }) {
@@ -60,9 +63,15 @@ export default async function AreaPage({ params }: { params: Promise<{ id: strin
   const { u, a } = found
 
   const otherAreas = u.areas.filter((x) => x.offered && x.area !== a.area)
+  const guides = guideLinksFor([
+    ...(a.hlRequired || []),
+    ...(a.hlRequiredAnyOf || []).flatMap((alt) => alt.subjects),
+    ...(a.hlRecommended || []),
+  ])
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbLd([{ name: 'NetEdu', path: '/' }, { name: 'Universities', path: '/universities' }, { name: u.name, path: `/universities/${u.id}` }, { name: a.course || a.area, path: `/universities/${u.id}/${areaSlug(a.area)}` }])} />
       <nav className="bg-white border-b border-gray-100 px-6 py-4">
         <Link href="/" className="flex items-center gap-2 w-fit">
           <div className="w-8 h-8 bg-indigo-900 rounded-lg flex items-center justify-center">
@@ -127,6 +136,27 @@ export default async function AreaPage({ params }: { params: Promise<{ id: strin
 
           {a.note && <p className="text-sm text-gray-500 mt-3">{a.note}</p>}
         </div>
+
+        {guides.length > 0 && (
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-4">
+            <h2 className="font-semibold text-gray-800 mb-1">Preparing for the HL subjects this course asks for</h2>
+            <p className="text-sm text-gray-500 mb-3">What each one covers, and how its Internal Assessment is marked.</p>
+            <div className="flex flex-col gap-2">
+              {guides.map((g) => (
+                <p key={g.subject} className="text-sm text-gray-700">
+                  <span className="font-medium">{g.subject}</span>{' — '}
+                  <Link href={g.syllabusHref} className="text-indigo-700 hover:underline">syllabus</Link>
+                  {g.iaHref && (
+                    <>
+                      {' · '}
+                      <Link href={g.iaHref} className="text-indigo-700 hover:underline">IA rubric</Link>
+                    </>
+                  )}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* MEB — Turkish diploma. The thing almost nobody else publishes. */}
         {(a.mebAccepted !== undefined || a.mebMinAverage !== undefined) && (

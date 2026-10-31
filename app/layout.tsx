@@ -15,9 +15,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Lets every page give canonical / Open Graph URLs as paths ("/ib-tok").
+  // Don't add `alternates` here — see lib/seo.ts.
+  metadataBase: new URL("https://neteduapp.com"),
   title: "NetEdu — Get into your dream university",
   description:
     "Personalized university guidance for IB students — roadmap, coursework marking, university matching and portfolio in one place.",
+  openGraph: {
+    siteName: "NetEdu",
+    type: "website",
+    title: "NetEdu — Get into your dream university",
+    description:
+      "Personalized university guidance for IB students — roadmap, coursework marking, university matching and portfolio in one place.",
+  },
+  twitter: { card: "summary_large_image" },
   verification: {
     google: "mtxxfRJz2SvLtjwVv6ryxB7iP_g0lYVbYEMqKex95Ss",
   },

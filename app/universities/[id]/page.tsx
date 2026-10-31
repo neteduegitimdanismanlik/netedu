@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { UNIVERSITIES, byId } from '../index'
 import { areaSlug } from '../slugs'
+import { seo, breadcrumbLd } from '@/lib/seo'
+import JsonLd from '@/app/components/JsonLd'
 
 /**
  * Public, unauthenticated overview of one university — every department we
@@ -19,10 +21,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params
   const u = byId(id)
   if (!u) return {}
-  return {
+  return seo(`/universities/${u.id}`, {
     title: `${u.name} — IB & Turkish Diploma (MEB) Requirements | NetEdu`,
     description: `Verified IB Diploma and Turkish national diploma entry requirements for ${u.name} (${u.city}, ${u.country}), by department. Checked ${u.checkedOn}.`,
-  }
+  })
 }
 
 export default async function UniversityPage({ params }: { params: Promise<{ id: string }> }) {
@@ -34,6 +36,7 @@ export default async function UniversityPage({ params }: { params: Promise<{ id:
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbLd([{ name: 'NetEdu', path: '/' }, { name: 'Universities', path: '/universities' }, { name: u.name, path: `/universities/${u.id}` }])} />
       <nav className="bg-white border-b border-gray-100 px-6 py-4">
         <Link href="/" className="flex items-center gap-2 w-fit">
           <div className="w-8 h-8 bg-indigo-900 rounded-lg flex items-center justify-center">

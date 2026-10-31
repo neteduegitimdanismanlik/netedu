@@ -22,7 +22,7 @@ const OPEN_PATHS = new Set(['/', '/auth', '/privacy', '/terms', '/consent', '/pr
 // funnels — every page under them is plain published reference data, nothing
 // personal, so a signed-in minor without parental approval yet must never be
 // bounced off one they found through a Google search.
-const OPEN_PREFIXES = ['/parent-consent', '/admin', '/universities', '/ib-ia', '/ib-roadmap', '/ib-syllabus', '/ib-extended-essay', '/ib-tok', '/ucas-personal-statement']
+const OPEN_PREFIXES = ['/parent-consent', '/admin', '/universities', '/ib-ia', '/ib-roadmap', '/ib-syllabus', '/ib-extended-essay', '/ib-tok', '/ucas-personal-statement', '/tr/']
 
 interface Row {
   notice_version: string

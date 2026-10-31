@@ -1,14 +1,16 @@
 import type { Metadata } from 'next'
+import { seo, breadcrumbLd } from '@/lib/seo'
+import JsonLd from '@/app/components/JsonLd'
 import Link from 'next/link'
 import { SYLLABUS } from './data'
 
 /** Public index of the IB syllabus pages. */
 
-export const metadata: Metadata = {
+export const metadata: Metadata = seo('/ib-syllabus', {
   title: 'IB Syllabus by Subject: Topics, HL Content and Exam Weightings | NetEdu',
   description:
     'The current IB Diploma syllabus for Mathematics AA and AI, Biology, Chemistry, Physics, Computer Science, Design Technology, Economics, Business Management, Psychology, Philosophy, Global Politics and Digital Society — every topic, what is HL only, and how each paper is weighted.',
-}
+})
 
 export default function SyllabusIndex() {
   const byGroup = new Map<string, typeof SYLLABUS>()
@@ -19,6 +21,7 @@ export default function SyllabusIndex() {
 
   return (
     <main className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbLd([{ name: 'NetEdu', path: '/' }, { name: 'IB syllabus', path: '/ib-syllabus' }])} />
       <nav className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 w-fit">
           <div className="w-8 h-8 bg-indigo-900 rounded-lg flex items-center justify-center">

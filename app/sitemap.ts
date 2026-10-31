@@ -3,6 +3,7 @@ import { UNIVERSITIES } from './universities/index'
 import { areaSlug } from './universities/slugs'
 import { iaSubjectPages } from './ib-ia/subjects'
 import { SYLLABUS } from './ib-syllabus/data'
+import { hasTurkish } from '@/lib/seo'
 
 /**
  * Tells search engines about every public university/department page in one
@@ -60,5 +61,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ]
 
-  return [...staticPages, ...universityPages, ...areaPages, ...iaPages, ...syllabusPages]
+  // Turkish counterparts (/tr/...). Each English page with a Turkish version,
+  // and the Turkish page itself, lists both languages — the sitemap form of
+  // the hreflang tags in lib/seo.ts.
+  const all = [...staticPages, ...universityPages, ...areaPages, ...iaPages, ...syllabusPages]
+  const withLanguages: MetadataRoute.Sitemap = []
+  for (const entry of all) {
+    const path = entry.url.slice(BASE_URL.length) || '/'
+    if (!hasTurkish(path)) {
+      withLanguages.push(entry)
+      continue
+    }
+    const languages = { en: `${BASE_URL}${path}`, tr: `${BASE_URL}/tr${path}` }
+    withLanguages.push({ ...entry, alternates: { languages } })
+    withLanguages.push({ ...entry, url: `${BASE_URL}/tr${path}`, alternates: { languages } })
+  }
+  return withLanguages
 }
