@@ -70,7 +70,6 @@ const proFeatures = [
   'Topic Finder',
   'Oral exam and interview prep',
   'CAS project chat — work with other students',
-  'No daily limit on profile analysis or roadmap',
 ]
 
 export default function Pricing() {

@@ -12,7 +12,7 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { requirePro } from '@/lib/plan';
+import { requirePro, admin, proMonthlyCapHit, monthlyLimitReached, PRO_MONTHLY_TOPIC_SEARCHES } from '@/lib/plan';
 import { getRubric } from '../../rubrics/schema';
 import {
   getTopicRules,
@@ -435,6 +435,17 @@ export async function POST(req: Request) {
     const gate = await requirePro(req, 'Topic Finder');
     if (gate instanceof NextResponse) return gate;
 
+    // Topic Finder had no counter at all. Monthly allowance, recorded only
+    // after a successful answer (see the insert below).
+    if (
+      await proMonthlyCapHit(gate.userId, PRO_MONTHLY_TOPIC_SEARCHES, 'feature_usage', 'user_id', {
+        column: 'feature',
+        value: 'topics',
+      })
+    ) {
+      return monthlyLimitReached(`${PRO_MONTHLY_TOPIC_SEARCHES} Topic Finder searches`, 'topics');
+    }
+
     // Profile lookup uses the verified session id, never a client-supplied one,
     // so nobody can pull another student's profile into their own prompt.
     const verifiedUserId = gate.userId;
@@ -456,6 +467,7 @@ export async function POST(req: Request) {
 
     const raw = await callClaude(prompt);
     const parsed = parseJson<Record<string, unknown>>(raw);
+    await admin.from('feature_usage').insert({ user_id: gate.userId, feature: 'topics' });
 
     return NextResponse.json({
       mode,

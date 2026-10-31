@@ -4,7 +4,7 @@ import { getRubric, calculateGrade } from '@/app/rubrics/schema'
 import { getMarkingModel, getPitfalls } from '@/app/rubrics/checker-guards'
 import { getSubjectNotes } from '@/app/rubrics/subject-notes'
 import { callerId, unauthorized } from '@/lib/api-auth'
-import { requirePro, countToday, limitReached, limitsWaived, DAILY_CHECKS } from '@/lib/plan'
+import { requirePro, countToday, limitReached, limitsWaived, DAILY_CHECKS, proMonthlyCapHit, monthlyLimitReached, PRO_MONTHLY_CHECKS } from '@/lib/plan'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -287,6 +287,10 @@ export async function POST(req: Request) {
       return limitReached(
         `You have used today's ${DAILY_CHECKS} checks. Your limit resets tomorrow.`
       )
+    }
+    // Monthly allowance (lib/plan-limits.ts) — answers with the renew window.
+    if (await proMonthlyCapHit(userId, PRO_MONTHLY_CHECKS, 'checker_reports', 'user_id')) {
+      return monthlyLimitReached(`${PRO_MONTHLY_CHECKS} IA checks`, 'checker')
     }
 
     const rubric = getRubric(rubricId)

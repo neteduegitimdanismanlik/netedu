@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireUser, planOf, countToday, limitReached, admin, FREE_DAILY_PROFILE_ANALYSES } from '@/lib/plan'
+import { requireUser, planOf, countToday, limitReached, admin, FREE_DAILY_PROFILE_ANALYSES, proMonthlyCapHit, monthlyLimitReached, PRO_MONTHLY_PROFILE_ANALYSES } from '@/lib/plan'
 
 export async function POST(req: Request) {
   try {
@@ -8,16 +8,21 @@ export async function POST(req: Request) {
     const gate = await requireUser(req)
     if (gate instanceof NextResponse) return gate
 
-    // Free: one profile analysis a day. Pro and 'unlimited' aren't counted
-    // (planOf reports 'unlimited' as 'pro').
+    // Free: one profile analysis a day. Pro: a monthly allowance, which
+    // opens the renew window when it runs out. 'unlimited' isn't counted
+    // (planOf reports it as 'pro'; proMonthlyCapHit skips it).
     const isFree = (await planOf(gate.userId)) !== 'pro'
     if (isFree) {
       const used = await countToday('feature_usage', 'user_id', gate.userId, { column: 'feature', value: 'profile-analysis' })
       if (used >= FREE_DAILY_PROFILE_ANALYSES) {
         return limitReached(
-          "You've had today's free profile analysis — your last one is saved on your dashboard. You can run it again tomorrow; Pro has no daily limit on this."
+          "You've had today's free profile analysis — your last one is saved on your dashboard. You can run it again tomorrow."
         )
       }
+    } else if (
+      await proMonthlyCapHit(gate.userId, PRO_MONTHLY_PROFILE_ANALYSES, 'feature_usage', 'user_id', { column: 'feature', value: 'profile-analysis' })
+    ) {
+      return monthlyLimitReached(`${PRO_MONTHLY_PROFILE_ANALYSES} profile analyses`, 'profile-analysis')
     }
 
     const body = await req.json()
@@ -91,7 +96,8 @@ Return exactly this JSON structure:
     }
     // Counted only once it actually succeeded — a failed model call shouldn't
     // use up a Free student's one try for the day.
-    if (isFree) await admin.from('feature_usage').insert({ user_id: gate.userId, feature: 'profile-analysis' })
+    // Recorded for everyone now — Free counts it per day, Pro per month.
+    await admin.from('feature_usage').insert({ user_id: gate.userId, feature: 'profile-analysis' })
     return NextResponse.json({ result: parsed })
   } catch (e: any) {
     return NextResponse.json({ result: null, error: e.message })

@@ -40,3 +40,31 @@ export const DAILY_INTERVIEWS = 3
 
 /** Individual Oral prep briefings a Pro student may request per day. Not advertised. */
 export const DAILY_ORAL_PREPS = 3
+
+/**
+ * Pro monthly allowances — the ceiling on what one Pro student can cost in
+ * model calls in a month (≈ $8 at today's prices if every one is used up).
+ *
+ * Deliberately NOT shown on the pricing page. A student meets them only when
+ * one runs out: the route answers 429 with `renew: true`, and RenewGate (in
+ * app/layout.tsx) opens a "renew your package" window. Renewing resets every
+ * counter at once — see allowancePeriodStart() in lib/plan.ts and
+ * sql/quota-resets.sql.
+ *
+ * The daily limits above still apply on top, so a month can't be spent in an
+ * afternoon. 'unlimited' accounts are never counted.
+ */
+export const PRO_MONTHLY_CHECKS = 20
+export const PRO_MONTHLY_INTERVIEWS = 10
+export const PRO_MONTHLY_ORAL_PREPS = 10
+/** Recording reviews — twice the briefings, so a student can retake a recording. */
+export const PRO_MONTHLY_ORAL_REVIEWS = 20
+export const PRO_MONTHLY_TOPIC_SEARCHES = 20
+export const PRO_MONTHLY_PROFILE_ANALYSES = 10
+export const PRO_MONTHLY_ROADMAP_BUILDS = 10
+/**
+ * A full roadmap is built one school year per call (up to four calls), and
+ * later years can be requested on their own — so the calls themselves are
+ * capped too, at four per allowed build.
+ */
+export const PRO_MONTHLY_ROADMAP_YEARS = 40

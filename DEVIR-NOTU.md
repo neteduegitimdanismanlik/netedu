@@ -70,9 +70,28 @@ DAILY_CHECKS = 3                  // Pro: günde 3 checker
 DAILY_INTERVIEWS = 3              // Pro: günde 3 mock interview
 DAILY_ORAL_PREPS = 3              // Pro: günde 3 oral prep
 DAILY_JOIN_LIMIT = 2              // herkes: günde 2 CAS katılma isteği
+
+// Pro AYLIK haklar (günlük limitlerin üstüne). Hepsi kullanılırsa ≈ $8/ay maliyet tavanı.
+PRO_MONTHLY_CHECKS = 20           // IA checker
+PRO_MONTHLY_INTERVIEWS = 10       // mock interview
+PRO_MONTHLY_ORAL_PREPS = 10       // oral prep brief
+PRO_MONTHLY_ORAL_REVIEWS = 20     // kayıt değerlendirme (tekrar çekebilsin diye 2x)
+PRO_MONTHLY_TOPIC_SEARCHES = 20   // Topic Finder (önceden hiç sayacı yoktu)
+PRO_MONTHLY_PROFILE_ANALYSES = 10 // onboarding profil analizi
+PRO_MONTHLY_ROADMAP_BUILDS = 10   // uzun dönem roadmap yeniden oluşturma
+PRO_MONTHLY_ROADMAP_YEARS = 40    // roadmap yıl çağrıları (bir plan = yıl başına 1 çağrı)
 ```
 
-Pro'nun günlük limitleri **fiyat sayfasında ilan edilmiyor** (kullanım koşulları "bazı özelliklerde günlük limit" diyor). Free'nin günlük limitleri fiyat sayfasında yazıyor. `unlimited` hesaplar hiçbir sayaca takılmaz.
+Pro'nun limitleri **fiyat sayfasında yazmıyor — bilinçli karar.** Öğrenci aylık hakkı bitince öğreniyor: rota 429 + `renew: true` döner, `app/components/RenewGate.tsx` (layout'ta) "paketini yenile" penceresini açar. Pencere şimdilik e-posta isteği gönderiyor (ödeme canlı değil).
+
+**Paket yenileme (elle):** Supabase SQL Editor'de, öğrencinin e-postasıyla:
+```sql
+insert into public.quota_resets (user_id, note)
+select id, 'renewed by email' from auth.users where email = 'ogrenci@ornek.com';
+```
+O andan itibaren tüm aylık sayaçlar sıfırdan başlar. Tablo `sql/quota-resets.sql` ile kurulur (RLS açık, policy yok — sadece sunucu yazar; `profiles`'a konmadı çünkü tarayıcı `profiles`'a doğrudan yazıyor, öğrenci kendi sayacını sıfırlayabilirdi). Ayın 1'inde (UTC) herkesin hakkı zaten kendiliğinden yenilenir.
+
+Free'nin günlük limitleri fiyat sayfasında yazıyor. `unlimited` hesaplar hiçbir sayaca takılmaz.
 
 **İki ayrı roadmap var:** (1) onboarding sonundaki profil analizi — güçlü/zayıf yön, bu haftanın görevleri, 3 aylık hedef (`/api/roadmap`); (2) `/roadmap` sayfasındaki mezuniyete kadar yıl yıl plan (`/api/full-roadmap`). İkisi de her kullanımda ücretli model çağrısı.
 

@@ -29,6 +29,14 @@ export {
   DAILY_ORAL_PREPS,
   FREE_DAILY_PROFILE_ANALYSES,
   FREE_DAILY_ROADMAP_BUILDS,
+  PRO_MONTHLY_CHECKS,
+  PRO_MONTHLY_INTERVIEWS,
+  PRO_MONTHLY_ORAL_PREPS,
+  PRO_MONTHLY_ORAL_REVIEWS,
+  PRO_MONTHLY_TOPIC_SEARCHES,
+  PRO_MONTHLY_PROFILE_ANALYSES,
+  PRO_MONTHLY_ROADMAP_BUILDS,
+  PRO_MONTHLY_ROADMAP_YEARS,
 } from './plan-limits'
 
 export type Plan = 'free' | 'pro'
@@ -83,7 +91,16 @@ export async function countToday(
 ): Promise<number> {
   const since = new Date()
   since.setUTCHours(0, 0, 0, 0)
+  return countSince(table, column, userId, since, extra)
+}
 
+async function countSince(
+  table: string,
+  column: string,
+  userId: string,
+  since: Date,
+  extra?: { column: string; value: string }
+): Promise<number> {
   let query = admin
     .from(table)
     .select('id', { count: 'exact', head: true })
@@ -95,6 +112,78 @@ export async function countToday(
   const { count } = await query
 
   return count ?? 0
+}
+
+/* ------------------------------------------------------------------ */
+/* Pro monthly allowances                                              */
+/* ------------------------------------------------------------------ */
+
+function startOfMonthUTC(): Date {
+  const d = new Date()
+  d.setUTCDate(1)
+  d.setUTCHours(0, 0, 0, 0)
+  return d
+}
+
+/**
+ * Where this student's monthly allowance starts counting from: the 1st of
+ * the month (UTC), or the moment their package was last renewed if that is
+ * later. Renewals live in public.quota_resets, which has RLS on and no
+ * policies — only the server can read or write it. (Not a column on
+ * profiles: the browser writes to profiles directly during onboarding, so a
+ * student could have reset their own counters.)
+ *
+ * If the table doesn't exist yet (sql/quota-resets.sql not run), the query
+ * errors and this falls back to the 1st of the month — limits still work,
+ * renewal just isn't possible until the table is there.
+ */
+export async function allowancePeriodStart(userId: string): Promise<Date> {
+  const monthStart = startOfMonthUTC()
+  const { data, error } = await admin
+    .from('quota_resets')
+    .select('reset_at')
+    .eq('user_id', userId)
+    .order('reset_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error || !data?.reset_at) return monthStart
+  const reset = new Date(data.reset_at)
+  return !isNaN(reset.getTime()) && reset > monthStart ? reset : monthStart
+}
+
+/**
+ * True when a Pro student has used up a monthly allowance. Always false for
+ * 'unlimited' accounts.
+ */
+export async function proMonthlyCapHit(
+  userId: string,
+  cap: number,
+  table: string,
+  column: string,
+  extra?: { column: string; value: string }
+): Promise<boolean> {
+  if (await limitsWaived(userId)) return false
+  const since = await allowancePeriodStart(userId)
+  return (await countSince(table, column, userId, since, extra)) >= cap
+}
+
+/**
+ * 429 with `renew: true` — RenewGate in the browser turns this into the
+ * "renew your package" window. `what` is e.g. "20 IA checks".
+ */
+export function monthlyLimitReached(what: string, feature: string) {
+  const next = startOfMonthUTC()
+  next.setUTCMonth(next.getUTCMonth() + 1)
+  const resets = next.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' })
+  return NextResponse.json(
+    {
+      error: `You've used this month's ${what}. Renew your package for a fresh allowance now — otherwise it resets on ${resets}.`,
+      limitReached: true,
+      renew: true,
+      feature,
+    },
+    { status: 429 }
+  )
 }
 
 /** 402 — the caller is signed in but on Free. The client turns this into an upgrade prompt. */

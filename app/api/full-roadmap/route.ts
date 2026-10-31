@@ -1,7 +1,17 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { callerId, unauthorized } from '@/lib/api-auth'
-import { planOf, paymentRequired, countToday, limitReached, FREE_DAILY_ROADMAP_BUILDS } from '@/lib/plan'
+import {
+  planOf,
+  paymentRequired,
+  countToday,
+  limitReached,
+  FREE_DAILY_ROADMAP_BUILDS,
+  proMonthlyCapHit,
+  monthlyLimitReached,
+  PRO_MONTHLY_ROADMAP_BUILDS,
+  PRO_MONTHLY_ROADMAP_YEARS,
+} from '@/lib/plan'
 import { consentGate } from '@/lib/consent'
 
 export const maxDuration = 60
@@ -28,13 +38,25 @@ export async function POST(req: Request) {
     }
 
     // Free: one roadmap build a day (each build is a paid model call).
-    // Pro and 'unlimited' aren't counted.
+    // Pro: a monthly allowance of builds (a build starts at year 0), plus a
+    // cap on the year calls themselves, since later years can be requested
+    // on their own. 'unlimited' isn't counted.
     if (isFree) {
       const used = await countToday('feature_usage', 'user_id', userId, { column: 'feature', value: 'roadmap-build' })
       if (used >= FREE_DAILY_ROADMAP_BUILDS) {
         return limitReached(
-          "You've built today's free roadmap — the one you have is saved. You can rebuild it tomorrow; Pro has no daily limit on this."
+          "You've built today's free roadmap — the one you have is saved. You can rebuild it tomorrow."
         )
+      }
+    } else {
+      if (
+        yearIndex === 0 &&
+        (await proMonthlyCapHit(userId, PRO_MONTHLY_ROADMAP_BUILDS, 'feature_usage', 'user_id', { column: 'feature', value: 'roadmap-build' }))
+      ) {
+        return monthlyLimitReached(`${PRO_MONTHLY_ROADMAP_BUILDS} roadmap rebuilds`, 'roadmap')
+      }
+      if (await proMonthlyCapHit(userId, PRO_MONTHLY_ROADMAP_YEARS, 'feature_usage', 'user_id', { column: 'feature', value: 'roadmap-year' })) {
+        return monthlyLimitReached('roadmap allowance', 'roadmap')
       }
     }
 
@@ -97,7 +119,11 @@ Return ONLY raw JSON, no markdown:
     const year = JSON.parse(text)
     // Counted only after a usable result, so a failed call doesn't use up
     // the day's free build.
-    if (isFree) await supabase.from('feature_usage').insert({ user_id: userId, feature: 'roadmap-build' })
+    // Every year call is recorded; a call for year 0 also counts as a build
+    // (Free can only ever make year-0 calls, so its daily count is unchanged).
+    const usage = [{ user_id: userId, feature: 'roadmap-year' }]
+    if (yearIndex === 0) usage.push({ user_id: userId, feature: 'roadmap-build' })
+    await supabase.from('feature_usage').insert(usage)
     return NextResponse.json({ year })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })

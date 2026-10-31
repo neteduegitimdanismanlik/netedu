@@ -3,7 +3,7 @@ import { getRubric } from '@/app/rubrics/schema'
 import { getMarkingModel } from '@/app/rubrics/checker-guards'
 import { getTopicRules } from '@/app/rubrics/topic-rules'
 import { languageAOralPrep } from '@/app/rubrics/language-a-oral'
-import { requirePro, countToday, limitReached, limitsWaived, admin, DAILY_ORAL_PREPS } from '@/lib/plan'
+import { requirePro, countToday, limitReached, limitsWaived, admin, DAILY_ORAL_PREPS, proMonthlyCapHit, monthlyLimitReached, PRO_MONTHLY_ORAL_PREPS, PRO_MONTHLY_ORAL_REVIEWS } from '@/lib/plan'
 
 const MAX_CHARS = 20000
 
@@ -223,6 +223,9 @@ export async function POST(req: Request) {
       if (used >= DAILY_ORAL_PREPS && !(await limitsWaived(gate.userId))) {
         return limitReached("You've used today's oral prep briefings. Come back tomorrow.")
       }
+      if (await proMonthlyCapHit(gate.userId, PRO_MONTHLY_ORAL_PREPS, 'feature_usage', 'user_id', { column: 'feature', value: 'oral-prep' })) {
+        return monthlyLimitReached(`${PRO_MONTHLY_ORAL_PREPS} oral prep sessions`, 'oral-prep')
+      }
       await admin.from('feature_usage').insert({ user_id: gate.userId, feature: 'oral-prep' })
 
       const result = await buildBrief(rubric, '', material)
@@ -236,7 +239,14 @@ export async function POST(req: Request) {
           { status: 400 }
         )
       }
+      // Reviews were never counted, so a recording could be re-reviewed
+      // without limit. Monthly cap only — retaking a recording the same day
+      // is a normal thing to do.
+      if (await proMonthlyCapHit(gate.userId, PRO_MONTHLY_ORAL_REVIEWS, 'feature_usage', 'user_id', { column: 'feature', value: 'oral-review' })) {
+        return monthlyLimitReached(`${PRO_MONTHLY_ORAL_REVIEWS} recording reviews`, 'oral-review')
+      }
       const result = await reviewTranscript(rubric, material || '', transcript)
+      await admin.from('feature_usage').insert({ user_id: gate.userId, feature: 'oral-review' })
       return NextResponse.json(result)
     }
 
