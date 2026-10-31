@@ -18,7 +18,11 @@ import { NOTICE_VERSION, ADULT_AGE, ageOn } from '@/lib/consent-shared'
  */
 
 const OPEN_PATHS = new Set(['/', '/auth', '/privacy', '/terms', '/consent', '/pricing', '/contribute'])
-const OPEN_PREFIXES = ['/parent-consent', '/admin']
+// /universities is the public SEO funnel — every page under it is plain
+// published requirement data, nothing personal, so a signed-in minor
+// without parental approval yet must never be bounced off one they found
+// through a Google search.
+const OPEN_PREFIXES = ['/parent-consent', '/admin', '/universities']
 
 interface Row {
   notice_version: string
