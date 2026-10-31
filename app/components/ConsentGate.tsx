@@ -18,11 +18,11 @@ import { NOTICE_VERSION, ADULT_AGE, ageOn } from '@/lib/consent-shared'
  */
 
 const OPEN_PATHS = new Set(['/', '/auth', '/privacy', '/terms', '/consent', '/pricing', '/contribute'])
-// /universities and /ib-ia are the public SEO funnels — every page under
-// them is plain published reference data, nothing personal, so a signed-in
-// minor without parental approval yet must never be bounced off one they
-// found through a Google search.
-const OPEN_PREFIXES = ['/parent-consent', '/admin', '/universities', '/ib-ia']
+// /universities, /ib-ia and /ib-roadmap are the public SEO funnels — every
+// page under them is plain published reference data, nothing personal, so a
+// signed-in minor without parental approval yet must never be bounced off one
+// they found through a Google search.
+const OPEN_PREFIXES = ['/parent-consent', '/admin', '/universities', '/ib-ia', '/ib-roadmap']
 
 interface Row {
   notice_version: string
