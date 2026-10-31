@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { iaSubjectPages, iaSubjectBySlug, firstSentence } from '../subjects'
+import { syllabusForIaPage, iaWeightSentence } from '../../ib-syllabus/data'
 
 /**
  * One public page per IB subject: how its Internal Assessment is marked.
@@ -46,6 +47,13 @@ export default async function IaSubjectPage({ params }: { params: Promise<{ subj
   const summary = criteria.map((c) => `${c.name} (${c.max})`).join(', ')
 
   const siblings = iaSubjectPages().filter((x) => x.group === p.group && x.slug !== p.slug)
+
+  // The IA's weight comes from the verified syllabus data, per level — not
+  // from the rubric's single `weight`, which was wrong at HL wherever the two
+  // levels differ (and for Psychology, whose IA is HL only from 2027). No
+  // verified figure, no sentence.
+  const syl = syllabusForIaPage(p.slug)
+  const weightLine = syl ? iaWeightSentence(syl.s, syl.level) : null
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -94,7 +102,7 @@ export default async function IaSubjectPage({ params }: { params: Promise<{ subj
                 The IB {p.subject} IA is marked out of {r.totalMax} across {criteria.length} criteria: {summary}.
               </>
             )}
-            {r.weight ? <> It counts for {r.weight}% of the final {p.subject} grade.</> : null}
+            {weightLine ? <> {weightLine}</> : null}
           </p>
           {r.wordCount && (
             <p className="text-sm text-gray-700 mt-2">
@@ -104,6 +112,11 @@ export default async function IaSubjectPage({ params }: { params: Promise<{ subj
             </p>
           )}
           {p.note && <p className="text-sm text-gray-500 mt-3">{p.note}</p>}
+          {syl && (
+            <Link href={`/ib-syllabus/${syl.s.slug}`} className="text-sm text-indigo-700 hover:underline mt-3 inline-block">
+              Full IB {syl.s.subject} syllabus and exam structure →
+            </Link>
+          )}
           {p.confidence === 'low' && (
             <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2 mt-3">
               This subject is assumed to share the sciences IA framework; we haven't verified its criteria against its own guide yet.

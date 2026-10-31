@@ -133,7 +133,16 @@ if (matches(subject, ['business management', 'business and management'])) {
     }
   }
   if (matches(subject, ['psychology'])) {
-    return { kind: 'rubric', rubricId: 'ib-ia-psychology', needsLevel: false, confidence: 'high' }
+    return {
+      kind: 'rubric',
+      rubricId: 'ib-ia-psychology',
+      needsLevel: false,
+      confidence: 'high',
+      // Verified against the IB Psychology subject brief (first assessment
+      // 2027): the research proposal is HL only, and SL is assessed by two
+      // exams alone. Said up front so an SL student doesn't spend time on it.
+      note: 'From first assessment 2027 the Psychology IA — a research proposal, marked out of 24 across four criteria — is HL only. SL students do not submit an internal assessment.'
+    }
   }
 
   if (matches(subject, ['economics'])) {

@@ -155,6 +155,7 @@ export default function Home() {
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mb-6">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Free guides</span>
           <Link href="/universities" className="text-sm text-gray-500 hover:text-indigo-700">University requirements (IB &amp; Turkish diploma)</Link>
+          <Link href="/ib-syllabus" className="text-sm text-gray-500 hover:text-indigo-700">IB syllabus by subject</Link>
           <Link href="/ib-ia" className="text-sm text-gray-500 hover:text-indigo-700">IB IA rubrics by subject</Link>
           <Link href="/ib-roadmap" className="text-sm text-gray-500 hover:text-indigo-700">IB roadmap, Grade 9 to 12</Link>
         </div>

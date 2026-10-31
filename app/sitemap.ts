@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import { UNIVERSITIES } from './universities/index'
 import { areaSlug } from './universities/slugs'
 import { iaSubjectPages } from './ib-ia/subjects'
+import { SYLLABUS } from './ib-syllabus/data'
 
 /**
  * Tells search engines about every public university/department page in one
@@ -46,5 +47,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ]
 
-  return [...staticPages, ...universityPages, ...areaPages, ...iaPages]
+  const syllabusPages: MetadataRoute.Sitemap = [
+    { url: `${BASE_URL}/ib-syllabus`, changeFrequency: 'monthly' as const, priority: 0.9 },
+    ...SYLLABUS.map((s) => ({
+      url: `${BASE_URL}/ib-syllabus/${s.slug}`,
+      lastModified: s.checkedOn,
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
+    })),
+  ]
+
+  return [...staticPages, ...universityPages, ...areaPages, ...iaPages, ...syllabusPages]
 }
