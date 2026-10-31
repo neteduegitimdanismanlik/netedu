@@ -111,7 +111,7 @@ export default function Home() {
             <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-indigo-200 transition-colors">
               <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-4"><span className="text-xl">🎯</span></div>
               <h3 className="font-semibold text-gray-800 mb-2">University Matching</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">Find your Reach, Match and Safety schools with estimated acceptance rates.</p>
+              <p className="text-sm text-gray-500 leading-relaxed">Find your Reach, Match and Safety schools, checked against each university&apos;s published IB and Turkish diploma requirements.</p>
             </div>
             <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:border-indigo-200 transition-colors">
               <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-4"><span className="text-xl">📁</span></div>
