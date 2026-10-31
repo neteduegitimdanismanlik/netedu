@@ -3,7 +3,7 @@ import { getRubric } from '@/app/rubrics/schema'
 import { getMarkingModel } from '@/app/rubrics/checker-guards'
 import { getTopicRules } from '@/app/rubrics/topic-rules'
 import { languageAOralPrep } from '@/app/rubrics/language-a-oral'
-import { requirePro, countToday, limitReached, admin, DAILY_ORAL_PREPS } from '@/lib/plan'
+import { requirePro, countToday, limitReached, limitsWaived, admin, DAILY_ORAL_PREPS } from '@/lib/plan'
 
 const MAX_CHARS = 20000
 
@@ -220,7 +220,7 @@ export async function POST(req: Request) {
         column: 'feature',
         value: 'oral-prep',
       })
-      if (used >= DAILY_ORAL_PREPS) {
+      if (used >= DAILY_ORAL_PREPS && !(await limitsWaived(gate.userId))) {
         return limitReached("You've used today's oral prep briefings. Come back tomorrow.")
       }
       await admin.from('feature_usage').insert({ user_id: gate.userId, feature: 'oral-prep' })

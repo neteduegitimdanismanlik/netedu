@@ -62,13 +62,22 @@ Bunlar tercih değil, projenin omurgası. Yeni bir oturum bunları bozmamalı.
 Sayılar tek yerde: **`lib/plan-limits.ts`** (hiçbir şey import etmez, hem sunucu hem tarayıcı okur).
 
 ```
-FREE_ROADMAP_PERIODS = 2     // Free: 1. yılın ilk 2 dönemi
-FREE_UNIVERSITY_MATCHES = 3  // Free: 3 üniversite
-DAILY_CHECKS = 3             // Pro: günde 3 checker
-DAILY_JOIN_LIMIT = 2         // günde 2 CAS katılma isteği
+FREE_ROADMAP_PERIODS = 2          // Free: 1. yılın ilk 2 dönemi (bu kilit sadece tarayıcıda)
+FREE_UNIVERSITY_MATCHES = 3       // Free: 1 Reach + 1 Match + 1 Safety (sunucuda)
+FREE_DAILY_PROFILE_ANALYSES = 1   // Free: günde 1 onboarding profil analizi (/api/roadmap)
+FREE_DAILY_ROADMAP_BUILDS = 1     // Free: günde 1 uzun dönem roadmap oluşturma (/api/full-roadmap)
+DAILY_CHECKS = 3                  // Pro: günde 3 checker
+DAILY_INTERVIEWS = 3              // Pro: günde 3 mock interview
+DAILY_ORAL_PREPS = 3              // Pro: günde 3 oral prep
+DAILY_JOIN_LIMIT = 2              // herkes: günde 2 CAS katılma isteği
 ```
 
-Günlük limitler **hiçbir yerde ilan edilmiyor** — öğrenci sadece limite gelince görüyor.
+Pro'nun günlük limitleri **fiyat sayfasında ilan edilmiyor** (kullanım koşulları "bazı özelliklerde günlük limit" diyor). Free'nin günlük limitleri fiyat sayfasında yazıyor. `unlimited` hesaplar hiçbir sayaca takılmaz.
+
+**İki ayrı roadmap var:** (1) onboarding sonundaki profil analizi — güçlü/zayıf yön, bu haftanın görevleri, 3 aylık hedef (`/api/roadmap`); (2) `/roadmap` sayfasındaki mezuniyete kadar yıl yıl plan (`/api/full-roadmap`). İkisi de her kullanımda ücretli model çağrısı.
+
+**Free neye erişir:** profil analizi (günde 1), roadmap'in 1. yılı (günde 1 oluşturma, ilk 2 dönem görünür), 3 üniversite eşleşmesi + "başvuru yapılamaz" listesinin tamamı, CAS (görme/oluşturma/katılma; mesaj gönderme Pro), portfolio, alumni, veli paneli + haftalık rapor (bilinçli olarak Free). Herkese açık SEO sayfaları: /universities, /ib-ia, /ib-syllabus, /ib-roadmap.
+**Sadece Pro:** IA Checker, Topic Finder, Mock Interview, Oral prep, CAS mesajlaşma, roadmap'in 2. yıl ve sonrası, tüm üniversite eşleşmeleri.
 
 ---
 
@@ -142,6 +151,8 @@ sql/cas-chat.sql        CAS tabloları + RLS
 
 **Aynı import'u iki kez eklemek.** Bir kere `Link`'i çift import ettik, build patladı. Düzenlemeden önce dosyanın başına bak.
 
+**`fetch('/api/...')` çağrısına `authHeaders()` eklemeyi unutmak.** Sunucu kimliği sadece `Authorization: Bearer` başlığından okur, cookie'ye bakmaz. Başlık yoksa her istek sessizce 401 döner. Ekim 2026'da onboarding roadmap butonu, Mock Interview ve Oral Exam Prep bu yüzden **Pro dahil herkes için** çalışmıyordu. Yeni bir sayfa API çağırıyorsa: `headers: { 'Content-Type': 'application/json', ...(await authHeaders()) }`.
+
 **Rate limit.** Paralel araştırma ajanları oturum limitini yiyor. Beş üniversitelik bir araştırma ~100-130 bin token. Aynı anda dörtten fazla çalıştırma.
 
 **Bu konuşmanın kendisi pahalılaşır.** Uzun oturumlarda her mesajda tüm geçmiş yeniden işleniyor. Büyük bir iş bitince yeni oturuma geç.
@@ -163,7 +174,7 @@ sql/cas-chat.sql        CAS tabloları + RLS
 - Değerlendirme başına ~**0.135$** (3 çağrı × ~7.500 girdi + ~1.500 çıktı, 3$/15$ per MTok)
 - Günde 3 değerlendirme yapan bir öğrenci ≈ **14$/ay**
 - University Match artık **0$** — modele sormuyor
-- Pricing: tek plan, **49 €/ay**, ödeme henüz bağlı değil
+- Pricing: tek plan (Free + Pro), **Pro 19 $/ay veya 400 $/yıl** (`lib/billing-config.ts`; Türk kartları TL karşılığı öder). Ödeme henüz bağlı değil — Paddle fiyat ID'leri boş olduğu sürece fiyat sayfası "Request Pro access" (mailto) gösterir
 
 ---
 

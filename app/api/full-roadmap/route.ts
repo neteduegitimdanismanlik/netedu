@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { callerId, unauthorized } from '@/lib/api-auth'
-import { planOf, paymentRequired } from '@/lib/plan'
+import { planOf, paymentRequired, countToday, limitReached, FREE_DAILY_ROADMAP_BUILDS } from '@/lib/plan'
 import { consentGate } from '@/lib/consent'
 
 export const maxDuration = 60
@@ -22,8 +22,20 @@ export async function POST(req: Request) {
 
     // Free builds the current year only. Later years are Pro — each one is a
     // separate Anthropic call, and the full multi-year plan is the paid part.
-    if (yearIndex > 0 && (await planOf(userId)) !== 'pro') {
+    const isFree = (await planOf(userId)) !== 'pro'
+    if (yearIndex > 0 && isFree) {
       return paymentRequired('Your full roadmap is part of Pro.')
+    }
+
+    // Free: one roadmap build a day (each build is a paid model call).
+    // Pro and 'unlimited' aren't counted.
+    if (isFree) {
+      const used = await countToday('feature_usage', 'user_id', userId, { column: 'feature', value: 'roadmap-build' })
+      if (used >= FREE_DAILY_ROADMAP_BUILDS) {
+        return limitReached(
+          "You've built today's free roadmap — the one you have is saved. You can rebuild it tomorrow; Pro has no daily limit on this."
+        )
+      }
     }
 
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single()
@@ -82,7 +94,11 @@ Return ONLY raw JSON, no markdown:
     const data = await res.json()
     let text = data.content?.[0]?.text || '{}'
     text = text.replace(/```json/g, '').replace(/```/g, '').trim()
-    return NextResponse.json({ year: JSON.parse(text) })
+    const year = JSON.parse(text)
+    // Counted only after a usable result, so a failed call doesn't use up
+    // the day's free build.
+    if (isFree) await supabase.from('feature_usage').insert({ user_id: userId, feature: 'roadmap-build' })
+    return NextResponse.json({ year })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
   }

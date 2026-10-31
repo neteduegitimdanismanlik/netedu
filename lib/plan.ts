@@ -27,6 +27,8 @@ export {
   DAILY_JOIN_LIMIT,
   DAILY_INTERVIEWS,
   DAILY_ORAL_PREPS,
+  FREE_DAILY_PROFILE_ANALYSES,
+  FREE_DAILY_ROADMAP_BUILDS,
 } from './plan-limits'
 
 export type Plan = 'free' | 'pro'

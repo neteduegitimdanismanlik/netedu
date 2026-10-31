@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requirePro, countToday, limitReached, admin, DAILY_INTERVIEWS } from '@/lib/plan'
+import { requirePro, countToday, limitReached, limitsWaived, admin, DAILY_INTERVIEWS } from '@/lib/plan'
 
 export async function POST(req: Request) {
   try {
@@ -13,7 +13,9 @@ export async function POST(req: Request) {
         column: 'feature',
         value: 'interview',
       })
-      if (used >= DAILY_INTERVIEWS) {
+      // 'unlimited' (test/staff) accounts skip daily counters everywhere else
+      // — the checker and CAS already honour this; this route didn't.
+      if (used >= DAILY_INTERVIEWS && !(await limitsWaived(gate.userId))) {
         return limitReached("You've used today's mock interviews. Come back tomorrow.")
       }
       await admin.from('feature_usage').insert({ user_id: gate.userId, feature: 'interview' })

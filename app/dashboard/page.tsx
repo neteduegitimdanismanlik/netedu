@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { authHeaders } from '@/lib/session'
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null)
@@ -46,10 +47,11 @@ export default function Dashboard() {
       })
     }
 
+    // The route now requires a signed-in caller (it used to be open to anyone).
     await fetch('/api/parent-invite', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ parentEmail, studentName: profile?.grade || 'your child' })
+      headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+      body: JSON.stringify({ parentEmail })
     })
 
     setInviteSuccess(`Invitation sent to ${parentEmail}!`)

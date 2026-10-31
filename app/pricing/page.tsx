@@ -51,21 +51,26 @@ const proMailto = `mailto:${CONTACT}?subject=${encodeURIComponent(
   'Hi,\n\nI am having trouble upgrading to NetEdu Pro through the site and would like help.\n\nStudent name:\nSchool:\nEmail used on NetEdu:\n\nThank you.'
 )}`
 
+// Each line here must match a lock the server actually enforces (lib/plan.ts,
+// lib/plan-limits.ts) — or, for Free, something genuinely open. The parent
+// panel used to be listed under Pro but was never locked; it's Free on purpose.
 const freeFeatures = [
-  'Roadmap — your first term',
-  '3 matched universities',
-  'Browse and create CAS projects',
+  'Profile analysis — once a day',
+  'Roadmap — your first term, rebuilt once a day',
+  '3 matched universities — one Reach, one Match, one Safety',
+  'Browse, create and join CAS projects',
   'Portfolio and Academic Identity Score',
+  'Parent panel and weekly reports',
 ]
 
 const proFeatures = [
-  'Your full roadmap',
+  'Your full roadmap, every year to graduation',
   'All matched universities',
   'IA Checker',
   'Topic Finder',
   'Oral exam and interview prep',
   'CAS project chat — work with other students',
-  'Parent panel and weekly reports',
+  'No daily limit on profile analysis or roadmap',
 ]
 
 export default function Pricing() {
@@ -93,7 +98,7 @@ export default function Pricing() {
               <p className="text-xs text-gray-400">Everything you need to get started</p>
             </div>
             <div className="mb-6">
-              <span className="text-4xl font-bold text-gray-900">€0</span>
+              <span className="text-4xl font-bold text-gray-900">$0</span>
               <span className="text-sm text-gray-400"> /month</span>
             </div>
             <ul className="flex flex-col gap-3 mb-7 flex-1">
@@ -171,7 +176,8 @@ export default function Pricing() {
             ) : (
               <>
                 <div className="mb-6">
-                  <span className="text-4xl font-bold text-gray-900">€{PRO_MONTHLY_USD}</span>
+                  {/* USD, same as the terms and the checkout — this used to say € */}
+                  <span className="text-4xl font-bold text-gray-900">${PRO_MONTHLY_USD}</span>
                   <span className="text-sm text-gray-400"> /month</span>
                 </div>
                 <p className="text-xs font-medium text-gray-500 mb-3">Everything in Free, plus:</p>

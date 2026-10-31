@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { authHeaders } from '@/lib/session'
 import Navbar from '../components/Navbar'
 import VoiceRecorder from '../components/VoiceRecorder'
 import { getRubric } from '../rubrics/schema'
@@ -107,9 +108,11 @@ export default function OralExam() {
   async function buildBrief() {
     setLoading(true); setError('')
     try {
+      // The route's requirePro() reads the bearer token, never cookies —
+      // without this header every request came back 401, Pro or not.
       const res = await fetch('/api/oral-prep', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ mode: 'brief', rubricId: course.rubricId, courseId, material })
       })
       const data = await res.json()
@@ -128,7 +131,7 @@ export default function OralExam() {
     try {
       const res = await fetch('/api/oral-prep', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ mode: 'review', rubricId: course.rubricId, courseId, material, transcript: text })
       })
       const data = await res.json()

@@ -151,7 +151,10 @@ export default function Roadmap() {
   )
 
   const totalYears = roadmap.totalYears || roadmap.years.length
-  const isPro = profile?.plan === 'pro'
+  // 'unlimited' is the staff/test tier and counts as Pro everywhere on the
+  // server (lib/plan.ts planOf) — read straight from the row it used to show
+  // those accounts the Free locks.
+  const isPro = profile?.plan === 'pro' || profile?.plan === 'unlimited'
   const year = roadmap.years?.[activeYear]
   const allTasks = roadmap.years?.flatMap((y: any, yi: number) =>
     y?.periods?.flatMap((p: any, pi: number) => p.tasks?.map((_: any, ti: number) => `${yi}-${pi}-${ti}`)) || []

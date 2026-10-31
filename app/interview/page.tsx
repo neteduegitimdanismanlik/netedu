@@ -1,5 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
+import { authHeaders } from '@/lib/session'
 import Navbar from '../components/Navbar'
 import VoiceRecorder from '../components/VoiceRecorder'
 
@@ -25,7 +27,38 @@ export default function Interview() {
   const [evaluation, setEvaluation] = useState<any>(null)
   const [isEnd, setIsEnd] = useState(false)
   const [answerMode, setAnswerMode] = useState<'type' | 'speak'>('type')
+  const [error, setError] = useState('')
+  const [needsPro, setNeedsPro] = useState(false)
   const messagesEndRef = useRef<any>(null)
+
+  /**
+   * Every call used to go out without the Authorization header, so
+   * requirePro() on the server rejected it with 401 for everyone — Pro
+   * included — and the page rendered an empty interviewer bubble. This sends
+   * the header, and turns a failed response into a message instead of
+   * silently pushing `undefined` into the transcript.
+   */
+  async function callInterview(payload: object): Promise<any | null> {
+    setError('')
+    setNeedsPro(false)
+    try {
+      const res = await fetch('/api/interview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+        body: JSON.stringify(payload),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || data.error) {
+        if (res.status === 402) setNeedsPro(true)
+        setError(data.error || (res.status === 401 ? 'Please sign in again.' : 'Something went wrong. Please try again.'))
+        return null
+      }
+      return data
+    } catch {
+      setError("Couldn't reach the server. Check your connection and try again.")
+      return null
+    }
+  }
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -33,14 +66,11 @@ export default function Interview() {
 
   async function startInterview() {
     setLoading(true)
-    setStage('interview')
-    const res = await fetch('/api/interview', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'start', university, department })
-    })
-    const data = await res.json()
-    setMessages([{ role: 'interviewer', content: data.message }])
+    const data = await callInterview({ action: 'start', university, department })
+    if (data) {
+      setMessages([{ role: 'interviewer', content: data.message }])
+      setStage('interview')
+    }
     setLoading(false)
   }
 
@@ -50,27 +80,25 @@ export default function Interview() {
     setMessages(newMessages)
     setInput('')
     setLoading(true)
-    const res = await fetch('/api/interview', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'respond', university, department, messages: newMessages, answer: text })
-    })
-    const data = await res.json()
-    setMessages([...newMessages, { role: 'interviewer', content: data.message }])
-    if (data.isEnd) setIsEnd(true)
+    const data = await callInterview({ action: 'respond', university, department, messages: newMessages, answer: text })
+    if (data) {
+      setMessages([...newMessages, { role: 'interviewer', content: data.message }])
+      if (data.isEnd) setIsEnd(true)
+    } else {
+      // Put the answer back so the student doesn't lose what they wrote.
+      setMessages(messages)
+      setInput(text)
+    }
     setLoading(false)
   }
 
   async function getEvaluation() {
     setLoading(true)
-    const res = await fetch('/api/interview', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'evaluate', university, department, messages })
-    })
-    const data = await res.json()
-    setEvaluation(data)
-    setStage('evaluation')
+    const data = await callInterview({ action: 'evaluate', university, department, messages })
+    if (data) {
+      setEvaluation(data)
+      setStage('evaluation')
+    }
     setLoading(false)
   }
 
@@ -78,6 +106,15 @@ export default function Interview() {
     <main className="min-h-screen bg-gray-50">
       <Navbar showBack backHref="/coach" backLabel="Coach Corner" />
       <div className="max-w-4xl mx-auto px-4 py-8">
+
+        {error && (
+          <div className="mb-6 text-sm px-4 py-3 rounded-xl bg-red-50 text-red-600 flex flex-wrap items-center justify-between gap-3">
+            <span>{error}</span>
+            {needsPro && (
+              <Link href="/pricing" className="text-xs bg-indigo-900 text-white px-4 py-2 rounded-xl whitespace-nowrap">See Pro →</Link>
+            )}
+          </div>
+        )}
 
         {stage === 'setup' && (
           <div>
