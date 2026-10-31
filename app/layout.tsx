@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   title: "NetEdu — Get into your dream university",
   description:
     "Personalized university guidance for IB students — roadmap, coursework marking, university matching and portfolio in one place.",
+  verification: {
+    google: "mtxxfRJz2SvLtjwVv6ryxB7iP_g0lYVbYEMqKex95Ss",
+  },
 };
 
 export default function RootLayout({
