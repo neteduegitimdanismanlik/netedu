@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { UNIVERSITIES } from './universities/index'
 import { areaSlug } from './universities/slugs'
+import { iaSubjectPages } from './ib-ia/subjects'
 
 /**
  * Tells search engines about every public university/department page in one
@@ -35,5 +36,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       }))
   )
 
-  return [...staticPages, ...universityPages, ...areaPages]
+  const iaPages: MetadataRoute.Sitemap = [
+    { url: `${BASE_URL}/ib-ia`, changeFrequency: 'monthly' as const, priority: 0.9 },
+    ...iaSubjectPages().map((p) => ({
+      url: `${BASE_URL}/ib-ia/${p.slug}`,
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
+    })),
+  ]
+
+  return [...staticPages, ...universityPages, ...areaPages, ...iaPages]
 }
