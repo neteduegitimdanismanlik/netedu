@@ -6,6 +6,9 @@ import { getSubjectNotes } from '@/app/rubrics/subject-notes'
 import { callerId, unauthorized } from '@/lib/api-auth'
 import { requirePro, countToday, limitReached, limitsWaived, DAILY_CHECKS, proMonthlyCapHit, monthlyLimitReached, PRO_MONTHLY_CHECKS } from '@/lib/plan'
 
+// Which feature_usage rows are IA checks.
+const CHECKER_USAGE = { column: 'feature', value: 'checker' }
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -282,14 +285,14 @@ export async function POST(req: Request) {
 
     // Three runs a day. Deliberately not advertised anywhere — the student
     // only ever meets it here, once they have used the third one.
-    const usedToday = await countToday('checker_reports', 'user_id', userId)
+    const usedToday = await countToday('feature_usage', 'user_id', userId, CHECKER_USAGE)
     if (usedToday >= DAILY_CHECKS && !(await limitsWaived(userId))) {
       return limitReached(
         `You have used today's ${DAILY_CHECKS} checks. Your limit resets tomorrow.`
       )
     }
     // Monthly allowance (lib/plan-limits.ts) — answers with the renew window.
-    if (await proMonthlyCapHit(userId, PRO_MONTHLY_CHECKS, 'checker_reports', 'user_id')) {
+    if (await proMonthlyCapHit(userId, PRO_MONTHLY_CHECKS, 'feature_usage', 'user_id', CHECKER_USAGE)) {
       return monthlyLimitReached(`${PRO_MONTHLY_CHECKS} IA checks`, 'checker')
     }
 
@@ -405,6 +408,13 @@ export async function POST(req: Request) {
       strengths: best.strengths,
       weaknesses: best.weaknesses,
       improvements: best.improvements,
+    }
+
+    // Count the check where the browser can't touch it (feature_usage is
+    // server-only). Limits used to count checker_reports, which a student
+    // could delete to get their checks back.
+    if (userId) {
+      await supabase.from('feature_usage').insert({ user_id: userId, feature: CHECKER_USAGE.value })
     }
 
     let saved = null

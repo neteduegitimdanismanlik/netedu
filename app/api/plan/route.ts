@@ -15,7 +15,7 @@ export async function GET(req: Request) {
 
   const plan = await planOf(userId)
   const waived = await limitsWaived(userId)
-  const usedToday = plan === 'pro' && !waived ? await countToday('checker_reports', 'user_id', userId) : 0
+  const usedToday = plan === 'pro' && !waived ? await countToday('feature_usage', 'user_id', userId, { column: 'feature', value: 'checker' }) : 0
 
   return NextResponse.json({
     plan,
