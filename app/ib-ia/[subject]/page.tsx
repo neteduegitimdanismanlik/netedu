@@ -64,7 +64,19 @@ export default async function IaSubjectPage({ params }: { params: Promise<{ subj
           <Link href="/ib-ia" className="hover:text-indigo-700">IB IA rubrics</Link> / {p.group}
         </p>
         <h1 className="text-3xl font-bold text-gray-900 mb-1">IB {p.subject} IA: rubric and marking criteria</h1>
-        <p className="text-xs text-gray-400 mb-6">IB {p.subject} IA değerlendirme kriterleri ve puanlama</p>
+        <p className="text-xs text-gray-400 mb-5">IB {p.subject} IA değerlendirme kriterleri ve puanlama</p>
+
+        {/* Top CTA — the same destination as the big block at the bottom, for
+            visitors who already know the rubric and came for the check. */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+          <Link
+            href="/auth"
+            className="inline-block text-center bg-indigo-900 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-indigo-800"
+          >
+            Check my {p.subject} IA →
+          </Link>
+          <p className="text-xs text-gray-500">Free: a mark per criterion against this rubric, and what's holding each one back.</p>
+        </div>
 
         <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-4">
           <h2 className="font-semibold text-gray-800 mb-2">How is the IB {p.subject} IA marked?</h2>
