@@ -30,19 +30,22 @@ export default function Dashboard() {
   }, [])
 
   async function inviteParent() {
-    if (!parentEmail) return
+    // Stored lower-case: the parent panel matches this against the address
+    // the parent signs in with, and e-mail case shouldn't decide access.
+    const email = parentEmail.trim().toLowerCase()
+    if (!email) return
     setInviting(true)
     const { data: existing } = await supabase
       .from('parent_links')
       .select('*')
       .eq('student_id', user.id)
-      .eq('parent_email', parentEmail)
-      .single()
+      .eq('parent_email', email)
+      .maybeSingle()
 
     if (!existing) {
       await supabase.from('parent_links').insert({
         student_id: user.id,
-        parent_email: parentEmail,
+        parent_email: email,
         status: 'accepted'
       })
     }
@@ -51,10 +54,10 @@ export default function Dashboard() {
     await fetch('/api/parent-invite', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
-      body: JSON.stringify({ parentEmail })
+      body: JSON.stringify({ parentEmail: email })
     })
 
-    setInviteSuccess(`Invitation sent to ${parentEmail}!`)
+    setInviteSuccess(`Invitation sent to ${email}! They can sign up with this address and open the Parent Panel.`)
     setParentEmail('')
     setShowInvite(false)
     setInviting(false)
