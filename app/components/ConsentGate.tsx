@@ -17,7 +17,7 @@ import { NOTICE_VERSION, ADULT_AGE, ageOn } from '@/lib/consent-shared'
  * so skipping this component in the browser unlocks nothing.
  */
 
-const OPEN_PATHS = new Set(['/', '/auth', '/privacy', '/terms', '/consent', '/pricing', '/contribute'])
+const OPEN_PATHS = new Set(['/', '/auth', '/auth/reset', '/privacy', '/terms', '/consent', '/pricing', '/contribute'])
 // /universities, /ib-ia, /ib-roadmap and /ib-syllabus are the public SEO
 // funnels — every page under them is plain published reference data, nothing
 // personal, so a signed-in minor without parental approval yet must never be

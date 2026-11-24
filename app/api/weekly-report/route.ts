@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { callerIsAdmin, forbidden } from '@/lib/api-auth'
+import { SITE_URL, MAIL_FROM, MAIL_REPLY_TO, escapeHtml } from '@/lib/email-config'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -76,24 +77,25 @@ export async function GET(req: Request) {
       }
 
       await resend.emails.send({
-        from: 'NetEdu <onboarding@resend.dev>',
-        to: 'neteduegitimdanismanlik@gmail.com',
-        subject: `📊 NetEdu Report for ${link.parent_email}`,
+        from: MAIL_FROM,
+        replyTo: MAIL_REPLY_TO,
+        to: link.parent_email,
+        subject: '📊 NetEdu progress report',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: #1e1b4b; padding: 24px; border-radius: 12px 12px 0 0; text-align: center;">
               <h1 style="color: white; margin: 0; font-size: 22px;">NetEdu Report</h1>
-              <p style="color: #a5b4fc; font-size: 13px; margin: 8px 0 0;">For parent: ${link.parent_email}</p>
+              <p style="color: #a5b4fc; font-size: 13px; margin: 8px 0 0;">For parent: ${escapeHtml(link.parent_email)}</p>
             </div>
             <div style="background: #f9fafb; padding: 32px; border-radius: 0 0 12px 12px;">
               
               <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 16px;">
                 <h3 style="margin: 0 0 12px; color: #111827; font-size: 16px;">📚 Student Overview</h3>
                 <table style="width: 100%; font-size: 14px; color: #4b5563;">
-                  <tr><td style="padding: 4px 0;">Grade:</td><td style="text-align: right; font-weight: bold;">${profile.grade || '—'}</td></tr>
-                  <tr><td style="padding: 4px 0;">GPA:</td><td style="text-align: right; font-weight: bold;">${profile.gpa || '—'}</td></tr>
-                  <tr><td style="padding: 4px 0;">Target:</td><td style="text-align: right; font-weight: bold;">${profile.target_university || '—'}</td></tr>
-                  <tr><td style="padding: 4px 0;">Department:</td><td style="text-align: right; font-weight: bold;">${profile.target_department || '—'}</td></tr>
+                  <tr><td style="padding: 4px 0;">Grade:</td><td style="text-align: right; font-weight: bold;">${escapeHtml(profile.grade || '—')}</td></tr>
+                  <tr><td style="padding: 4px 0;">GPA:</td><td style="text-align: right; font-weight: bold;">${escapeHtml(profile.gpa ?? '—')}</td></tr>
+                  <tr><td style="padding: 4px 0;">Target:</td><td style="text-align: right; font-weight: bold;">${escapeHtml(profile.target_university || '—')}</td></tr>
+                  <tr><td style="padding: 4px 0;">Department:</td><td style="text-align: right; font-weight: bold;">${escapeHtml(profile.target_department || '—')}</td></tr>
                 </table>
               </div>
 
@@ -109,11 +111,11 @@ export async function GET(req: Request) {
 
               <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 12px; padding: 20px;">
                 <h3 style="margin: 0 0 12px; color: #3730a3; font-size: 16px;">💬 Progress Summary</h3>
-                <p style="color: #4338ca; font-size: 14px; line-height: 1.6; margin: 0;">${aiSummary}</p>
+                <p style="color: #4338ca; font-size: 14px; line-height: 1.6; margin: 0;">${escapeHtml(aiSummary)}</p>
               </div>
 
               <div style="text-align: center; margin-top: 24px;">
-                <a href="https://netedu.vercel.app/parent" style="background: #1e1b4b; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-size: 14px;">
+                <a href="${SITE_URL}/parent" style="background: #1e1b4b; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-size: 14px;">
                   View Full Parent Panel →
                 </a>
               </div>

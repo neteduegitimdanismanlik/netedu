@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { ADULT_AGE, ageOn, NOTICE_VERSION } from './consent-shared'
+import { SITE_URL, MAIL_FROM, MAIL_REPLY_TO, escapeHtml } from './email-config'
 
 /**
  * Server-only consent helpers. Never import this from a client component —
@@ -66,15 +67,8 @@ export async function consentGate(
   return null
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://netedu.vercel.app'
-// onboarding@resend.dev only delivers to the Resend account owner. Parents
-// receive nothing until a domain is verified in Resend and RESEND_FROM is set.
-const FROM = process.env.RESEND_FROM || 'NetEdu <onboarding@resend.dev>'
 const RESEND_COOLDOWN_MS = 10 * 60 * 1000
 
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!))
-}
 
 /** Sends (or re-sends) the parent approval link for this student. */
 export async function sendParentEmail(
@@ -103,12 +97,13 @@ export async function sendParentEmail(
 
   const { data: u } = await db.auth.admin.getUserById(userId)
   const student = escapeHtml(u?.user?.email ?? '')
-  const link = `${APP_URL}/parent-consent/${c.parent_token}`
+  const link = `${SITE_URL}/parent-consent/${c.parent_token}`
 
   // Constructed here, not at module level, so a missing key never breaks the build.
   const resend = new Resend(process.env.RESEND_API_KEY)
   const { error } = await resend.emails.send({
-    from: FROM,
+    from: MAIL_FROM,
+    replyTo: MAIL_REPLY_TO,
     to: c.parent_email,
     subject: 'NetEdu: Çocuğunuzun hesabı için onayınız gerekiyor / Your approval is needed',
     html: `

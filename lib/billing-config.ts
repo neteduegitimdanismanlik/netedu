@@ -36,7 +36,7 @@ export type BillingInterval = 'monthly' | 'annual'
 export type ChargeCurrency = 'TRY' | 'USD'
 
 /** Base URL iyzico redirects back to after checkout. Same convention the rest of the app uses. */
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://netedu.vercel.app'
+export { SITE_URL as APP_URL } from './email-config'
 
 /**
  * iyzico pricing-plan reference codes. Four plans total: each interval has

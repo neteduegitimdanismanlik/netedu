@@ -51,13 +51,18 @@ export default function Dashboard() {
     }
 
     // The route now requires a signed-in caller (it used to be open to anyone).
-    await fetch('/api/parent-invite', {
+    const res = await fetch('/api/parent-invite', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
       body: JSON.stringify({ parentEmail: email })
     })
+    const result = await res.json().catch(() => ({}))
 
-    setInviteSuccess(`Invitation sent to ${email}! They can sign up with this address and open the Parent Panel.`)
+    setInviteSuccess(
+      res.ok
+        ? `Invitation sent to ${email}! They can sign up with this address and open the Parent Panel.`
+        : `${email} is linked, but the e-mail didn't go out (${result.error || 'try again later'}). They can still sign up with this address and open the Parent Panel.`
+    )
     setParentEmail('')
     setShowInvite(false)
     setInviting(false)
