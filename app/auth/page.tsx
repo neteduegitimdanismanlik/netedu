@@ -14,10 +14,25 @@ import ConsentFields, { emptyConsent, validateConsent, consentMetadata, isMinor 
  */
 
 type Mode = 'login' | 'signup' | 'forgot'
+
+/**
+ * Supabase rejects an address with a stray space ("Unable to validate email
+ * address: invalid format") — and phone keyboards add one after autocomplete.
+ * Strip whitespace and invisible characters before every call.
+ */
+function cleanEmail(raw: string): string {
+  return raw.replace(/[\s\u200B-\u200D\uFEFF]/g, '').toLowerCase()
+}
+
+function friendly(message: string): string {
+  if (/invalid format|validate email/i.test(message)) return 'That e-mail address doesn\'t look right. Check it for typos.'
+  if (/already registered|already been registered/i.test(message)) return 'This e-mail already has an account. Log in instead, or use "Forgot password?".'
+  return message
+}
 type Note = { kind: 'ok' | 'error'; text: string } | null
 
 export default function Auth() {
-  const [email, setEmail] = useState('')
+  const [rawEmail, setRawEmail] = useState('')
   const [password, setPassword] = useState('')
   const [mode, setMode] = useState<Mode>('login')
   const [loading, setLoading] = useState(false)
@@ -36,6 +51,7 @@ export default function Auth() {
   }
 
   async function resendConfirmation() {
+    const email = cleanEmail(rawEmail)
     if (!email) return
     setLoading(true)
     const { error } = await supabase.auth.resend({
@@ -45,13 +61,15 @@ export default function Auth() {
     })
     setNote(
       error
-        ? { kind: 'error', text: error.message }
+        ? { kind: 'error', text: friendly(error.message) }
         : { kind: 'ok', text: `We sent the confirmation link to ${email} again. Check your spam folder too.` }
     )
     setLoading(false)
   }
 
   async function handleSubmit() {
+    const email = cleanEmail(rawEmail)
+    setRawEmail(email)
     setLoading(true)
     setNote(null)
     setCanResend(false)
@@ -68,7 +86,7 @@ export default function Auth() {
       } else if (/invalid login credentials/i.test(error.message)) {
         setNote({ kind: 'error', text: 'Wrong e-mail or password.' })
       } else {
-        setNote({ kind: 'error', text: error.message })
+        setNote({ kind: 'error', text: friendly(error.message) })
       }
     } else if (mode === 'forgot') {
       if (!/^\S+@\S+\.\S+$/.test(email)) {
@@ -79,12 +97,14 @@ export default function Auth() {
         })
         setNote(
           error
-            ? { kind: 'error', text: error.message }
+            ? { kind: 'error', text: friendly(error.message) }
             : { kind: 'ok', text: `If ${email} has a NetEdu account, a link to set a new password is on its way. Check your spam folder too.` }
         )
       }
     } else {
-      const invalid = validateConsent(consent, email)
+      const invalid = !/^[^@]+@[^@]+\.[a-z]{2,}$/.test(email)
+        ? "That e-mail address doesn't look right. Check it for typos."
+        : validateConsent(consent, email)
       if (invalid) {
         setNote({ kind: 'error', text: invalid })
         setLoading(false)
@@ -101,7 +121,7 @@ export default function Auth() {
         },
       })
       if (error) {
-        setNote({ kind: 'error', text: error.message })
+        setNote({ kind: 'error', text: friendly(error.message) })
       } else if (data.session) {
         // E-mail confirmation is switched off in Supabase: already signed in.
         window.location.href = '/dashboard'
@@ -146,8 +166,8 @@ export default function Auth() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+              value={rawEmail}
+              onChange={e => setRawEmail(e.target.value)}
               placeholder="your@email.com"
               autoComplete="email"
               className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
