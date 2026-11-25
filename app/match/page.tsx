@@ -265,7 +265,7 @@ export default function Match() {
                   <span>Checked {u.checkedOn} · {u.cycle}</span>
                   {u.source && (
                     <a href={u.source} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline">
-                      Official page
+                      Check the official page before you apply
                     </a>
                   )}
                 </div>
@@ -289,7 +289,7 @@ export default function Match() {
           <div className="bg-white rounded-2xl border border-red-100 p-6 mt-6">
             <h2 className="font-semibold text-gray-800 mb-1">Closed to you as things stand</h2>
             <p className="text-xs text-gray-500 mb-4 leading-relaxed">
-              These are not long shots — the application cannot be made. Worth knowing before you spend a choice on one.
+              With your current Higher Level subjects, you can't apply to these courses. Check each official page to confirm.
             </p>
             <div className="flex flex-col gap-3">
               {result.notEligible.map((n: any, i: number) => (

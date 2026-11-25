@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const ibBit = a.ibPoints ? `${a.ibPoints} IB points` : 'IB requirements'
   return seo(`/universities/${u.id}/${areaSlug(a.area)}`, {
     title: `${course} at ${u.name} — ${ibBit}${a.mebAccepted ? ' & Turkish Diploma (MEB)' : ''} | NetEdu`,
-    description: `${u.name} ${course}: ${a.ibPoints ? `${a.ibPoints} IB points` : 'IB requirement'}${a.ibHl ? `, HL ${a.ibHl}` : ''}${a.mebAccepted ? '. Accepts the Turkish national diploma (MEB)' : ''}. Checked ${u.checkedOn}, sourced from the university's own page.`,
+    description: `${u.name} ${course}: ${a.ibPoints ? `${a.ibPoints} IB points` : 'IB requirement'}${a.ibHl ? (/\bHL\b|Higher Level/i.test(a.ibHl) ? `, ${a.ibHl}` : `, ${a.ibHl} at HL`) : ''}${a.mebAccepted ? '. Accepts the Turkish national diploma (MEB)' : ''}. Checked ${u.checkedOn}, sourced from the university's own page.`,
   })
 }
 
@@ -97,33 +97,39 @@ export default async function AreaPage({ params }: { params: Promise<{ id: strin
           {a.ibPoints ? (
             <p className="text-sm text-gray-700 mb-2">
               <span className="font-semibold text-gray-900">{a.ibPoints} points</span> overall
-              {a.ibPointsMin ? ` (${a.ibPointsMin}–${a.ibPoints} range published)` : ''}
-              {a.ibHl ? <> — Higher Level profile <span className="font-medium">{a.ibHl}</span></> : ''}
+              {a.ibPointsMin ? ` (offers can go down to ${a.ibPointsMin})` : ''}
+              {a.ibHl ? <>{' · '}<span className="font-medium">{/\bHL\b|Higher Level/i.test(a.ibHl) ? a.ibHl : `${a.ibHl} at Higher Level (HL)`}</span></> : ''}
             </p>
-          ) : (
-            <p className="text-sm text-gray-500 mb-2">No overall IB points figure is published for this course — see the note below.</p>
-          )}
+          ) : a.ibHl ? (
+            <p className="text-sm text-gray-700 mb-2">
+              Higher Level: <span className="font-medium">{a.ibHl}</span>
+            </p>
+          ) : !a.note ? (
+            <p className="text-sm text-gray-500 mb-2">
+              We do not have enough information to show the IB points score for this course. Please check the
+              university&apos;s official entry requirements for further guidance.
+            </p>
+          ) : null}
 
           {a.hlRequired?.length ? (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mt-3 text-sm text-amber-800">
-              Requires <span className="font-medium">{a.hlRequired.join(' and ')}</span> at Higher Level.
-              This is a prerequisite, not a preference — the application cannot be made without it.
+              You need <span className="font-medium">{a.hlRequired.join(' and ')}</span> at Higher Level (HL) to apply.
             </div>
           ) : null}
 
           {a.hlRequiredAnyOf?.length ? (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mt-3 text-sm text-amber-800">
-              Requires{' '}
+              You need{' '}
               {a.hlRequiredAnyOf
-                .map((alt) => `${alt.count} of ${alt.subjects.join(', ')}`)
-                .join(', or ')}{' '}
-              at Higher Level.
+                .map((alt) => `${alt.count} of these at Higher Level (HL): ${alt.subjects.join(', ')}`)
+                .join(', or ')}
+              .
             </div>
           ) : null}
 
           {a.hlRecommended?.length ? (
             <p className="text-sm text-gray-500 mt-3">
-              Recommended but not required at Higher Level: {a.hlRecommended.join(', ')}.
+              Helpful to have at Higher Level: {a.hlRecommended.join(', ')}.
             </p>
           ) : null}
 
@@ -134,7 +140,15 @@ export default async function AreaPage({ params }: { params: Promise<{ id: strin
             </p>
           ) : null}
 
-          {a.note && <p className="text-sm text-gray-500 mt-3">{a.note}</p>}
+          {a.note && <p className="text-sm text-gray-700 mt-3">{a.note}</p>}
+
+          {/* One line of help for younger readers: what the numbers mean. */}
+          {(a.ibPoints || a.ibHl) && (
+            <p className="text-xs text-gray-400 mt-3">
+              IB subjects are graded from 1 to 7 (7 is the highest). HL means Higher Level, SL means Standard Level.
+              The IB total is out of 45.
+            </p>
+          )}
         </div>
 
         {guides.length > 0 && (
@@ -159,23 +173,20 @@ export default async function AreaPage({ params }: { params: Promise<{ id: strin
         )}
 
         {/* MEB — Turkish diploma. The thing almost nobody else publishes. */}
-        {(a.mebAccepted !== undefined || a.mebMinAverage !== undefined) && (
+        {a.mebAccepted && (
           <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-4">
             <h2 className="font-semibold text-gray-800 mb-1">Turkish national diploma (MEB)</h2>
             <p className="text-xs text-gray-400 mb-3">Türk lise diploması (Milli Eğitim) ile bu bölüme kabul şartı</p>
-            {a.mebAccepted && a.mebMinAverage != null ? (
+            {a.mebMinAverage != null ? (
               <p className="text-sm text-gray-700">
-                Reads a Turkish diploma average of roughly{' '}
-                <span className="font-semibold text-gray-900">{a.mebMinAverage}/100</span> as broadly
-                equivalent to this course's offer.
-              </p>
-            ) : a.mebAccepted ? (
-              <p className="text-sm text-gray-700">
-                Accepts the Turkish national diploma for this course, but has not published a specific
-                average — contact admissions with your transcript to check where you stand.
+                Asks for a Turkish diploma average of about{' '}
+                <span className="font-semibold text-gray-900">{a.mebMinAverage}/100</span>.
               </p>
             ) : (
-              <p className="text-sm text-gray-500">Not yet confirmed whether this course accepts the Turkish national diploma.</p>
+              <p className="text-sm text-gray-700">
+                Accepts the Turkish national diploma for this course. Contact admissions with your transcript to check
+                the grades you need.
+              </p>
             )}
             {a.mebNote && <p className="text-sm text-gray-500 mt-2">{a.mebNote}</p>}
             {a.mebSource && (
@@ -201,9 +212,14 @@ export default async function AreaPage({ params }: { params: Promise<{ id: strin
         )}
 
         {a.source && (
-          <a href={a.source} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 hover:underline mb-8 inline-block">
-            Official course page ↗
-          </a>
+          <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-8">
+            <p className="text-sm text-indigo-900">
+              Requirements can change every year. Always check the university&apos;s official page before you apply.
+            </p>
+            <a href={a.source} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-indigo-700 hover:underline mt-1 inline-block">
+              Official course page ↗
+            </a>
+          </div>
         )}
 
         {/* The CTA the whole page exists to deliver */}

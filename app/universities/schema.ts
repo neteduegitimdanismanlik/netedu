@@ -320,6 +320,12 @@ function hasHl(studentHl: string[], required: string): boolean {
   })
 }
 
+/** " with 6,6,6 at HL" — or just " with 18 points across three HL subjects" when the string already says HL. */
+function hlPhrase(ibHl?: string): string {
+  if (!ibHl) return ''
+  return /\bHL\b|Higher Level/i.test(ibHl) ? ` with ${ibHl}` : ` with ${ibHl} at HL`
+}
+
 /**
  * Compares one student against one subject area at one university.
  *
@@ -357,7 +363,7 @@ export function assessFit(
     if (!profile.hlSubjects?.length) {
       hlUnconfirmed = true
       missing.push(
-        `This course requires ${req.hlRequired.join(' and ')} at Higher Level. Add your HL subjects to check.`
+        `This course needs ${req.hlRequired.join(' and ')} at Higher Level (HL). Add your HL subjects to check.`
       )
     } else {
       const absent = req.hlRequired.filter((r) => !hasHl(profile.hlSubjects!, r))
@@ -365,13 +371,13 @@ export function assessFit(
         return {
           verdict: 'not-eligible',
           reasons: [
-            `${req.course || area} requires ${absent.join(' and ')} at Higher Level, which you are not taking. This is a prerequisite, not a preference — the application cannot be made without it.`,
+            `${req.course || area} needs ${absent.join(' and ')} at Higher Level (HL). You are not taking it, so you can't apply to this course with your current subjects.`,
           ],
           missing: [],
           verified: true,
         }
       }
-      reasons.push(`You have the required Higher Level subjects (${req.hlRequired.join(', ')}).`)
+      reasons.push(`You have the Higher Level subjects this course needs (${req.hlRequired.join(', ')}).`)
     }
   }
 
@@ -382,9 +388,9 @@ export function assessFit(
     if (!profile.hlSubjects?.length) {
       hlUnconfirmed = true
       missing.push(
-        `This course requires ${req.hlRequiredAnyOf
-          .map((alt) => `${alt.count} of ${alt.subjects.join(', ')}`)
-          .join(', or ')} at Higher Level. Add your HL subjects to check.`
+        `This course needs ${req.hlRequiredAnyOf
+          .map((alt) => `${alt.count} of these at Higher Level (HL): ${alt.subjects.join(', ')}`)
+          .join(', or ')}. Add your HL subjects to check.`
       )
     } else {
       const matchCounts = req.hlRequiredAnyOf.map((alt) => {
@@ -399,16 +405,16 @@ export function assessFit(
         return {
           verdict: 'not-eligible',
           reasons: [
-            `${req.course || area} requires ${req.hlRequiredAnyOf
-              .map((alt) => `${alt.count} of ${alt.subjects.join(', ')}`)
-              .join(', or ')} at Higher Level, which you are not taking. This is a prerequisite, not a preference — the application cannot be made without it.`,
+            `${req.course || area} needs ${req.hlRequiredAnyOf
+              .map((alt) => `${alt.count} of these at Higher Level (HL): ${alt.subjects.join(', ')}`)
+              .join(', or ')}. Your current HL subjects don't meet this, so you can't apply with them.`,
           ],
           missing: [],
           verified: true,
         }
       }
       const metAlt = matchCounts.find((m) => m.met)!.alt
-      reasons.push(`You have the required Higher Level subjects (${metAlt.count} of ${metAlt.subjects.join(', ')}).`)
+      reasons.push(`You have the Higher Level subjects this course needs (${metAlt.count} of ${metAlt.subjects.join(', ')}).`)
     }
   }
 
@@ -422,11 +428,11 @@ export function assessFit(
     // No grade offer exists here, so Reach / Match / Safety is meaningless.
     // Say what actually decides the place instead.
     const how: Record<string, string> = {
-      'test-ranked': `Admission is decided by ${req.admissionsTest || 'an entrance test'} and a ranking, not by your grades.`,
-      selection: 'Admission needs the right prior subjects, then a capped selection round — your total alone does not decide it.',
-      recognition: 'Admission turns on whether your diploma is recognised: a minimum total AND a specific subject combination.',
-      open: 'Admission is open to anyone with a recognised diploma and the required language level.',
-      dossier: 'A small intake judged on documents and essays, with no published grade threshold.',
+      'test-ranked': `Admission is decided by ${req.admissionsTest || 'an entrance test'} and a ranking.`,
+      selection: 'You need the right school subjects. Programmes with limited places then hold a selection round.',
+      recognition: 'Your diploma must be recognised: you need a minimum total and a set combination of subjects.',
+      open: 'You can enrol with a recognised diploma and the required language level.',
+      dossier: 'Students are chosen from their application documents and essays.',
     }
     reasons.unshift(how[model] || '')
     if (req.testThreshold) reasons.push(`Qualifying score: ${req.testThreshold}.`)
@@ -469,24 +475,24 @@ export function assessFit(
       else verdict = 'safety'
 
       const shortfall = Math.abs(gap)
-      const stated = `Requires ${effectiveIbPoints} points${req.ibHl ? ` with ${req.ibHl} at HL` : ''}${ibPointsQualifierNote}`
+      const stated = `Asks for ${effectiveIbPoints} IB points${hlPhrase(req.ibHl)}${ibPointsQualifierNote}`
 
       if (gap < 0 && withinPublishedRange) {
         reasons.push(
-          `${stated}, but this university publishes a range down to ${req.ibPointsMin}. Your predicted ${profile.ibPredicted} sits inside that range, so an offer is possible at the department's discretion.`
+          `${stated}. Offers can go down to ${req.ibPointsMin}, and your predicted ${profile.ibPredicted} is inside that range.`
         )
       } else if (gap < 0) {
         reasons.push(
           `${stated}. Your predicted ${profile.ibPredicted} is ${shortfall} point${shortfall === 1 ? '' : 's'} short.`
         )
       } else if (gap === 0) {
-        reasons.push(`${stated}. Your predicted ${profile.ibPredicted} meets it exactly, with no margin.`)
+        reasons.push(`${stated}. Your predicted ${profile.ibPredicted} meets it exactly.`)
       } else {
         reasons.push(`${stated}. Your predicted ${profile.ibPredicted} clears it by ${gap}.`)
       }
     } else {
       missing.push(
-        `Requires ${effectiveIbPoints} IB points${req.ibHl ? ` with ${req.ibHl} at HL` : ''}${ibPointsQualifierNote}. Add your predicted total to see where you stand.`
+        `Asks for ${effectiveIbPoints} IB points${hlPhrase(req.ibHl)}${ibPointsQualifierNote}. Add your predicted total to see where you stand.`
       )
     }
   }
@@ -506,28 +512,28 @@ export function assessFit(
       else verdict = 'safety'
 
       const shortfall = Math.abs(mebGap)
-      const stated = `This university reads a Turkish diploma average of roughly ${req.mebMinAverage}/100 as equivalent to its offer for this course${req.mebNote ? ` (${req.mebNote})` : ''}.`
+      const stated = `This university asks for a Turkish diploma average of about ${req.mebMinAverage}/100 for this course.${req.mebNote ? ` ${req.mebNote}` : ''}`
 
       if (mebGap < 0) {
         reasons.push(
           `${stated} Your average of ${profile.mebAverage} is ${shortfall} point${shortfall === 1 ? '' : 's'} short of that.`
         )
       } else if (mebGap === 0) {
-        reasons.push(`${stated} Your average of ${profile.mebAverage} meets it exactly, with no margin.`)
+        reasons.push(`${stated} Your average of ${profile.mebAverage} meets it exactly.`)
       } else {
         reasons.push(`${stated} Your average of ${profile.mebAverage} clears it by ${mebGap}.`)
       }
     } else if (req.mebAccepted) {
       reasons.push(
-        `${university.name} accepts the Turkish national diploma for this course${req.mebNote ? ` (${req.mebNote})` : ''}, but has not published a specific average — contact admissions with your transcript to check where you stand.`
+        `${university.name} accepts the Turkish national diploma for this course.${req.mebNote ? ` ${req.mebNote}` : ' Contact admissions with your transcript to check the grades you need.'}`
       )
     } else if (effectiveIbPoints == null) {
       missing.push(
-        `${university.name} has not published how it reads the Turkish national diploma for this course, and there is no IB points figure on file either. Check the course page directly, or add a predicted IB total if you have one.`
+        `Check the university's official page for how it reads the Turkish national diploma, or add a predicted IB total if you have one.`
       )
     } else {
       reasons.push(
-        `You gave a Turkish diploma average of ${profile.mebAverage}/100. This university publishes its requirement in IB points, so the two cannot be compared directly — check the university's own equivalence page.`
+        `This university gives its requirement in IB points. Check its official page to see how it reads a Turkish diploma average of ${profile.mebAverage}/100.`
       )
     }
   }
@@ -546,7 +552,7 @@ export function assessFit(
         // are otherwise a Match, and burying it as a plain bullet reads as if
         // it doesn't matter.
         reasons.push(
-          `⚠️ IELTS ${ieltsRequired} required${ieltsComponentRequired ? ` with ${ieltsComponentRequired} in each component` : ''}; you have ${profile.ielts}.`
+          `⚠️ This course asks for IELTS ${ieltsRequired}${ieltsComponentRequired ? ` with ${ieltsComponentRequired} in each part` : ''}; you have ${profile.ielts}.`
         )
       }
     } else if (profile.toefl != null) {
@@ -554,17 +560,17 @@ export function assessFit(
       // than silently comparing nothing, and pass along whatever the
       // university's own English-policy note says about TOEFL specifically.
       reasons.push(
-        `We only hold this course's IELTS requirement (${ieltsRequired}${ieltsComponentRequired ? ` overall, ${ieltsComponentRequired} in each component` : ' overall'}) — not a TOEFL figure.${university.ieltsNote ? ` ${university.ieltsNote}` : ' Check the official page for the TOEFL-equivalent score.'}`
+        `This course asks for IELTS ${ieltsRequired}${ieltsComponentRequired ? ` overall, with ${ieltsComponentRequired} in each part` : ' overall'}. Check the official page for the TOEFL score it accepts.`
       )
     } else {
-      missing.push(`IELTS ${ieltsRequired} is required and you have not entered an English score.`)
+      missing.push(`This course asks for IELTS ${ieltsRequired}. Add your English score to check.`)
     }
   }
 
   // 4. Tests, interviews, portfolios — extra work the student must plan for.
-  if (req.admissionsTest) reasons.push(`${req.admissionsTest} is required.`)
-  if (req.portfolio) reasons.push('A portfolio is required.')
-  if (req.interview) reasons.push('Shortlisted applicants are interviewed.')
+  if (req.admissionsTest) reasons.push(`Admissions test: ${req.admissionsTest}.`)
+  if (req.portfolio) reasons.push('You need to send a portfolio.')
+  if (req.interview) reasons.push('There is an interview.')
 
   // 5. Money and recognition.
   if (
@@ -578,7 +584,7 @@ export function assessFit(
     )
   }
   if (profile.needsYok && university.yokRecognised === undefined) {
-    missing.push('YÖK recognition for this university has not been checked yet.')
+    missing.push('Check YÖK recognition for this university on the YÖK website.')
   }
 
   // A required HL subject we could not check must never be papered over by a

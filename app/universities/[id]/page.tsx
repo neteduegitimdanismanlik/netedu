@@ -88,21 +88,18 @@ export default async function UniversityPage({ params }: { params: Promise<{ id:
             >
               <p className="font-medium text-gray-900 text-sm">{a.course || a.area}</p>
               <p className="text-xs text-gray-400 mt-1">
-                {a.ibPoints ? `${a.ibPoints} IB points` : a.mebAccepted ? 'Turkish diploma accepted' : 'Requirements inside'}
+                {a.ibPoints ? `${a.ibPoints} IB points` : a.mebAccepted ? 'Turkish diploma accepted' : 'See requirements'}
                 {a.ibHl ? ` · HL ${a.ibHl}` : ''}
               </p>
             </Link>
           ))}
         </div>
 
-        {u.gaps?.length ? (
-          <div className="text-xs text-gray-400 border-t border-gray-200 pt-4">
-            <p className="font-medium text-gray-500 mb-1">What we haven't verified here:</p>
-            <ul className="space-y-0.5">
-              {u.gaps.map((g, i) => <li key={i}>· {g}</li>)}
-            </ul>
-          </div>
-        ) : null}
+        {/* u.gaps stays in the data as a research to-do list; students only see what we found. */}
+        <p className="text-xs text-gray-500 border-t border-gray-200 pt-4">
+          Requirements can change every year. Always check each course&apos;s official page — linked on every
+          department page — before you apply.
+        </p>
       </div>
     </main>
   )
